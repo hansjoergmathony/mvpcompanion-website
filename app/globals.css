@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-navy: #0b1f3a;
+  --color-navy-deep: #071528;
+  --color-blue: #1a56db;
+  --color-blue-bright: #2f6bff;
+  --color-teal: #128a73;
+  --color-teal-soft: #1aa888;
+  --color-ice: #f3f7fc;
+  --color-mist: #e6eef8;
+  --color-background: #f7f9fc;
+  --color-foreground: #0b1f3a;
+  --color-muted: #5a6b80;
+  --color-border: #d5deea;
+  --color-card: #ffffff;
+  --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-blue) 18%, white);
+  color: var(--color-navy);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes hero-journey-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .hero-journey-step {
+    animation: hero-journey-in 0.45s ease both;
+  }
+}
