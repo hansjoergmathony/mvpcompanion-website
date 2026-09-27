@@ -5,6 +5,7 @@ import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ProcessOverview } from "@/components/visuals/ProcessOverview";
 import { processPage } from "@/content/pages";
+import { processContent } from "@/content/homepage";
 import { site } from "@/content/site";
 
 export const metadata: Metadata = {
@@ -28,12 +29,27 @@ export default function ProcessPage() {
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted">
           {processPage.frameworkNote}
         </p>
+        <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted">
+          {processContent.progressionNote}
+        </p>
 
         <p className="mt-10 text-xs font-medium tracking-[0.18em] text-blue uppercase">
           {processPage.phasesLabel}
         </p>
         <div className="mt-5">
           <ProcessOverview />
+        </div>
+
+        <div className="mt-12 max-w-3xl space-y-4">
+          <h2 className="text-xl font-semibold tracking-tight text-navy">
+            {processContent.bringToLifeTitle}
+          </h2>
+          <p className="text-base leading-relaxed text-muted">
+            {processContent.bringToLifeSupporting}
+          </p>
+          <p className="text-base font-medium leading-relaxed text-navy">
+            {processContent.keyMessageLead}
+          </p>
         </div>
 
         <div className="mt-10 border-t border-border pt-8">
@@ -47,7 +63,7 @@ export default function ProcessPage() {
         <p className="mt-12 text-sm text-muted">
           See also the{" "}
           <Link href="/#process" className="font-medium text-blue hover:underline">
-            process section on the homepage
+            method section on the homepage
           </Link>
           .
         </p>

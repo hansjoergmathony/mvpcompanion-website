@@ -120,7 +120,7 @@ function collectAssumptions(project: Project): string[] {
   });
 
   const standing = [
-    "This concept is based on the descriptions given during clarification. It has not been validated with users or market evidence.",
+    "This snapshot reflects your current understanding from website clarification. It has not been validated with users or market evidence.",
   ];
 
   return unique([...fromStages, ...standing]);
@@ -154,7 +154,7 @@ function collectOpenQuestions(
 
   if (questions.length === 0) {
     return [
-      "No unresolved questions were recorded during clarification. That does not mean the concept has been proven.",
+      "No unresolved questions were recorded during clarification. That does not mean your assumptions are validated.",
     ];
   }
 

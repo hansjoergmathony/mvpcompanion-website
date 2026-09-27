@@ -39,13 +39,13 @@ function HeroJourney() {
       />
       <div className="relative border-b border-border px-5 py-4">
         <p className="text-xs font-medium tracking-[0.18em] text-muted uppercase">
-          Structured journey
+          Method map
         </p>
         <p className="mt-1 text-sm text-navy">
-          Uncertainty → clarification → structure → specification → learning
+          Understand → Define → Shape → Specify → Learn
         </p>
       </div>
-      <ol aria-label="Five phases of the MVPCompanion process" className="relative p-5">
+      <ol aria-label="Five phases of the MVPCompanion method" className="relative p-5">
         <span
           aria-hidden="true"
           className="absolute top-10 bottom-10 left-[29px] w-px bg-linear-to-b from-blue via-blue to-teal"

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { AppEntryLinks } from "@/components/app/AppEntryLinks";
 import { startContent } from "@/content/start";
 import { useProject } from "@/lib/project/useProject";
 
@@ -14,6 +15,9 @@ type StartCallToActionProps = {
   defaultPrimaryLabel: string;
   defaultSecondaryLabel: string;
   defaultSecondaryHref: string;
+  defaultDetail?: string;
+  defaultSnapshotNote?: string;
+  showAppEntry?: boolean;
 };
 
 export function StartCallToAction({
@@ -24,6 +28,9 @@ export function StartCallToAction({
   defaultPrimaryLabel,
   defaultSecondaryLabel,
   defaultSecondaryHref,
+  defaultDetail,
+  defaultSnapshotNote,
+  showAppEntry = false,
 }: StartCallToActionProps) {
   const router = useRouter();
   const { isReady, isResumable, isCompleted, project, discardProject } =
@@ -71,6 +78,28 @@ export function StartCallToAction({
         <h2 className={headlineClassName}>{headline}</h2>
       ) : null}
       <p className={supportingClassName}>{supporting}</p>
+      {variant === "final" && defaultDetail && !showContinue ? (
+        <p
+          className={
+            inverted
+              ? "mt-4 max-w-2xl text-base leading-relaxed text-white/65"
+              : "mt-4 max-w-2xl text-base leading-relaxed text-muted"
+          }
+        >
+          {defaultDetail}
+        </p>
+      ) : null}
+      {variant === "final" && defaultSnapshotNote && !showContinue ? (
+        <p
+          className={
+            inverted
+              ? "mt-3 max-w-2xl text-sm leading-relaxed text-white/55"
+              : "mt-3 max-w-2xl text-sm leading-relaxed text-muted"
+          }
+        >
+          {defaultSnapshotNote}
+        </p>
+      ) : null}
       {isReady ? (
         <div className="mt-10 flex flex-wrap gap-3">
           {showContinue ? (
@@ -100,6 +129,9 @@ export function StartCallToAction({
       ) : (
         <div className="mt-10 min-h-[3.25rem]" aria-hidden="true" />
       )}
+      {showAppEntry && !showContinue ? (
+        <AppEntryLinks inverted={inverted} className="mt-8" />
+      ) : null}
       {confirming ? (
         <div
           className="mt-8 max-w-xl"

@@ -37,6 +37,11 @@ export function FrameworkSection() {
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted">
           {frameworkContent.qualityPrinciple.description}
         </p>
+        <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted">
+          <span className="font-medium text-navy">
+            {frameworkContent.qualityPrinciple.specificationNote}
+          </span>
+        </p>
         <div className="mt-8">
           <TraceabilityDiagram />
         </div>

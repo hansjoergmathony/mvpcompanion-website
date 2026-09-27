@@ -275,13 +275,6 @@ export function StartExperience() {
         headingRef={headingRef}
         concept={buildProductConcept(project)}
         confirmingReset={confirmingReset}
-        onDefineMvp={() => {
-          updateProject((current) => ({
-            ...current,
-            currentStage: "mvp",
-            status: "completed",
-          }));
-        }}
         onEditConcept={() => {
           updateProject((current) => ({
             ...current,

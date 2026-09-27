@@ -19,9 +19,12 @@ export function FinalCTA() {
           inverted
           defaultHeadline={finalCtaContent.headline}
           defaultSupporting={finalCtaContent.supporting}
+          defaultDetail={finalCtaContent.detail}
+          defaultSnapshotNote={finalCtaContent.snapshotNote}
           defaultPrimaryLabel={finalCtaContent.primaryCta.label}
           defaultSecondaryLabel={finalCtaContent.secondaryCta.label}
           defaultSecondaryHref={finalCtaContent.secondaryCta.href}
+          showAppEntry
         />
       </div>
     </Section>

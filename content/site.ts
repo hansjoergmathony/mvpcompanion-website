@@ -10,7 +10,7 @@ export const site = {
 } as const;
 
 export const navigation = [
-  { label: "Process", href: "/process" },
+  { label: "Method", href: "/process" },
   { label: "Contact", href: "/contact" },
 ] as const;
 
@@ -36,4 +36,15 @@ export const ctas = {
     label: "Explore the Method",
     href: "/#method",
   },
+  clarify: {
+    label: "Clarify your starting point →",
+    href: "/start",
+  },
+} as const;
+
+/** Set NEXT_PUBLIC_MVPCOMPANION_APP_URL when the app is publicly available. */
+export const appEntry = {
+  continueLabel: "Continue with MVPCompanion",
+  directStartLabel: "Start directly in the app",
+  href: process.env.NEXT_PUBLIC_MVPCOMPANION_APP_URL?.trim() ?? "",
 } as const;

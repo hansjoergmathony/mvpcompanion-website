@@ -8,9 +8,9 @@ export type ImplementedStageNumber = (typeof implementedStageNumbers)[number];
 export const totalStageCount = processStages.length;
 
 export const startContent = {
-  title: "Start with your idea.",
+  title: "Clarify your starting point.",
   supporting:
-    "Give us the starting point. This is starting context, not Stage 01. Clarification begins after this.",
+    "Answer a few essential questions about your idea, problem, users, value, product and context. This website clarification covers the same conceptual areas as the beginning of the shared method — it creates an Idea Snapshot, not the full MVPCompanion process.",
   intakeLabel: "Starting context",
   backToHome: "Back to homepage",
   submitLabel: "Start clarification",
@@ -23,49 +23,101 @@ export const startContent = {
   confirmLabel: "Looks good — continue",
   stageAnswerError: "Add an answer before this stage can be reviewed.",
   intakeError: "Add your idea, the problem, and the user to begin.",
-  continueHeadline: "Continue your idea.",
-  continueSupporting: "Pick up where you left off.",
+  continueHeadline: "Continue your Idea Snapshot.",
+  continueSupporting: "Pick up where you left off in the website clarification.",
   continueCta: "Continue",
   startNewCta: "Start a new idea",
   replaceConfirm:
     "This will replace your current idea. The work already captured will be lost.",
   replaceConfirmAction: "Replace current idea",
   keepCurrentAction: "Keep current idea",
-  pathLabel: "From idea to MVP",
-  path: ["Idea", "Clarification", "Product", "MVP"] as const,
-  summaryHeadline: "Your idea is becoming clearer.",
+  pathLabel: "Website clarification path",
+  path: ["Idea", "Clarification", "Idea Snapshot"] as const,
+  summaryHeadline: "Your Idea Snapshot",
   summarySupporting:
-    "You have worked through the first six stages of the 15-stage process. Stages 07–15 are not yet part of this prototype.",
-  conceptHeadline: "Your Product Concept",
-  conceptUnderstood:
-    "You now have a clearer product concept.",
+    "A structured starting point for developing your product further.",
+  snapshotClarification:
+    "This is your starting point — not your finished MVP specification.",
+  snapshotAppBridge:
+    "Bring your Idea Snapshot into MVPCompanion to take the next step: challenge assumptions, uncover gaps and progressively develop your MVP.",
+  appContinueHeadline: "Ready to take it further?",
+  appContinueSupporting:
+    "Bring your Idea Snapshot into MVPCompanion and continue from here. The app can review what you've defined, challenge important assumptions, identify gaps and progressively develop your MVP specification.",
+  appDirectPrompt: "Already have an idea and want to start directly?",
+  conceptHeadline: "Your Idea Snapshot",
+  conceptIntro:
+    "You've turned your initial idea into a structured starting point.",
+  conceptTagline:
+    "Your first structured view of the idea — a starting point for developing your product further.",
   conceptDistinction:
-    "The sections below record what is currently understood. Assumptions and open questions are listed separately. They have not been validated.",
-  conceptNext:
-    "Clarification is complete for now. The next step is to define what the MVP should actually contain.",
-  defineMvpCta: "Define my MVP",
-  editConceptCta: "Edit my concept",
-  viewConceptHeadline: "Your product concept is ready.",
-  viewConceptSupporting: "Open the concept you clarified, or start a new idea.",
-  viewConceptCta: "View your concept",
-  mvpHeadline: "Define the MVP",
-  mvpSupporting:
-    "The next step is to decide what the MVP should actually contain. Stages 07–15 are not yet part of this prototype.",
-  mvpBackToConcept: "Back to product concept",
-  conceptSections: [
-    { id: "idea", title: "1. Idea" },
-    { id: "problem", title: "2. Problem" },
-    { id: "primaryUser", title: "3. Primary User" },
-    { id: "desiredOutcome", title: "4. Desired Outcome" },
-    { id: "valueProposition", title: "5. Value Proposition" },
-    { id: "product", title: "6. Product Concept" },
-    { id: "lifecycle", title: "7. Context / Lifecycle" },
-    { id: "assumptions", title: "8. Key Assumptions" },
-    { id: "openQuestions", title: "9. Open Questions" },
+    "This is your starting point — not your finished MVP specification.",
+  conceptAppBridge:
+    "The MVPCompanion app takes this starting point further by challenging assumptions, uncovering gaps and progressively developing your MVP specification.",
+  startingPointTitle: "Your starting point",
+  startingPointBody:
+    "You now have a structured view of your idea, problem, user, value, product and context.",
+  startingPointExpectation:
+    "There is more to resolve before this becomes a focused, testable and buildable MVP.",
+  whatClarifiedTitle: "What you've clarified",
+  whatClarifiedIntro:
+    "Your answers reflect your current understanding — initial hypotheses, not validated conclusions.",
+  whatClarifiedItems: [
+    "A clearer description of the idea",
+    "A clearer problem hypothesis",
+    "An initial target user",
+    "An initial value proposition",
+    "An initial product definition",
+    "An initial understanding of context / lifecycle",
   ] as const,
+  whatComesNextTitle: "What comes next",
+  whatComesNextIntro:
+    "The Idea Snapshot is intentionally only the starting point. The full MVPCompanion process goes further into areas such as:",
+  whatComesNextStages: [
+    "Jobs",
+    "Scope",
+    "Experience",
+    "Information Architecture",
+    "Data",
+    "Requirements",
+    "Learning",
+    "Technical Boundaries",
+    "MVP Boundary",
+  ] as const,
+  whatComesNextAppIntro:
+    "MVPCompanion can take this further by helping you:",
+  whatComesNextAppItems: [
+    "Challenge important assumptions",
+    "Uncover gaps and open questions",
+    "Define core user jobs",
+    "Shape the smallest useful MVP",
+    "Define the core experience",
+    "Specify requirements",
+    "Define what the MVP needs to learn",
+  ] as const,
+  optionalEntryNote:
+    "You can start directly in the app with your own idea — the Idea Snapshot is optional context, not a prerequisite.",
+  editConceptCta: "Edit Idea Snapshot",
+  viewConceptHeadline: "Your Idea Snapshot is ready.",
+  viewConceptSupporting:
+    "Open what you clarified on the website, or start a new starting point.",
+  viewConceptCta: "View your Idea Snapshot",
+  mvpHeadline: "Continue in MVPCompanion",
+  mvpSupporting:
+    "The full 15-stage framework, AI-supported analysis, and evolving MVP Specification live in the app — not in this website clarification flow.",
+  mvpBackToConcept: "Back to Idea Snapshot",
+  ideaSnapshotStages: [
+    { number: "01", id: "idea", label: "Idea" },
+    { number: "02", id: "problem", label: "Problem" },
+    { number: "03", id: "user", label: "User" },
+    { number: "04", id: "value", label: "Value" },
+    { number: "05", id: "product", label: "Product" },
+    { number: "06", id: "context", label: "Context" },
+  ] as const,
+  assumptionsTitle: "Recorded assumptions",
+  openQuestionsTitle: "Open questions",
   answersLabel: "Answers so far",
   emptyAnswer: "Not added yet",
-  remainingLabel: "Not yet in this prototype",
+  remainingLabel: "Continues in the app",
   soFarLabel: "So far",
   assumptionsLabel: "Assumptions",
   intakeFields: [

@@ -18,21 +18,21 @@ export const templatesPage = {
     "Templates make the MVPCompanion process usable. They turn the 15 stages into a repeatable way of working.",
   introduction:
     "The website and future app are the places where those templates will live. The current starting point is the clarification process itself.",
-  processLabel: "See the 15-stage process",
+  processLabel: "See the 15-stage framework",
   processHref: "/#process",
 } as const;
 
 export const processPage = {
-  title: "Process — MVPCompanion",
-  eyebrow: "Process",
-  headline: "From Idea to MVP.",
+  title: "Method — MVPCompanion",
+  eyebrow: "Method",
+  headline: "5 phases. 15 stages. One connected framework.",
   introduction:
-    "The process has 15 stages. For a first visit, they can be seen in five phases.",
+    "A structured map from idea to MVP boundary. The stages define what needs to be thought through; the app helps you work through them with AI-supported challenge and refinement.",
   principle: "Five phases. Fifteen stages.",
-  phasesLabel: "Five phases",
-  stagesLabel: "All 15 stages",
+  phasesLabel: "Method map — five phases",
+  stagesLabel: "The 15-stage framework",
   frameworkNote:
-    "The five phases are a high-level view of the 15-stage process. The MVPCompanion framework is Method + Process → Integrated MVP Spec → Valuable · Viable · Buildable MVP.",
+    "The 15 stages provide the map. There is a structured progression, but real product thinking is iterative — earlier decisions can be revisited as new insights emerge.",
 } as const;
 
 export const contactPage = {

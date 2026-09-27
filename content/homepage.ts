@@ -39,11 +39,11 @@ export const approachContent = {
   headline: "Don't jump from idea to features.",
   principle: "Progressive clarification.",
   introduction:
-    "A common path is moving directly from idea to features, screens and coding. MVPCompanion introduces a systematic clarification process before detailed implementation.",
+    "A common path is moving directly from idea to features, screens and coding. MVPCompanion introduces a shared method for exploring and developing a product before detailed implementation.",
   principleExplanation:
-    "The process starts with an uncertain idea and progressively turns it into a clear, buildable MVP.",
+    "The same method runs from an uncertain idea toward a coherent MVP — explore it on the website, then apply it with AI support in the app.",
   progression: processPhases.map((phase) => phase.name),
-  progressionNote: "15 stages of progressive clarification.",
+  progressionNote: "A structured framework of 15 connected stages.",
   coreIdea: "Better product decisions before you build.",
 } as const;
 
@@ -70,15 +70,17 @@ export const frameworkContent = {
   structure:
     "Method + Process → Integrated MVP Spec → Valuable · Viable · Buildable MVP",
   explanation:
-    "Together they produce an Integrated MVP Spec — the basis for a valuable, viable and buildable MVP.",
+    "Together they lead toward an Integrated MVP Spec — progressively developed in the app as the basis for a valuable, viable and buildable MVP.",
   processLink: {
-    label: "The 15-stage process is introduced below.",
+    label: "The 15-stage framework is introduced below.",
     href: "#process",
   },
   qualityPrinciple: {
     label: "Traceability",
     description:
       "Every important requirement should be traceable backwards to a meaningful user problem and forwards to an observable outcome.",
+    specificationNote:
+      "Every important decision adds another traceable layer to the MVP Specification.",
     chain: [
       "Problem",
       "User",
@@ -93,14 +95,74 @@ export const frameworkContent = {
 } as const;
 
 export const processContent = {
-  eyebrow: "Process",
-  headline: "From Idea to MVP.",
+  eyebrow: "The MVPCompanion Method",
+  headline: "5 phases. 15 stages. One connected framework.",
   introduction:
-    "The process has 15 stages. For a first visit, they can be seen in five phases.",
+    "A structured map from idea to MVP boundary — the areas that need to be clarified, shaped and specified when developing an MVP.",
+  mapLead: "The 15 stages provide the map.",
+  mapSupporting:
+    "They structure the key areas that need to be clarified, shaped and specified when developing an MVP. The work itself is not a rigid checklist: as new insights emerge, earlier decisions can be revisited and refined.",
+  progressionNote:
+    "There is a structured progression, but real product thinking is iterative.",
+  iterativeTitle: "Progress is structured, but not strictly linear.",
+  iterativeSupporting:
+    "New insights can reveal that an earlier decision needs to be revisited and refined. The framework provides a meaningful progression, while allowing earlier decisions to be revisited when new insights emerge.",
+  keyMessageLead: "The stages provide the map. The app provides the guided journey.",
+  keyMessageFollow:
+    "As you move through the framework, AI helps you challenge assumptions, refine decisions and develop your MVP Specification.",
+  bringToLifeTitle:
+    "The framework provides the structure. The app brings it to life.",
+  bringToLifeSupporting:
+    "The 5 phases and 15 stages define what needs to be thought through. The app helps you work through those areas with AI-supported analysis, challenge and refinement.",
+  bringToLifeChallenge:
+    "Instead of simply moving from question to question, MVPCompanion can respond to what you have defined — surfacing assumptions, gaps, contradictions and open questions and helping you refine important decisions.",
+  layers: [
+    {
+      id: "method",
+      label: "Method",
+      title: "What needs to be clarified, shaped and specified.",
+      detail: "5 phases / 15 stages",
+    },
+    {
+      id: "experience",
+      label: "App experience",
+      title: "How MVPCompanion helps you work through it.",
+      detail: "Analyze → Challenge → Refine → Decide",
+    },
+    {
+      id: "output",
+      label: "Output",
+      title: "What progressively emerges.",
+      detail: "Evolving MVP Specification",
+    },
+  ],
+  distinction: "The process guides the thinking. The specification captures the decisions.",
+  evolveTagline: "As you work through the framework, your MVP Specification evolves with your decisions.",
+  processColumnTitle: "The Method Map",
+  specColumnTitle: "The Evolving MVP Specification",
+  specDocumentLabel: "One evolving specification",
+  specPhaseAdded: "Layers added",
+  mobileSpecGrowLabel: "Specification grows",
+  growsHeadline:
+    "Your MVP Specification grows as your product becomes clearer.",
+  growsSupporting:
+    "Each stage adds, challenges or refines part of the specification. By the end of the framework, you have a coherent definition of what to build, why, for whom and what the MVP needs to learn.",
+  growsClosing:
+    "By the end, the separate decisions form a coherent definition of what to build, why, for whom, what belongs in the MVP and what needs to be learned.",
+  journeyLead: "The stages provide the map.",
+  journeyFollow: "The evolving MVP Specification is what emerges from the journey.",
+  integratedTitle: "Integrated MVP Specification",
+  integratedSupporting:
+    "A coherent, traceable definition of the MVP — what it solves, for whom, what belongs in it, what needs to be built and what needs to be learned.",
+  outcomeLabel: "Valuable · Viable · Buildable MVP",
+  appNote:
+    "In the MVPCompanion app, your AI Companion helps you develop this specification as you work through the framework — identifying gaps, challenging assumptions and refining decisions along the way.",
   principle: "Five phases. Fifteen stages.",
-  note: "These phases are a simplified overview. They do not replace the 15-stage process, and they are not the framework itself.",
-  phasesLabel: "Five-phase overview",
-  stagesLabel: "The 15-stage process",
+  note: "These phases are a high-level view of the connected framework. They do not replace the 15 stages, and they are not a rigid wizard. Explore the method here; work through it with AI support in the MVPCompanion app.",
+  phasesLabel: "Method map — five phases",
+  stagesLabel: "The 15-stage framework",
+  detailIntro:
+    "The method has 15 stages, grouped into five phases. Each phase has a meaningful place in the progression from understanding to learning.",
 } as const;
 
 export const resultContent = {
@@ -133,25 +195,123 @@ export const ecosystemContent = {
   eyebrow: "Ecosystem",
   headline: "One Method. Three Ways to Use It.",
   introduction:
-    "MVPCompanion is a shared method expressed through a book, this website and a future app.",
+    "One shared MVPCompanion Method — learn it, explore it on this website, and apply it in the app.",
   methodLabel: "Shared Method",
+  appDifference:
+    "The difference is not another set of questions. It is an interactive process that responds to your thinking.",
   parts: [
     {
       name: "Book",
       role: "Understand",
-      description: "Learn the thinking behind MVPCompanion.",
+      description: "Learn the principles and reasoning behind the method.",
     },
     {
       name: "Website",
       role: "Explore",
-      description: "Discover the method, resources and examples.",
+      description: "Explore the method and clarify your starting point.",
     },
     {
       name: "App",
       role: "Do",
-      description: "Apply the method to your own product idea.",
+      description:
+        "Apply the method with AI-supported challenge and guidance. Develop your MVP Specification progressively.",
     },
   ],
+} as const;
+
+export const websiteAppContent = {
+  eyebrow: "Website & App",
+  headline: "Explore the method. Then apply it.",
+  introduction:
+    "The website helps you clarify your starting point. The app helps you challenge and develop it.",
+  bridge:
+    "Both use the same underlying method. The website introduces the vocabulary and creates initial context; the app reviews, challenges and develops that context with AI support.",
+  distinctionNote:
+    "Structured clarification on the website. AI-supported reasoning and challenge in the app.",
+  entryPathsNote:
+    "You don’t have to start on the website. If you already have a well-defined idea, you can start directly in the app. If you have used the website first, your Idea Snapshot can serve as the starting context for the app — the app still begins with Stage 1 and reviews that context rather than mechanically repeating the same questions.",
+  columns: [
+    {
+      id: "website",
+      label: "Website",
+      title: "Explore & Clarify",
+      items: [
+        "Explore the MVPCompanion method",
+        "Work through structured clarification questions",
+        "Clarify Idea, Problem, User, Value, Product and Context",
+        "Create an Idea Snapshot",
+        "Establish a useful starting point for deeper work",
+      ],
+    },
+    {
+      id: "app",
+      label: "App",
+      title: "Do, Challenge & Develop",
+      items: [
+        "Work through the 15-stage framework",
+        "AI analyzes your answers",
+        "Identify assumptions and gaps",
+        "Detect contradictions and unclear definitions",
+        "Ask targeted follow-up questions",
+        "Challenge and refine important decisions",
+        "Progressively develop the MVP Specification",
+      ],
+    },
+  ],
+} as const;
+
+export const aiChallengeContent = {
+  eyebrow: "AI Challenge",
+  headline: "The App doesn’t just ask questions. It challenges your thinking.",
+  introduction:
+    "The website helps you explore the method and clarify your starting point. The MVPCompanion app goes further: AI analyzes your answers, identifies assumptions and gaps, asks targeted follow-up questions and helps you refine your decisions as you work through the 15-stage framework.",
+  reactStatement:
+    "Instead of simply moving from question to question, the app reacts to what you say.",
+  meaningTitle: "What does AI Challenge mean?",
+  meaningIntro:
+    "AI Challenge means that MVPCompanion does more than collect your answers. It looks at what you have defined and helps you examine it more closely.",
+  meaningLead: "For example, the AI may recognize that:",
+  meaningExamples: [
+    "an important assumption has not been supported",
+    "a user definition is still too broad",
+    "a stated problem does not clearly connect to the proposed product",
+    "two answers appear to contradict each other",
+    "an important decision is still unclear",
+    "the proposed MVP scope depends on an unresolved question",
+  ],
+  meaningClose:
+    "Instead of silently moving on, MVPCompanion can ask a targeted follow-up question and help you resolve the issue.",
+  principle: "AI supports the thinking. You make the decisions.",
+  principleSupporting:
+    "MVPCompanion does not decide what your product should be. The AI helps you see assumptions, gaps, contradictions and open questions so that you can make better-informed decisions yourself.",
+  exampleLabel: "Answer → Challenge → Clarify → Refine",
+  exampleYourAnswerLabel: "Your answer",
+  exampleYourAnswer:
+    "“Our app is for everyone who wants to become more productive.”",
+  exampleChallengeLabel: "AI Challenge",
+  exampleChallenge:
+    "“Who specifically experiences the problem you want to solve? What situation makes the problem particularly relevant to them?”",
+  exampleRefinedLabel: "Refined thinking",
+  exampleRefined:
+    "“The initial target is university students who struggle to organize assignments across multiple courses.”",
+  exampleNote:
+    "This example shows the interaction pattern — not a claim that any particular answer is objectively correct.",
+  flowTitle: "How challenge feeds the specification",
+  flowSteps: [
+    "Your answer",
+    "AI analyzes",
+    "Assumptions · Gaps · Contradictions · Open questions",
+    "Targeted challenge",
+    "Your refined decision",
+    "MVP Specification evolves",
+  ],
+  specTitle: "Challenge is part of the specification-building process.",
+  specSupporting:
+    "As you work through the framework, your answers become increasingly precise. AI helps identify where further clarification is needed before important decisions are carried forward.",
+  specClosing:
+    "This means the MVP Specification is not simply generated at the end. It evolves as your thinking becomes clearer.",
+  distinctionReminder:
+    "The process guides the thinking. The specification captures the decisions.",
 } as const;
 
 export const audienceContent = {
@@ -182,10 +342,14 @@ export const audienceContent = {
 
 export const finalCtaContent = {
   headline: "Have an idea?",
-  supporting: "Start making it clear.",
+  supporting: "Start clarifying your starting point.",
+  detail:
+    "Answer a few essential questions about your idea, problem, users, value, product and context.",
+  snapshotNote:
+    "You will create an Idea Snapshot — a structured starting point, not a finished MVP specification.",
   primaryCta: {
-    label: ctas.primary.label,
-    href: ctas.primary.href,
+    label: ctas.clarify.label,
+    href: ctas.clarify.href,
   },
   secondaryCta: {
     label: "Explore the method",

@@ -32,6 +32,9 @@ export function EcosystemMap() {
           </li>
         ))}
       </ol>
+      <p className="mt-8 max-w-3xl text-base leading-relaxed text-muted">
+        {ecosystemContent.appDifference}
+      </p>
     </figure>
   );
 }

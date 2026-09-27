@@ -1,6 +1,6 @@
 import { startContent } from "@/content/start";
 
-type PathIndex = 0 | 1 | 2 | 3;
+type PathIndex = 0 | 1 | 2;
 
 type ClarificationPathProps = {
   current: PathIndex;

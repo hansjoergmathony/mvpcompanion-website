@@ -5,7 +5,7 @@ import { Container } from "@/components/ui/Container";
 import { startContent } from "@/content/start";
 
 export const metadata: Metadata = {
-  title: "Start with your idea — MVPCompanion",
+  title: { absolute: "Clarify your starting point — MVPCompanion" },
   description: startContent.supporting,
 };
 
