@@ -1,13 +1,7 @@
 import { problemContent } from "@/content/homepage";
 import { Section } from "@/components/ui/Section";
 
-const headlineClose = "They start with an idea.";
-
 export function ProblemSection() {
-  const headlineLead = problemContent.headline.endsWith(headlineClose)
-    ? problemContent.headline.slice(0, -headlineClose.length).trim()
-    : problemContent.headline;
-
   return (
     <Section id="problem">
       <div className="grid gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-16">
@@ -15,14 +9,8 @@ export function ProblemSection() {
           <p className="mb-4 text-xs font-medium tracking-[0.2em] text-blue uppercase">
             {problemContent.eyebrow}
           </p>
-          <h2 className="text-3xl leading-[1.15] font-semibold tracking-tight text-navy md:text-4xl">
-            {headlineLead}
-            {headlineLead !== problemContent.headline ? (
-              <>
-                <br />
-                {headlineClose}
-              </>
-            ) : null}
+          <h2 className="text-3xl leading-[1.15] font-semibold tracking-tight text-balance text-navy md:text-4xl">
+            {problemContent.headline}
           </h2>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted">
             {problemContent.introduction}

@@ -18,7 +18,7 @@ export const heroContent = {
 
 export const problemContent = {
   eyebrow: "Problem",
-  headline: "Most products don't start with a product. They start with an idea.",
+  headline: "An idea is only the beginning.",
   introduction:
     "An idea can feel exciting while important questions remain unanswered.",
   questions: [
