@@ -1,8 +1,4 @@
-import {
-  formatPhaseStages,
-  getStagesForPhase,
-  processPhases,
-} from "@/content/process";
+import { getStagesForPhase, processPhases } from "@/content/process";
 
 export function ProcessStagesList() {
   return (
@@ -17,7 +13,6 @@ export function ProcessStagesList() {
             <p className="text-xs font-medium tracking-[0.16em] text-blue uppercase">
               {phase.number} {phase.name}
             </p>
-            <p className="mt-1 text-sm text-muted">{formatPhaseStages(phase)}</p>
             <ol className="mt-4">
               {getStagesForPhase(phase).map((stage) => (
                 <li

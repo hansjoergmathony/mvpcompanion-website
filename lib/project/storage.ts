@@ -1,13 +1,16 @@
 import {
-  PROJECT_STORAGE_KEY,
+  IDEA_LIBRARY_STORAGE_KEY,
+  LEGACY_PROJECT_STORAGE_KEY,
   createEmptyStages,
-  createProject,
+  createIdea as createEmptyIdea,
+  createIdeaId,
   emptyStartingContext,
   isCurrentStage,
   stageKeys,
-  type Project,
-  type ProjectStages,
-  type ProjectStatus,
+  type Idea,
+  type IdeaLibrary,
+  type IdeaStages,
+  type IdeaStatus,
   type StageState,
   type StartingContext,
 } from "@/lib/project/types";
@@ -103,7 +106,7 @@ function readStringArray(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === "string");
 }
 
-function parseStages(value: unknown): ProjectStages {
+function parseStages(value: unknown): IdeaStages {
   const stages = createEmptyStages();
 
   if (!isRecord(value)) {
@@ -117,7 +120,7 @@ function parseStages(value: unknown): ProjectStages {
   return stages;
 }
 
-function parseStatus(value: unknown): ProjectStatus {
+function parseStatus(value: unknown): IdeaStatus {
   if (value === "new" || value === "in_progress" || value === "completed") {
     return value;
   }
@@ -125,7 +128,7 @@ function parseStatus(value: unknown): ProjectStatus {
   return "new";
 }
 
-export function parseProject(value: unknown): Project | null {
+export function parseIdea(value: unknown): Idea | null {
   if (!isRecord(value)) {
     return null;
   }
@@ -137,11 +140,13 @@ export function parseProject(value: unknown): Project | null {
   }
 
   const currentStageValue = readString(value.currentStage);
+  const title = readString(value.title) || "Untitled Idea";
   const createdAt = readString(value.createdAt) || new Date().toISOString();
   const updatedAt = readString(value.updatedAt) || createdAt;
 
   return {
     id,
+    title,
     createdAt,
     updatedAt,
     startingContext: parseStartingContext(value.startingContext),
@@ -153,49 +158,130 @@ export function parseProject(value: unknown): Project | null {
   };
 }
 
-let cachedRaw: string | null | undefined;
-let cachedProject: Project | null = null;
+export function parseIdeaLibrary(value: unknown): IdeaLibrary | null {
+  if (!isRecord(value) || value.version !== 1 || !Array.isArray(value.ideas)) {
+    return null;
+  }
 
-function setCache(raw: string | null | undefined, project: Project | null) {
-  cachedRaw = raw;
-  cachedProject = project;
+  const ideas = value.ideas.flatMap((item) => {
+    const idea = parseIdea(item);
+    return idea ? [idea] : [];
+  });
+  const requestedActiveIdeaId = readString(value.activeIdeaId) || null;
+  const activeIdeaId = ideas.some((idea) => idea.id === requestedActiveIdeaId)
+    ? requestedActiveIdeaId
+    : ideas[0]?.id ?? null;
+
+  return {
+    version: 1,
+    activeIdeaId,
+    ideas,
+  };
 }
 
-export function loadProject(): Project | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
+function createEmptyLibrary(): IdeaLibrary {
+  return { version: 1, activeIdeaId: null, ideas: [] };
+}
 
-  try {
-    const raw = window.localStorage.getItem(PROJECT_STORAGE_KEY);
+let cachedRaw: string | null | undefined;
+let cachedLibrary: IdeaLibrary = createEmptyLibrary();
 
-    if (raw === cachedRaw) {
-      return cachedProject;
-    }
-
-    if (!raw) {
-      setCache(null, null);
-      return null;
-    }
-
-    const project = parseProject(JSON.parse(raw) as unknown);
-    setCache(raw, project);
-    return project;
-  } catch {
-    setCache(undefined, null);
-    return null;
-  }
+function setCache(raw: string | null | undefined, library: IdeaLibrary) {
+  cachedRaw = raw;
+  cachedLibrary = library;
 }
 
 const listeners = new Set<() => void>();
 
-function emitProjectChange() {
+function emitLibraryChange() {
   listeners.forEach((listener) => {
     listener();
   });
 }
 
-export function subscribeProject(listener: () => void) {
+function writeIdeaLibrary(library: IdeaLibrary): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    const raw = JSON.stringify(library);
+    window.localStorage.setItem(IDEA_LIBRARY_STORAGE_KEY, raw);
+    setCache(raw, library);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function loadLegacyIdea(): Idea | null {
+  try {
+    const raw = window.localStorage.getItem(LEGACY_PROJECT_STORAGE_KEY);
+    return raw ? parseIdea(JSON.parse(raw) as unknown) : null;
+  } catch {
+    return null;
+  }
+}
+
+function migrateLegacyProject(): IdeaLibrary {
+  const legacyIdea = loadLegacyIdea();
+
+  if (!legacyIdea) {
+    const emptyLibrary = createEmptyLibrary();
+    setCache(null, emptyLibrary);
+    return emptyLibrary;
+  }
+
+  const library: IdeaLibrary = {
+    version: 1,
+    activeIdeaId: legacyIdea.id,
+    ideas: [legacyIdea],
+  };
+
+  if (writeIdeaLibrary(library)) {
+    try {
+      window.localStorage.removeItem(LEGACY_PROJECT_STORAGE_KEY);
+    } catch {
+      // The saved library is authoritative; retaining the legacy copy is safe.
+    }
+  } else {
+    setCache(undefined, library);
+  }
+
+  return library;
+}
+
+export function loadIdeaLibrary(): IdeaLibrary {
+  if (typeof window === "undefined") {
+    return cachedLibrary;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(IDEA_LIBRARY_STORAGE_KEY);
+
+    if (raw === cachedRaw) {
+      return cachedLibrary;
+    }
+
+    if (!raw) {
+      return migrateLegacyProject();
+    }
+
+    const library = parseIdeaLibrary(JSON.parse(raw) as unknown);
+    if (library) {
+      setCache(raw, library);
+      return library;
+    }
+  } catch {
+    // Leave the browser's stored value untouched if it cannot be read.
+  }
+
+  const emptyLibrary = createEmptyLibrary();
+  setCache(undefined, emptyLibrary);
+  return emptyLibrary;
+}
+
+export function subscribeIdeaLibrary(listener: () => void) {
   const shouldBindWindow = listeners.size === 0;
   listeners.add(listener);
 
@@ -215,50 +301,116 @@ export function subscribeProject(listener: () => void) {
 }
 
 function handleWindowStorage(event: StorageEvent) {
-  if (event.key === null || event.key === PROJECT_STORAGE_KEY) {
-    setCache(undefined, null);
-    emitProjectChange();
+  if (
+    event.key === null ||
+    event.key === IDEA_LIBRARY_STORAGE_KEY ||
+    event.key === LEGACY_PROJECT_STORAGE_KEY
+  ) {
+    setCache(undefined, createEmptyLibrary());
+    emitLibraryChange();
   }
 }
 
 function handlePageShow() {
-  setCache(undefined, null);
-  emitProjectChange();
+  setCache(undefined, createEmptyLibrary());
+  emitLibraryChange();
 }
 
-export function saveProject(project: Project): void {
-  if (typeof window === "undefined") {
-    return;
+export function saveIdeaLibrary(library: IdeaLibrary): boolean {
+  const saved = writeIdeaLibrary(library);
+
+  if (saved) {
+    emitLibraryChange();
   }
 
-  const raw = JSON.stringify(project);
-  window.localStorage.setItem(PROJECT_STORAGE_KEY, raw);
-  setCache(raw, project);
-  emitProjectChange();
+  return saved;
 }
 
-export function clearProject(): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  window.localStorage.removeItem(PROJECT_STORAGE_KEY);
-  setCache(null, null);
-  emitProjectChange();
-}
-
-export function persistProject(project: Project): Project {
-  const next: Project = {
-    ...project,
-    updatedAt: new Date().toISOString(),
+export function createIdea(): Idea {
+  const library = loadIdeaLibrary();
+  const idea = createEmptyIdea();
+  const next: IdeaLibrary = {
+    ...library,
+    activeIdeaId: idea.id,
+    ideas: [...library.ideas, idea],
   };
 
-  saveProject(next);
-  return next;
+  saveIdeaLibrary(next);
+  return idea;
 }
 
-export function replaceProject(): Project {
-  const project = createProject();
-  saveProject(project);
-  return project;
+/** Adds a validated snapshot as a separate local Idea without altering its dates or content. */
+export function importIdea(idea: Idea): Idea {
+  const library = loadIdeaLibrary();
+  const importedIdea: Idea = {
+    id: createIdeaId(),
+    title: idea.title,
+    createdAt: idea.createdAt,
+    updatedAt: idea.updatedAt,
+    startingContext: idea.startingContext,
+    stages: idea.stages,
+    currentStage: idea.currentStage,
+    status: idea.status,
+  };
+
+  saveIdeaLibrary({
+    ...library,
+    activeIdeaId: importedIdea.id,
+    ideas: [...library.ideas, importedIdea],
+  });
+  return importedIdea;
+}
+
+export function selectIdea(id: string): void {
+  const library = loadIdeaLibrary();
+
+  if (!library.ideas.some((idea) => idea.id === id) || library.activeIdeaId === id) {
+    return;
+  }
+
+  saveIdeaLibrary({ ...library, activeIdeaId: id });
+}
+
+export function updateActiveIdea(updater: (current: Idea) => Idea): void {
+  const library = loadIdeaLibrary();
+  const activeIdea = library.ideas.find((idea) => idea.id === library.activeIdeaId);
+
+  if (!activeIdea) {
+    const idea = createEmptyIdea();
+    const updatedIdea = withUpdatedTimestamp(updater(idea));
+    saveIdeaLibrary({
+      ...library,
+      activeIdeaId: updatedIdea.id,
+      ideas: [...library.ideas, updatedIdea],
+    });
+    return;
+  }
+
+  const updatedIdea = withUpdatedTimestamp(updater(activeIdea));
+  saveIdeaLibrary({
+    ...library,
+    ideas: library.ideas.map((idea) =>
+      idea.id === activeIdea.id ? updatedIdea : idea,
+    ),
+  });
+}
+
+function withUpdatedTimestamp(idea: Idea): Idea {
+  return { ...idea, updatedAt: new Date().toISOString() };
+}
+
+export function deleteIdea(id: string): void {
+  const library = loadIdeaLibrary();
+  const ideas = library.ideas.filter((idea) => idea.id !== id);
+
+  if (ideas.length === library.ideas.length) {
+    return;
+  }
+
+  const activeIdeaId =
+    library.activeIdeaId === id
+      ? ideas[ideas.length - 1]?.id ?? null
+      : library.activeIdeaId;
+
+  saveIdeaLibrary({ ...library, activeIdeaId, ideas });
 }

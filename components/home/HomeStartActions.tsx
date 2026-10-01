@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { AppEntryLinks } from "@/components/app/AppEntryLinks";
 import { startContent } from "@/content/start";
-import { useProject } from "@/lib/project/useProject";
+import { useIdeaLibrary } from "@/lib/project/useProject";
 
 type StartCallToActionProps = {
   variant: "hero" | "final";
@@ -33,12 +32,11 @@ export function StartCallToAction({
   showAppEntry = false,
 }: StartCallToActionProps) {
   const router = useRouter();
-  const { isReady, isResumable, isCompleted, project, discardProject } =
-    useProject();
-  const [confirming, setConfirming] = useState(false);
+  const { isReady, isResumable, isCompleted, activeIdea, createIdea } =
+    useIdeaLibrary();
 
   const showContinue = isReady && isResumable;
-  const viewingConcept = isCompleted && project?.currentStage !== "mvp";
+  const viewingConcept = isCompleted && activeIdea?.currentStage !== "mvp";
   const headline = !showContinue
     ? defaultHeadline
     : viewingConcept
@@ -66,9 +64,8 @@ export function StartCallToAction({
   const primaryVariant = inverted ? "inverse" : "primary";
   const secondaryVariant = inverted ? "inverseSecondary" : "secondary";
 
-  function handleReplace() {
-    discardProject();
-    setConfirming(false);
+  function handleCreateIdea() {
+    createIdea();
     router.push("/start");
   }
 
@@ -110,7 +107,7 @@ export function StartCallToAction({
               <Button
                 type="button"
                 variant={secondaryVariant}
-                onClick={() => setConfirming(true)}
+                onClick={handleCreateIdea}
               >
                 {startContent.startNewCta}
               </Button>
@@ -131,33 +128,6 @@ export function StartCallToAction({
       )}
       {showAppEntry && !showContinue ? (
         <AppEntryLinks inverted={inverted} className="mt-8" />
-      ) : null}
-      {confirming ? (
-        <div
-          className="mt-8 max-w-xl"
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="replace-idea-title"
-        >
-          <p
-            id="replace-idea-title"
-            className={`text-base leading-relaxed ${inverted ? "text-white/85" : ""}`}
-          >
-            {startContent.replaceConfirm}
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Button type="button" variant={primaryVariant} onClick={handleReplace}>
-              {startContent.replaceConfirmAction}
-            </Button>
-            <Button
-              type="button"
-              variant={secondaryVariant}
-              onClick={() => setConfirming(false)}
-            >
-              {startContent.keepCurrentAction}
-            </Button>
-          </div>
-        </div>
       ) : null}
     </>
   );

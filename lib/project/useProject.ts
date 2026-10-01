@@ -2,25 +2,29 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 import {
-  clearProject,
-  loadProject,
-  persistProject,
-  replaceProject as replaceStoredProject,
-  subscribeProject,
+  createIdea,
+  deleteIdea as deleteStoredIdea,
+  importIdea as importStoredIdea,
+  loadIdeaLibrary,
+  selectIdea as selectStoredIdea,
+  subscribeIdeaLibrary,
+  updateActiveIdea as updateStoredActiveIdea,
 } from "@/lib/project/storage";
 import {
-  createProject,
   hasCompletedConcept,
-  shouldResumeProject,
-  type Project,
+  shouldResumeIdea,
+  type Idea,
+  type IdeaLibrary,
 } from "@/lib/project/types";
 
-function getProjectSnapshot(): Project | null {
-  return loadProject();
+const emptyLibrary: IdeaLibrary = { version: 1, activeIdeaId: null, ideas: [] };
+
+function getLibrarySnapshot() {
+  return loadIdeaLibrary();
 }
 
-function getServerSnapshot(): Project | null {
-  return null;
+function getServerSnapshot() {
+  return emptyLibrary;
 }
 
 function getClientReadySnapshot(): boolean {
@@ -31,38 +35,52 @@ function getServerReadySnapshot(): boolean {
   return false;
 }
 
-export function useProject() {
-  const project = useSyncExternalStore(
-    subscribeProject,
-    getProjectSnapshot,
+export function useIdeaLibrary() {
+  const library = useSyncExternalStore(
+    subscribeIdeaLibrary,
+    getLibrarySnapshot,
     getServerSnapshot,
   );
   const isReady = useSyncExternalStore(
-    subscribeProject,
+    subscribeIdeaLibrary,
     getClientReadySnapshot,
     getServerReadySnapshot,
   );
+  const activeIdea = library.ideas.find(
+    (idea) => idea.id === library.activeIdeaId,
+  ) ?? null;
 
-  const updateProject = useCallback((updater: (current: Project) => Project) => {
-    const current = loadProject() ?? createProject();
-    persistProject(updater(current));
+  const updateActiveIdea = useCallback((updater: (current: Idea) => Idea) => {
+    updateStoredActiveIdea(updater);
   }, []);
 
-  const startNewProject = useCallback(() => {
-    return replaceStoredProject();
+  const selectIdea = useCallback((id: string) => {
+    selectStoredIdea(id);
   }, []);
 
-  const discardProject = useCallback(() => {
-    clearProject();
+  const deleteIdea = useCallback((id: string) => {
+    deleteStoredIdea(id);
+  }, []);
+
+  const createNewIdea = useCallback(() => {
+    return createIdea();
+  }, []);
+
+  const importIdea = useCallback((idea: Idea) => {
+    return importStoredIdea(idea);
   }, []);
 
   return {
-    project,
+    library,
+    ideas: library.ideas,
+    activeIdea,
     isReady,
-    isResumable: shouldResumeProject(project),
-    isCompleted: hasCompletedConcept(project),
-    updateProject,
-    startNewProject,
-    discardProject,
+    isResumable: shouldResumeIdea(activeIdea),
+    isCompleted: hasCompletedConcept(activeIdea),
+    createIdea: createNewIdea,
+    importIdea,
+    selectIdea,
+    updateActiveIdea,
+    deleteIdea,
   };
 }

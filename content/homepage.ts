@@ -43,7 +43,7 @@ export const approachContent = {
   principleExplanation:
     "The same method runs from an uncertain idea toward a coherent MVP — explore it on the website, then apply it with AI support in the app.",
   progression: processPhases.map((phase) => phase.name),
-  progressionNote: "A structured framework of 15 connected stages.",
+  progressionNote: "From Idea → to a coherent MVP.",
   coreIdea: "Better product decisions before you build.",
 } as const;
 
@@ -116,33 +116,17 @@ export const processContent = {
     "The 5 phases and 15 stages define what needs to be thought through. The app helps you work through those areas with AI-supported analysis, challenge and refinement.",
   bringToLifeChallenge:
     "Instead of simply moving from question to question, MVPCompanion can respond to what you have defined — surfacing assumptions, gaps, contradictions and open questions and helping you refine important decisions.",
-  layers: [
-    {
-      id: "method",
-      label: "Method",
-      title: "What needs to be clarified, shaped and specified.",
-      detail: "5 phases / 15 stages",
-    },
-    {
-      id: "experience",
-      label: "App experience",
-      title: "How MVPCompanion helps you work through it.",
-      detail: "Analyze → Challenge → Refine → Decide",
-    },
-    {
-      id: "output",
-      label: "Output",
-      title: "What progressively emerges.",
-      detail: "Evolving MVP Specification",
-    },
+  appExperienceSteps: ["Analyze", "Challenge", "Refine", "Decide"],
+  specificationTitle: "One evolving MVP Specification",
+  distinctionLead: "The process guides the thinking.",
+  distinctionFollow: "The specification captures the decisions.",
+  specificationFlow: [
+    "Idea",
+    "Decisions",
+    "Refinement",
+    "Integrated MVP Specification",
+    "Valuable · Viable · Buildable MVP",
   ],
-  distinction: "The process guides the thinking. The specification captures the decisions.",
-  evolveTagline: "As you work through the framework, your MVP Specification evolves with your decisions.",
-  processColumnTitle: "The Method Map",
-  specColumnTitle: "The Evolving MVP Specification",
-  specDocumentLabel: "One evolving specification",
-  specPhaseAdded: "Layers added",
-  mobileSpecGrowLabel: "Specification grows",
   growsHeadline:
     "Your MVP Specification grows as your product becomes clearer.",
   growsSupporting:
@@ -157,12 +141,7 @@ export const processContent = {
   outcomeLabel: "Valuable · Viable · Buildable MVP",
   appNote:
     "In the MVPCompanion app, your AI Companion helps you develop this specification as you work through the framework — identifying gaps, challenging assumptions and refining decisions along the way.",
-  principle: "Five phases. Fifteen stages.",
-  note: "These phases are a high-level view of the connected framework. They do not replace the 15 stages, and they are not a rigid wizard. Explore the method here; work through it with AI support in the MVPCompanion app.",
-  phasesLabel: "Method map — five phases",
   stagesLabel: "The 15-stage framework",
-  detailIntro:
-    "The method has 15 stages, grouped into five phases. Each phase has a meaningful place in the progression from understanding to learning.",
 } as const;
 
 export const resultContent = {

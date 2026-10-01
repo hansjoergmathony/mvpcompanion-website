@@ -1,51 +1,37 @@
 import type { RefObject } from "react";
 import { AppEntryLinks } from "@/components/app/AppEntryLinks";
 import { ClarificationPath } from "@/components/start/ClarificationPath";
+import { SnapshotExportMenu } from "@/components/start/SnapshotExportMenu";
 import { Button } from "@/components/ui/Button";
 import { startContent } from "@/content/start";
+import {
+  getClarificationProgress,
+  getIdeaTitle,
+  getSnapshotStages,
+} from "@/lib/project/ideaSnapshot";
+import type { Idea } from "@/lib/project/types";
 import type { ProductConcept } from "@/lib/clarification/types";
 
 type ProductConceptViewProps = {
   headingRef: RefObject<HTMLHeadingElement | null>;
+  idea: Idea;
   concept: ProductConcept;
-  confirmingReset: boolean;
   onEditConcept: () => void;
   onStartNew: () => void;
-  onCancelReset: () => void;
-  onConfirmReset: () => void;
+  editLabel?: string;
 };
-
-function snapshotStageContent(
-  id: (typeof startContent.ideaSnapshotStages)[number]["id"],
-  concept: ProductConcept,
-): string {
-  switch (id) {
-    case "idea":
-      return concept.idea;
-    case "problem":
-      return concept.problem;
-    case "user":
-      return concept.primaryUser;
-    case "value":
-      return concept.valueProposition;
-    case "product":
-      return concept.product;
-    case "context":
-      return concept.lifecycle;
-    default:
-      return "";
-  }
-}
 
 export function ProductConceptView({
   headingRef,
+  idea,
   concept,
-  confirmingReset,
   onEditConcept,
   onStartNew,
-  onCancelReset,
-  onConfirmReset,
+  editLabel = startContent.editConceptCta,
 }: ProductConceptViewProps) {
+  const progress = getClarificationProgress(idea);
+  const snapshotStages = getSnapshotStages(idea);
+
   return (
     <div className="max-w-2xl">
       <ClarificationPath current={2} />
@@ -63,6 +49,33 @@ export function ProductConceptView({
         {startContent.conceptTagline}
       </p>
 
+      <div className="mt-8 rounded-2xl border border-border bg-card px-6 py-5">
+        <p className="text-xs uppercase tracking-[0.14em] text-muted">Idea name</p>
+        <p className="text-xl font-semibold tracking-tight text-navy">
+          {getIdeaTitle(idea)}
+        </p>
+        <dl className="mt-4 grid gap-3 text-sm text-muted sm:grid-cols-2">
+          <div>
+            <dt className="text-xs uppercase tracking-[0.14em]">Status</dt>
+            <dd className="mt-1 text-foreground">{idea.status.replace("_", " ")}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-[0.14em]">Clarification progress</dt>
+            <dd className="mt-1 text-foreground">
+              {progress.clarified} clarified · {progress.inProgress} in progress · {progress.unresolved} unresolved
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-[0.14em]">Created</dt>
+            <dd className="mt-1 text-foreground">{formatDate(idea.createdAt)}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-[0.14em]">Updated</dt>
+            <dd className="mt-1 text-foreground">{formatDate(idea.updatedAt)}</dd>
+          </div>
+        </dl>
+      </div>
+
       <article
         aria-labelledby="idea-snapshot-artifact"
         className="mt-10 rounded-2xl border border-border bg-ice px-6 py-8 md:px-8"
@@ -71,13 +84,20 @@ export function ProductConceptView({
           Idea Snapshot contents
         </h2>
         <ol className="space-y-8">
-          {startContent.ideaSnapshotStages.map((stage) => (
-            <li key={stage.id}>
+          {snapshotStages.map((stage, index) => (
+            <li key={stage.key}>
               <h3 className="text-xs font-medium tracking-[0.18em] text-blue uppercase">
-                {stage.number} {stage.label}
+                {String(index + 1).padStart(2, "0")} {stage.label}
               </h3>
+              <p className="mt-2 text-sm text-muted">
+                {stage.status === "clarified"
+                  ? "Clarified"
+                  : stage.status === "in_progress"
+                    ? "In progress"
+                    : "Unresolved"}
+              </p>
               <p className="mt-3 break-words text-base leading-relaxed text-navy">
-                {snapshotStageContent(stage.id, concept)}
+                {stage.content}
               </p>
             </li>
           ))}
@@ -228,8 +248,9 @@ export function ProductConceptView({
       </section>
 
       <div className="mt-10 flex flex-wrap gap-3">
+        <SnapshotExportMenu idea={idea} />
         <Button type="button" variant="secondary" onClick={onEditConcept}>
-          {startContent.editConceptCta}
+          {editLabel}
         </Button>
         <Button type="button" variant="secondary" onClick={onStartNew}>
           {startContent.startNewCta}
@@ -239,28 +260,13 @@ export function ProductConceptView({
         </Button>
       </div>
 
-      {confirmingReset ? (
-        <div
-          className="mt-8 max-w-xl"
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="concept-reset-title"
-        >
-          <p id="concept-reset-title" className="text-base leading-relaxed">
-            {startContent.replaceConfirm}
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Button type="button" onClick={onConfirmReset}>
-              {startContent.replaceConfirmAction}
-            </Button>
-            <Button type="button" variant="secondary" onClick={onCancelReset}>
-              {startContent.keepCurrentAction}
-            </Button>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
+}
+
+function formatDate(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "Unknown" : date.toLocaleDateString();
 }
 
 type MvpPlaceholderViewProps = {

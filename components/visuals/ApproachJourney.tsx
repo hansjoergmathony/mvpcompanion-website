@@ -1,7 +1,4 @@
-import {
-  formatPhaseStages,
-  processPhases,
-} from "@/content/process";
+import { processPhases } from "@/content/process";
 
 const phaseIcons = [
   UnderstandIcon,
@@ -38,9 +35,6 @@ export function ApproachJourney() {
             <h3 className="mt-2 text-[15px] font-semibold tracking-tight text-navy">
               {phase.name}
             </h3>
-            <p className="mt-1 text-sm leading-relaxed text-muted">
-              {formatPhaseStages(phase)}
-            </p>
           </li>
         );
       })}

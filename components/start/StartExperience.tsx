@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { ClarificationPath } from "@/components/start/ClarificationPath";
+import { IdeaLibrary } from "@/components/start/IdeaLibrary";
 import {
   MvpPlaceholderView,
   ProductConceptView,
@@ -27,15 +28,15 @@ import {
   stageKeyByNumber,
   stageKeys,
   stageNumberByKey,
-  type ProjectStages,
+  type IdeaStages,
   type StageKey,
   type StageState,
 } from "@/lib/project/types";
-import { useProject } from "@/lib/project/useProject";
+import { useIdeaLibrary } from "@/lib/project/useProject";
 
 const implementedStages = getImplementedStages();
 
-function confirmStage(stages: ProjectStages, key: StageKey): ProjectStages {
+function confirmStage(stages: IdeaStages, key: StageKey): IdeaStages {
   const current = stages[key];
 
   if (!current.feedback) {
@@ -55,16 +56,28 @@ function confirmStage(stages: ProjectStages, key: StageKey): ProjectStages {
 }
 const fieldClassName =
   "mt-3 w-full resize-y rounded-md border border-border bg-card px-4 py-3 text-base leading-relaxed text-foreground placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue";
+const ideaNameFieldClassName =
+  "mt-3 w-full rounded-md border border-border bg-card px-4 py-3 text-base text-foreground placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue";
 
 export function StartExperience() {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const errorId = useId();
-  const { project, isReady, updateProject, discardProject } = useProject();
+  const {
+    activeIdea,
+    ideas,
+    library,
+    isReady,
+    createIdea,
+    importIdea,
+    selectIdea,
+    updateActiveIdea,
+    deleteIdea,
+  } = useIdeaLibrary();
   const [intakeError, setIntakeError] = useState(false);
-  const [confirmingReset, setConfirmingReset] = useState(false);
+  const [isViewingSnapshot, setIsViewingSnapshot] = useState(false);
 
-  const currentStage = project?.currentStage ?? "intake";
-  const startingContext = project?.startingContext ?? emptyIntakeValues;
+  const currentStage = activeIdea?.currentStage ?? "intake";
+  const startingContext = activeIdea?.startingContext ?? emptyIntakeValues;
   const currentStageKey = isStageKey(currentStage) ? currentStage : null;
   const currentStageNumber = currentStageKey
     ? stageNumberByKey[currentStageKey]
@@ -82,11 +95,15 @@ export function StartExperience() {
   }, [isReady, currentStage]);
 
   function updateStartingContext(values: IntakeValues) {
-    updateProject((current) => ({
+    updateActiveIdea((current) => ({
       ...current,
       startingContext: values,
       status: current.status === "in_progress" ? "in_progress" : "new",
     }));
+  }
+
+  function updateIdeaTitle(title: string) {
+    updateActiveIdea((current) => ({ ...current, title }));
   }
 
   function handleIntakeSubmit(event: FormEvent<HTMLFormElement>) {
@@ -104,7 +121,7 @@ export function StartExperience() {
     }
 
     setIntakeError(false);
-    updateProject((current) => ({
+    updateActiveIdea((current) => ({
       ...current,
       startingContext: nextContext,
       stages: seedEmptyStageAnswers(current.stages, nextContext),
@@ -115,10 +132,6 @@ export function StartExperience() {
 
   function goToPreviousStage() {
     if (!currentStageKey || currentStageKey === "idea") {
-      updateProject((current) => ({
-        ...current,
-        currentStage: "intake",
-      }));
       return;
     }
 
@@ -134,7 +147,7 @@ export function StartExperience() {
       return;
     }
 
-    updateProject((current) => ({
+    updateActiveIdea((current) => ({
       ...current,
       currentStage: previousKey,
       status: "in_progress",
@@ -151,7 +164,7 @@ export function StartExperience() {
     );
 
     if (currentIndex === implementedStages.length - 1) {
-      updateProject((current) => ({
+      updateActiveIdea((current) => ({
         ...current,
         stages: confirmStage(current.stages, currentStageKey),
         currentStage: "summary",
@@ -167,7 +180,7 @@ export function StartExperience() {
       return;
     }
 
-    updateProject((current) => ({
+    updateActiveIdea((current) => ({
       ...current,
       stages: confirmStage(current.stages, currentStageKey),
       currentStage: nextKey,
@@ -180,17 +193,27 @@ export function StartExperience() {
       return;
     }
 
-    updateProject((current) => ({
-      ...current,
-      stages: {
-        ...current.stages,
-        [currentStageKey]: {
-          ...current.stages[currentStageKey],
-          answer: value,
+    updateActiveIdea((current) => {
+      const stage = current.stages[currentStageKey];
+      const nextStage = { ...stage, answer: value };
+
+      if (
+        stage.submittedAnswer !== undefined &&
+        stage.submittedAnswer !== value.trim()
+      ) {
+        nextStage.submittedAnswer = undefined;
+        nextStage.feedback = null;
+      }
+
+      return {
+        ...current,
+        stages: {
+          ...current.stages,
+          [currentStageKey]: nextStage,
         },
-      },
-      status: "in_progress",
-    }));
+        status: "in_progress",
+      };
+    });
   }
 
   function submitStageFeedback(next: StageState) {
@@ -198,7 +221,7 @@ export function StartExperience() {
       return;
     }
 
-    updateProject((current) => ({
+    updateActiveIdea((current) => ({
       ...current,
       stages: {
         ...current.stages,
@@ -209,7 +232,7 @@ export function StartExperience() {
   }
 
   function relatedAnswers() {
-    if (!project) {
+    if (!activeIdea) {
       return {};
     }
 
@@ -217,7 +240,7 @@ export function StartExperience() {
       stageKeys
         .filter((key) => key !== currentStageKey)
         .map((key) => {
-          const stage = project.stages[key];
+          const stage = activeIdea.stages[key];
           const clarified = stage.feedback?.summary?.trim() || stage.answer.trim();
           return [key, clarified];
         }),
@@ -225,73 +248,111 @@ export function StartExperience() {
   }
 
   function contextNotes() {
-    if (!project || !currentProcessStage) {
+    if (!activeIdea || !currentProcessStage) {
       return [];
     }
 
     if (currentProcessStage.number === 1) {
-      const idea = project.startingContext.idea.trim();
+      const idea = activeIdea.startingContext.idea.trim();
       return idea
         ? [{ label: startContent.intakeLabel, text: idea }]
         : [];
     }
 
     return getPriorStageKeys(currentProcessStage.number).flatMap((key) => {
-      const stage = project.stages[key];
+      const stage = activeIdea.stages[key];
       const text = (stage.feedback?.summary || stage.answer).trim();
 
       return text ? [{ label: priorStageLabel[key], text }] : [];
     });
   }
 
-  function resetProject() {
-    discardProject();
+  function handleCreateIdea() {
+    createIdea();
     setIntakeError(false);
-    setConfirmingReset(false);
+    setIsViewingSnapshot(false);
   }
+
+  const ideaLibrary = (
+    <IdeaLibrary
+      ideas={ideas}
+      activeIdeaId={library.activeIdeaId}
+      onCreate={handleCreateIdea}
+      onOpen={(id) => {
+        selectIdea(id);
+        setIntakeError(false);
+        setIsViewingSnapshot(false);
+      }}
+      onViewSnapshot={() => setIsViewingSnapshot(true)}
+      onDelete={deleteIdea}
+      onImport={(idea) => {
+        importIdea(idea);
+        setIntakeError(false);
+        setIsViewingSnapshot(false);
+      }}
+    />
+  );
 
   if (!isReady) {
     return <div className="min-h-[24rem]" aria-busy="true" />;
   }
 
-  if (currentStage === "mvp") {
+  if ((isViewingSnapshot || currentStage === "summary") && activeIdea) {
     return (
-      <MvpPlaceholderView
-        headingRef={headingRef}
-        onBackToConcept={() => {
-          updateProject((current) => ({
-            ...current,
-            currentStage: "summary",
-            status: "completed",
-          }));
-        }}
-      />
+      <>
+        {ideaLibrary}
+        <div className="mt-10">
+          <ProductConceptView
+            headingRef={headingRef}
+            idea={activeIdea}
+            concept={buildProductConcept(activeIdea)}
+            editLabel={
+              currentStage === "summary"
+                ? startContent.editConceptCta
+                : "Back to clarification"
+            }
+            onEditConcept={() => {
+              if (currentStage === "summary") {
+                updateActiveIdea((current) => ({
+                  ...current,
+                  currentStage: "idea",
+                  status: "in_progress",
+                }));
+              }
+              setIsViewingSnapshot(false);
+            }}
+            onStartNew={handleCreateIdea}
+          />
+        </div>
+      </>
     );
   }
 
-  if (currentStage === "summary" && project) {
+  if (currentStage === "mvp") {
     return (
-      <ProductConceptView
-        headingRef={headingRef}
-        concept={buildProductConcept(project)}
-        confirmingReset={confirmingReset}
-        onEditConcept={() => {
-          updateProject((current) => ({
-            ...current,
-            currentStage: "idea",
-            status: "in_progress",
-          }));
-        }}
-        onStartNew={() => setConfirmingReset(true)}
-        onCancelReset={() => setConfirmingReset(false)}
-        onConfirmReset={resetProject}
-      />
+      <>
+        {ideaLibrary}
+        <div className="mt-10">
+          <MvpPlaceholderView
+            headingRef={headingRef}
+            onBackToConcept={() => {
+              updateActiveIdea((current) => ({
+                ...current,
+                currentStage: "summary",
+                status: "completed",
+              }));
+            }}
+          />
+        </div>
+      </>
     );
   }
 
   if (currentProcessStage && currentStageKey) {
     return (
-      <div className="max-w-2xl">
+      <>
+        {ideaLibrary}
+        <div className="mt-10 max-w-2xl">
         <ClarificationPath current={1} />
         <p className="mt-8 text-xs uppercase tracking-[0.18em] text-muted">
           {String(currentProcessStage.number).padStart(2, "0")} /{" "}
@@ -317,31 +378,36 @@ export function StartExperience() {
 
         <div className="mt-10">
           <StageClarification
-            key={currentStageKey}
+            key={`${activeIdea?.id ?? "new"}-${currentStageKey}`}
             headingRef={headingRef}
             stage={currentProcessStage}
             stageKey={currentStageKey}
             stageState={
-              project?.stages[currentStageKey] ?? {
+              activeIdea?.stages[currentStageKey] ?? {
                 answer: "",
               }
             }
             startingContext={startingContext}
+            ideaTitle={activeIdea?.title ?? "Untitled Idea"}
             focus={getStageFocus(currentProcessStage.number)}
             contextNotes={contextNotes()}
             relatedAnswers={relatedAnswers()}
+            onChangeIdeaTitle={updateIdeaTitle}
             onChangeAnswer={updateCurrentAnswer}
             onSubmitFeedback={submitStageFeedback}
             onContinue={goToNextStage}
             onPrevious={goToPreviousStage}
           />
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="max-w-2xl">
+    <>
+      {ideaLibrary}
+      <div className="mt-10 max-w-2xl">
       <ClarificationPath current={0} />
       <h1
         ref={headingRef}
@@ -364,6 +430,19 @@ export function StartExperience() {
           {startContent.intakeLabel}
         </p>
         <div className="mt-6 space-y-8">
+          <label className="block">
+            <span className="text-xs uppercase tracking-[0.18em] text-muted">
+              {startContent.ideaNameLabel}
+            </span>
+            <input
+              name="title"
+              type="text"
+              value={activeIdea?.title ?? "Untitled Idea"}
+              placeholder={startContent.ideaNamePlaceholder}
+              onChange={(event) => updateIdeaTitle(event.target.value)}
+              className={ideaNameFieldClassName}
+            />
+          </label>
           {startContent.intakeFields.map((field) => (
             <label key={field.key} className="block">
               <span className="text-sm tracking-wide">{field.label}</span>
@@ -403,6 +482,7 @@ export function StartExperience() {
           <Button type="submit">{startContent.submitLabel}</Button>
         </div>
       </form>
-    </div>
+      </div>
+    </>
   );
 }

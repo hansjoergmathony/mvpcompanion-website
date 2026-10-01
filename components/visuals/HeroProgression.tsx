@@ -1,7 +1,4 @@
-import {
-  formatPhaseStages,
-  processPhases,
-} from "@/content/process";
+import { processPhases } from "@/content/process";
 
 const phaseIcons = [
   UnderstandIcon,
@@ -48,9 +45,6 @@ export function HeroProgression() {
                 <h3 className="mt-0.5 text-[15px] font-semibold tracking-tight text-navy">
                   {phase.name}
                 </h3>
-                <p className="mt-0.5 text-sm leading-relaxed text-muted">
-                  {formatPhaseStages(phase)}
-                </p>
               </article>
             </li>
           );

@@ -9,6 +9,8 @@ import type { StageKey, StageState, StartingContext } from "@/lib/project/types"
 
 const fieldClassName =
   "mt-3 w-full resize-y rounded-md border border-border bg-card px-4 py-3 text-base leading-relaxed text-foreground placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue";
+const ideaNameFieldClassName =
+  "mt-3 w-full rounded-md border border-border bg-card px-4 py-3 text-base text-foreground placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue";
 
 export type StageContextNote = {
   label: string;
@@ -21,9 +23,11 @@ type StageClarificationProps = {
   stageKey: StageKey;
   stageState: StageState;
   startingContext: StartingContext;
+  ideaTitle: string;
   focus: string | null;
   contextNotes: StageContextNote[];
   relatedAnswers: Partial<Record<StageKey, string>>;
+  onChangeIdeaTitle: (value: string) => void;
   onChangeAnswer: (value: string) => void;
   onSubmitFeedback: (next: StageState) => void;
   onContinue: () => void;
@@ -36,9 +40,11 @@ export function StageClarification({
   stageKey,
   stageState,
   startingContext,
+  ideaTitle,
   focus,
   contextNotes,
   relatedAnswers,
+  onChangeIdeaTitle,
   onChangeAnswer,
   onSubmitFeedback,
   onContinue,
@@ -48,6 +54,8 @@ export function StageClarification({
   const [isRefining, setIsRefining] = useState(false);
   const answerErrorId = useId();
   const feedback = stageState.feedback ?? null;
+  const canReturnToPrevious = stageKey !== "idea";
+  const showsStartingContext = contextNotes[0]?.label === startContent.intakeLabel;
   const hasReviewedAnswer =
     Boolean(feedback) &&
     stageState.submittedAnswer === stageState.answer.trim() &&
@@ -96,13 +104,25 @@ export function StageClarification({
         <p className="mt-4 text-base leading-relaxed text-muted">{focus}</p>
       ) : null}
 
+      {!showsStartingContext ? (
+        <IdeaNameField value={ideaTitle} onChange={onChangeIdeaTitle} />
+      ) : null}
+
       {contextNotes.length ? (
         <div className="mt-8 border-t border-border pt-6">
           <p className="text-xs uppercase tracking-[0.18em] text-muted">
-            {contextNotes[0]?.label === startContent.intakeLabel
+            {showsStartingContext
               ? startContent.intakeLabel
               : startContent.soFarLabel}
           </p>
+          {showsStartingContext ? (
+            <p className="mt-3 text-sm leading-relaxed text-muted">
+              {startContent.startingContextDescription}
+            </p>
+          ) : null}
+          {showsStartingContext ? (
+            <IdeaNameField value={ideaTitle} onChange={onChangeIdeaTitle} />
+          ) : null}
           {contextNotes.map((note) => (
             <div key={`${note.label}-${note.text}`} className="mt-5">
               {note.label !== startContent.intakeLabel ? (
@@ -142,15 +162,25 @@ export function StageClarification({
               {startContent.refineLabel}
             </Button>
           </div>
-          <div className="mt-4">
-            <Button type="button" variant="secondary" onClick={onPrevious}>
-              {startContent.previousLabel}
-            </Button>
-          </div>
+          {canReturnToPrevious ? (
+            <div className="mt-4">
+              <Button type="button" variant="secondary" onClick={onPrevious}>
+                {startContent.previousLabel}
+              </Button>
+            </div>
+          ) : null}
         </div>
       ) : (
         <form className="mt-10" onSubmit={handleReview} noValidate>
           <label className="block">
+            <span className="text-xs uppercase tracking-[0.18em] text-muted">
+              Your answer
+            </span>
+            {isRefining ? (
+              <span className="mt-3 block text-sm leading-relaxed text-muted">
+                Revise your full answer using the feedback above, then review it again.
+              </span>
+            ) : null}
             <span className="sr-only">{stage.question}</span>
             <textarea
               value={stageState.answer}
@@ -171,13 +201,39 @@ export function StageClarification({
           ) : null}
           <div className="mt-8 flex flex-wrap gap-3">
             <Button type="submit">{startContent.reviewLabel}</Button>
-            <Button type="button" variant="secondary" onClick={onPrevious}>
-              {startContent.previousLabel}
-            </Button>
+            {canReturnToPrevious ? (
+              <Button type="button" variant="secondary" onClick={onPrevious}>
+                {startContent.previousLabel}
+              </Button>
+            ) : null}
           </div>
         </form>
       )}
     </div>
+  );
+}
+
+function IdeaNameField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="mt-6 block">
+      <span className="text-xs uppercase tracking-[0.18em] text-muted">
+        {startContent.ideaNameLabel}
+      </span>
+      <input
+        name="title"
+        type="text"
+        value={value}
+        placeholder={startContent.ideaNamePlaceholder}
+        onChange={(event) => onChange(event.target.value)}
+        className={ideaNameFieldClassName}
+      />
+    </label>
   );
 }
 

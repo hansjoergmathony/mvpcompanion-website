@@ -12,6 +12,10 @@ export const startContent = {
   supporting:
     "Answer a few essential questions about your idea, problem, users, value, product and context. This website clarification covers the same conceptual areas as the beginning of the shared method — it creates an Idea Snapshot, not the full MVPCompanion process.",
   intakeLabel: "Starting context",
+  startingContextDescription:
+    "The original context you provided when you started.",
+  ideaNameLabel: "Idea name",
+  ideaNamePlaceholder: "e.g. Guitar Songbook",
   backToHome: "Back to homepage",
   submitLabel: "Start clarification",
   continueLabel: "Continue",
@@ -27,10 +31,6 @@ export const startContent = {
   continueSupporting: "Pick up where you left off in the website clarification.",
   continueCta: "Continue",
   startNewCta: "Start a new idea",
-  replaceConfirm:
-    "This will replace your current idea. The work already captured will be lost.",
-  replaceConfirmAction: "Replace current idea",
-  keepCurrentAction: "Keep current idea",
   pathLabel: "Website clarification path",
   path: ["Idea", "Clarification", "Idea Snapshot"] as const,
   summaryHeadline: "Your Idea Snapshot",
@@ -192,7 +192,7 @@ export const stageFocusByNumber: Record<
 > = {
   1: {
     uncertainty:
-      "This stage frames what the idea could become, before features or implementation.",
+      "Your current idea hypothesis. This stage frames what the idea could become, before features or implementation.",
     prior: [],
   },
   2: {

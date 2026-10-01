@@ -6,7 +6,7 @@ import {
 import type { ProductConcept } from "@/lib/clarification/types";
 import {
   stageKeys,
-  type Project,
+  type Idea,
   type StageKey,
   type StageState,
 } from "@/lib/project/types";
@@ -22,13 +22,13 @@ const SUMMARY_PREFIX: Record<StageKey, RegExp> = {
   context: /^over time, /i,
 };
 
-export function buildProductConcept(project: Project): ProductConcept {
-  const idea = understood(project.stages.idea, "idea");
-  const problem = understood(project.stages.problem, "problem");
-  const primaryUser = understood(project.stages.user, "user");
-  const desiredOutcome = understood(project.stages.value, "value");
-  const product = understood(project.stages.product, "product");
-  const lifecycle = understood(project.stages.context, "context");
+export function buildProductConcept(ideaSnapshot: Idea): ProductConcept {
+  const idea = understood(ideaSnapshot.stages.idea, "idea");
+  const problem = understood(ideaSnapshot.stages.problem, "problem");
+  const primaryUser = understood(ideaSnapshot.stages.user, "user");
+  const desiredOutcome = understood(ideaSnapshot.stages.value, "value");
+  const product = understood(ideaSnapshot.stages.product, "product");
+  const lifecycle = understood(ideaSnapshot.stages.context, "context");
 
   return {
     idea: asStatement(idea),
@@ -42,8 +42,8 @@ export function buildProductConcept(project: Project): ProductConcept {
     }),
     product: asStatement(product),
     lifecycle: asStatement(lifecycle),
-    assumptions: collectAssumptions(project),
-    openQuestions: collectOpenQuestions(project, {
+    assumptions: collectAssumptions(ideaSnapshot),
+    openQuestions: collectOpenQuestions(ideaSnapshot, {
       idea,
       problem,
       primaryUser,
@@ -112,9 +112,9 @@ function composeValueProposition({
   return MISSING;
 }
 
-function collectAssumptions(project: Project): string[] {
+function collectAssumptions(idea: Idea): string[] {
   const fromStages = stageKeys.flatMap((key) => {
-    return (project.stages[key].feedback?.assumptions ?? []).map((item) =>
+    return (idea.stages[key].feedback?.assumptions ?? []).map((item) =>
       normalizeAnswer(item),
     );
   });
@@ -127,11 +127,11 @@ function collectAssumptions(project: Project): string[] {
 }
 
 function collectOpenQuestions(
-  project: Project,
+  idea: Idea,
   understoodParts: Record<string, string>,
 ): string[] {
   const fromFeedback = stageKeys.flatMap((key) => {
-    const feedback = project.stages[key].feedback;
+    const feedback = idea.stages[key].feedback;
 
     if (!feedback) {
       return [];
