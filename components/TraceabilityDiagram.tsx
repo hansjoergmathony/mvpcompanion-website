@@ -1,10 +1,5 @@
 import { frameworkContent } from "@/content/homepage";
 
-const NAVY = "#0b1f3a";
-const BLUE = "#1a56db";
-const TEAL = "#128a73";
-const FONT = "inherit";
-
 const chain = frameworkContent.qualityPrinciple.chain;
 const caption = chain.join(" → ");
 
@@ -12,138 +7,50 @@ export function TraceabilityDiagram() {
   return (
     <figure>
       <figcaption className="sr-only">{caption}</figcaption>
-      <div className="md:hidden">
-        <VerticalChain />
-      </div>
-      <div className="hidden md:block">
-        <HorizontalChain />
-      </div>
+      <ol
+        aria-label={caption}
+        className="-mx-6 flex items-center overflow-x-auto px-6 pb-2 md:mx-0 md:px-0 lg:overflow-visible lg:pb-0"
+      >
+        {chain.map((item, index) => {
+          const isLast = index === chain.length - 1;
+          const isMetric = item === "Metric";
+          const isAcceptanceCriterion = item === "Acceptance Criterion";
+
+          return (
+            <li key={item} className="contents">
+              <div
+                className={`flex h-[4.5rem] min-w-36 shrink-0 snap-start items-center justify-center rounded-xl border px-3 text-center text-sm font-semibold tracking-tight lg:min-w-0 lg:flex-1 ${
+                  isAcceptanceCriterion ? "min-w-44 lg:flex-[1.45]" : ""
+                } ${
+                  isMetric
+                    ? "border-teal/40 bg-teal/5 text-teal"
+                    : "border-border bg-card text-navy"
+                }`}
+              >
+                {isAcceptanceCriterion ? (
+                  <span>
+                    Acceptance
+                    <br />
+                    Criterion
+                  </span>
+                ) : (
+                  item
+                )}
+              </div>
+              {isLast ? null : <Connector />}
+            </li>
+          );
+        })}
+      </ol>
     </figure>
   );
 }
 
-function HorizontalChain() {
-  const width = 1200;
-  const height = 72;
-  const slot = width / chain.length;
-  const midY = 36;
-
+function Connector() {
   return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      width="100%"
-      height="auto"
-      preserveAspectRatio="xMidYMid meet"
-      className="block h-auto w-full"
-      role="img"
-      aria-label={caption}
-    >
-      {chain.map((item, index) => {
-        const x = slot * index + slot / 2;
-        const isLast = index === chain.length - 1;
-        const lines = splitLabel(item);
-
-        return (
-          <g key={item}>
-            <text
-              x={x}
-              y={lines.length === 1 ? midY : midY - 8}
-              textAnchor="middle"
-              fill={isLast ? TEAL : NAVY}
-              fontFamily={FONT}
-              fontSize="14"
-              fontWeight="600"
-              letterSpacing="-0.02em"
-            >
-              {lines.map((line, lineIndex) => (
-                <tspan
-                  key={line}
-                  x={x}
-                  dy={lineIndex === 0 ? 0 : 16}
-                >
-                  {line}
-                </tspan>
-              ))}
-            </text>
-            {isLast ? null : (
-              <text
-                x={slot * (index + 1)}
-                y={midY}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fill={BLUE}
-                fontFamily={FONT}
-                fontSize="14"
-                fontWeight="500"
-              >
-                →
-              </text>
-            )}
-          </g>
-        );
-      })}
-    </svg>
+    <span
+      aria-hidden="true"
+      className="relative h-px w-6 shrink-0 bg-blue after:absolute after:top-1/2 after:right-0 after:h-1.5 after:w-1.5 after:-translate-y-1/2 after:rotate-45 after:border-t after:border-r after:border-blue"
+    />
   );
-}
-
-function VerticalChain() {
-  const width = 320;
-  const row = 48;
-  const height = 16 + chain.length * row;
-  const cx = width / 2;
-
-  return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      width="100%"
-      height="auto"
-      preserveAspectRatio="xMidYMid meet"
-      className="block h-auto w-full"
-      role="img"
-      aria-label={caption}
-    >
-      {chain.map((item, index) => {
-        const y = 20 + index * row;
-        const isLast = index === chain.length - 1;
-
-        return (
-          <g key={item}>
-            <text
-              x={cx}
-              y={y}
-              textAnchor="middle"
-              fill={isLast ? TEAL : NAVY}
-              fontFamily={FONT}
-              fontSize="15"
-              fontWeight="600"
-              letterSpacing="-0.02em"
-            >
-              {item}
-            </text>
-            {isLast ? null : (
-              <text
-                x={cx}
-                y={y + 24}
-                textAnchor="middle"
-                fill={BLUE}
-                fontFamily={FONT}
-                fontSize="14"
-                fontWeight="500"
-              >
-                ↓
-              </text>
-            )}
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
-function splitLabel(item: string) {
-  if (item === "Acceptance Criterion") {
-    return ["Acceptance", "Criterion"];
-  }
-
-  return [item];
 }

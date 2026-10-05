@@ -46,5 +46,8 @@ export const ctas = {
 export const appEntry = {
   continueLabel: "Continue with MVPCompanion",
   directStartLabel: "Start directly in the app",
+  unavailableContinueLabel:
+    "Continue with MVPCompanion — coming soon in the MVPCompanion app.",
+  unavailableDirectLabel: "The MVPCompanion app is coming soon.",
   href: process.env.NEXT_PUBLIC_MVPCOMPANION_APP_URL?.trim() ?? "",
 } as const;

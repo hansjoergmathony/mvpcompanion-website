@@ -37,6 +37,13 @@ export default function ResourcesPage() {
               <p className="mt-3 text-base leading-relaxed text-muted">
                 {part.description}
               </p>
+              <p
+                className={`mt-4 text-xs font-medium tracking-[0.14em] uppercase ${
+                  part.availability === "Available now" ? "text-teal" : "text-muted"
+                }`}
+              >
+                {part.availability}
+              </p>
             </li>
           ))}
         </ol>

@@ -11,7 +11,7 @@ export const heroContent = {
   secondaryCta: ctas.secondary,
   benefits: [
     "Structured process",
-    "Practical templates",
+    "Clear decisions",
     "Better product decisions",
   ],
 } as const;
@@ -70,7 +70,7 @@ export const frameworkContent = {
   structure:
     "Method + Process → Integrated MVP Spec → Valuable · Viable · Buildable MVP",
   explanation:
-    "Together they lead toward an Integrated MVP Spec — progressively developed in the app as the basis for a valuable, viable and buildable MVP.",
+    "Together they lead toward an Integrated MVP Specification — progressively developed in the app as the basis for a valuable, viable and buildable MVP.",
   processLink: {
     label: "The 15-stage framework is introduced below.",
     href: "#process",
@@ -183,17 +183,20 @@ export const ecosystemContent = {
       name: "Book",
       role: "Understand",
       description: "Learn the principles and reasoning behind the method.",
+      availability: "Coming soon",
     },
     {
       name: "Website",
       role: "Explore",
       description: "Explore the method and clarify your starting point.",
+      availability: "Available now",
     },
     {
       name: "App",
       role: "Do",
       description:
         "Apply the method with AI-supported challenge and guidance. Develop your MVP Specification progressively.",
+      availability: "Coming soon",
     },
   ],
 } as const;
@@ -202,13 +205,13 @@ export const websiteAppContent = {
   eyebrow: "Website & App",
   headline: "Explore the method. Then apply it.",
   introduction:
-    "The website helps you clarify your starting point. The app helps you challenge and develop it.",
+    "The website helps you clarify your starting point. The app will help you challenge and develop it.",
   bridge:
-    "Both use the same underlying method. The website introduces the vocabulary and creates initial context; the app reviews, challenges and develops that context with AI support.",
+    "Both use the same underlying method. The website introduces the vocabulary and creates initial context; the app will review, challenge and develop that context with AI support.",
   distinctionNote:
-    "Structured clarification on the website. AI-supported reasoning and challenge in the app.",
+    "Structured clarification on the website. AI-supported reasoning and challenge in the future app.",
   entryPathsNote:
-    "You don’t have to start on the website. If you already have a well-defined idea, you can start directly in the app. If you have used the website first, your Idea Snapshot can serve as the starting context for the app — the app still begins with Stage 1 and reviews that context rather than mechanically repeating the same questions.",
+    "You don’t have to start on the website. When the app is available, you will also be able to start there with a well-defined idea. If you have used the website first, your Idea Snapshot can serve as the starting context for the app — the app will still begin with Stage 1 and review that context rather than mechanically repeating the same questions.",
   columns: [
     {
       id: "website",
@@ -228,7 +231,7 @@ export const websiteAppContent = {
       title: "Do, Challenge & Develop",
       items: [
         "Work through the 15-stage framework",
-        "AI analyzes your answers",
+        "AI will analyze your answers",
         "Identify assumptions and gaps",
         "Detect contradictions and unclear definitions",
         "Ask targeted follow-up questions",

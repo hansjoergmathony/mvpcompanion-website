@@ -27,12 +27,12 @@ export function AppEntryLinks({
       <div className={`space-y-3 ${className}`}>
         {showContinue ? (
           <p className={inverted ? "text-sm text-white/70" : "text-sm text-muted"}>
-            {appEntry.continueLabel} — available in the MVPCompanion app.
+            {appEntry.unavailableContinueLabel}
           </p>
         ) : null}
         {showDirect ? (
           <p className={inverted ? "text-sm text-white/70" : "text-sm text-muted"}>
-            {appEntry.directStartLabel}
+            {appEntry.unavailableDirectLabel}
           </p>
         ) : null}
       </div>

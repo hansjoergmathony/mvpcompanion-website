@@ -39,10 +39,10 @@ export const startContent = {
   snapshotClarification:
     "This is your starting point — not your finished MVP specification.",
   snapshotAppBridge:
-    "Bring your Idea Snapshot into MVPCompanion to take the next step: challenge assumptions, uncover gaps and progressively develop your MVP.",
+    "When MVPCompanion is available, you can bring your Idea Snapshot into the app to take the next step: challenge assumptions, uncover gaps and progressively develop your MVP.",
   appContinueHeadline: "Ready to take it further?",
   appContinueSupporting:
-    "Bring your Idea Snapshot into MVPCompanion and continue from here. The app can review what you've defined, challenge important assumptions, identify gaps and progressively develop your MVP specification.",
+    "When the MVPCompanion app is available, you can bring your Idea Snapshot into it. The app will review what you've defined, challenge important assumptions, identify gaps and progressively develop your MVP specification.",
   appDirectPrompt: "Already have an idea and want to start directly?",
   conceptHeadline: "Your Idea Snapshot",
   conceptIntro:
@@ -52,7 +52,7 @@ export const startContent = {
   conceptDistinction:
     "This is your starting point — not your finished MVP specification.",
   conceptAppBridge:
-    "The MVPCompanion app takes this starting point further by challenging assumptions, uncovering gaps and progressively developing your MVP specification.",
+    "The MVPCompanion app will take this starting point further by challenging assumptions, uncovering gaps and progressively developing your MVP specification.",
   startingPointTitle: "Your starting point",
   startingPointBody:
     "You now have a structured view of your idea, problem, user, value, product and context.",
@@ -84,7 +84,7 @@ export const startContent = {
     "MVP Boundary",
   ] as const,
   whatComesNextAppIntro:
-    "MVPCompanion can take this further by helping you:",
+    "The MVPCompanion app will take this further by helping you:",
   whatComesNextAppItems: [
     "Challenge important assumptions",
     "Uncover gaps and open questions",
@@ -95,15 +95,15 @@ export const startContent = {
     "Define what the MVP needs to learn",
   ] as const,
   optionalEntryNote:
-    "You can start directly in the app with your own idea — the Idea Snapshot is optional context, not a prerequisite.",
+    "When the app is available, you will be able to start directly with your own idea — the Idea Snapshot is optional context, not a prerequisite.",
   editConceptCta: "Edit Idea Snapshot",
   viewConceptHeadline: "Your Idea Snapshot is ready.",
   viewConceptSupporting:
     "Open what you clarified on the website, or start a new starting point.",
   viewConceptCta: "View your Idea Snapshot",
-  mvpHeadline: "Continue in MVPCompanion",
+  mvpHeadline: "Continue in MVPCompanion — coming soon",
   mvpSupporting:
-    "The full 15-stage framework, AI-supported analysis, and evolving MVP Specification live in the app — not in this website clarification flow.",
+    "The full 15-stage framework, AI-supported analysis, and evolving MVP Specification will be available in the app — not in this website clarification flow.",
   mvpBackToConcept: "Back to Idea Snapshot",
   ideaSnapshotStages: [
     { number: "01", id: "idea", label: "Idea" },

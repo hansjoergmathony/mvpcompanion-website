@@ -13,11 +13,11 @@ export const aboutPage = {
 export const templatesPage = {
   title: "Templates",
   eyebrow: "Templates",
-  headline: "Practical templates.",
+  headline: "Templates are coming later.",
   supporting:
-    "Templates make the MVPCompanion process usable. They turn the 15 stages into a repeatable way of working.",
+    "Future templates will extend the MVPCompanion method with repeatable ways of working.",
   introduction:
-    "The website and future app are the places where those templates will live. The current starting point is the clarification process itself.",
+    "The current starting point is the website clarification process. Future templates will live on the website and in the app.",
   processLabel: "See the 15-stage framework",
   processHref: "/#process",
 } as const;

@@ -60,7 +60,9 @@ export function WebsiteAppSection() {
           <Button href={appEntry.href}>{appEntry.directStartLabel}</Button>
         </div>
       ) : (
-        <p className="mt-8 text-sm text-muted">{appEntry.directStartLabel}</p>
+        <p className="mt-8 text-sm text-muted">
+          {appEntry.unavailableDirectLabel}
+        </p>
       )}
     </Section>
   );
