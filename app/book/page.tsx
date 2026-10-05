@@ -72,7 +72,7 @@ export default function BookPage() {
           </p>
           <div className="mt-6">
             <Button href="/resources/from-idea-to-mvp" variant="secondary">
-              Read the Short Paper
+              Read the White Paper
             </Button>
           </div>
         </section>
