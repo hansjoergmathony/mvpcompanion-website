@@ -11,6 +11,8 @@ export const site = {
 
 export const navigation = [
   { label: "Method", href: "/process" },
+  { label: "Book", href: "/book" },
+  { label: "Resources", href: "/resources" },
   { label: "Contact", href: "/contact" },
 ] as const;
 
@@ -22,6 +24,10 @@ export const legalNavigation = [
 export const sitemapPaths = [
   "/",
   "/process",
+  "/book",
+  "/book/sample",
+  "/resources",
+  "/resources/from-idea-to-mvp",
   "/contact",
   "/impressum",
   "/datenschutz",
