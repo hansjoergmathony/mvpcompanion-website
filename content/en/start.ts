@@ -56,6 +56,13 @@ export const startContent = {
     "You've turned your initial idea into a structured starting point.",
   conceptTagline:
     "Your first structured view of the idea — a starting point for developing your product further.",
+  fullDraftHeadline: "Your full specification draft",
+  fullDraftIntro:
+    "All fifteen stages are collected here as one connected working draft.",
+  fullDraftTagline:
+    "Review the complete specification, revise any stage, or export the full draft for further work.",
+  fullDraftContentTitle: "Full specification content",
+  editFullDraftCta: "Edit full specification",
   conceptDistinction:
     "This is your starting point — not your finished MVP specification.",
   conceptAppBridge:

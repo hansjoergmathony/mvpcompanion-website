@@ -404,7 +404,8 @@ export function StartExperience({
               if (currentStage === "summary") {
                 updateActiveIdea((current) => ({
                   ...current,
-                  currentStage: "idea",
+                  currentStage:
+                    current.area === "workspace" ? "jobs" : "idea",
                   status: "in_progress",
                 }));
               }

@@ -37,10 +37,11 @@ export function ProductConceptView({
   editLabel,
 }: ProductConceptViewProps) {
   const { appEntry, priorStageLabel, startContent, ui } = copy;
+  const isFullDraft = idea.area === "workspace" && idea.currentStage === "summary";
   const filled = countFilledFields(idea, clarifyStageKeys);
   const overall = countFilledFields(idea);
-  const snapshotStages = getSnapshotStages(idea, locale, priorStageLabel).filter(
-    (stage) => stageNumberByKey[stage.key] <= 6,
+  const displayedStages = getSnapshotStages(idea, locale, priorStageLabel).filter(
+    (stage) => isFullDraft || stageNumberByKey[stage.key] <= 6,
   );
   const ideaTitle = getIdeaTitle(idea, ui.untitledIdea);
   const resolvedEditLabel = editLabel ?? startContent.editConceptCta;
@@ -53,13 +54,13 @@ export function ProductConceptView({
         tabIndex={-1}
         className="mt-8 text-4xl leading-[1.1] font-semibold tracking-tight text-navy outline-none md:text-5xl"
       >
-        {startContent.conceptHeadline}
+        {isFullDraft ? startContent.fullDraftHeadline : startContent.conceptHeadline}
       </h1>
       <p className="mt-6 text-lg leading-relaxed text-navy">
-        {startContent.conceptIntro}
+        {isFullDraft ? startContent.fullDraftIntro : startContent.conceptIntro}
       </p>
       <p className="mt-3 text-base leading-relaxed text-muted">
-        {startContent.conceptTagline}
+        {isFullDraft ? startContent.fullDraftTagline : startContent.conceptTagline}
       </p>
 
       <div className="mt-8 rounded-2xl border border-border bg-card px-6 py-5">
@@ -106,13 +107,13 @@ export function ProductConceptView({
         className="mt-10 rounded-2xl border border-border bg-ice px-6 py-8 md:px-8"
       >
         <h2 id="idea-snapshot-artifact" className="sr-only">
-          {ui.pdf.snapshotContent}
+          {isFullDraft ? startContent.fullDraftContentTitle : ui.pdf.snapshotContent}
         </h2>
         <ol className="space-y-8">
-          {snapshotStages.map((stage, index) => (
+          {displayedStages.map((stage) => (
             <li key={stage.key}>
               <h3 className="text-xs font-medium tracking-[0.18em] text-blue uppercase">
-                {String(index + 1).padStart(2, "0")} {stage.label}
+                {String(stageNumberByKey[stage.key]).padStart(2, "0")} {stage.label}
               </h3>
               <p className="mt-2 text-sm text-muted">
                 {ui.pdf.stageStatus[stage.status]}
@@ -125,7 +126,7 @@ export function ProductConceptView({
         </ol>
       </article>
 
-      {(concept.assumptions.length > 0 || concept.openQuestions.length > 0) && (
+      {!isFullDraft && (concept.assumptions.length > 0 || concept.openQuestions.length > 0) && (
         <div className="mt-8 space-y-6 rounded-2xl border border-border bg-card px-6 py-8">
           {concept.assumptions.length > 0 ? (
             <section aria-labelledby="snapshot-assumptions">
@@ -170,7 +171,7 @@ export function ProductConceptView({
         </div>
       )}
 
-      <section aria-labelledby="snapshot-starting-point" className="mt-12">
+      {!isFullDraft && <section aria-labelledby="snapshot-starting-point" className="mt-12">
         <h2
           id="snapshot-starting-point"
           className="text-xl font-semibold tracking-tight text-navy"
@@ -189,9 +190,9 @@ export function ProductConceptView({
         <p className="mt-4 text-base leading-relaxed text-muted">
           {startContent.startingPointExpectation}
         </p>
-      </section>
+      </section>}
 
-      <section aria-labelledby="snapshot-what-clarified" className="mt-12">
+      {!isFullDraft && <section aria-labelledby="snapshot-what-clarified" className="mt-12">
         <h2
           id="snapshot-what-clarified"
           className="text-xl font-semibold tracking-tight text-navy"
@@ -215,9 +216,9 @@ export function ProductConceptView({
             </li>
           ))}
         </ul>
-      </section>
+      </section>}
 
-      <section aria-labelledby="snapshot-what-next" className="mt-12">
+      {!isFullDraft && <section aria-labelledby="snapshot-what-next" className="mt-12">
         <h2
           id="snapshot-what-next"
           className="text-xl font-semibold tracking-tight text-navy"
@@ -249,9 +250,9 @@ export function ProductConceptView({
         </ul>
         <p className="mt-3 text-sm leading-relaxed text-muted">{startContent.filledNote}</p>
         <p className="mt-3 text-sm leading-relaxed text-muted">{startContent.optionalEntryNote}</p>
-      </section>
+      </section>}
 
-      <section aria-labelledby="idea-snapshot-app-cta" className="mt-12">
+      {!isFullDraft && <section aria-labelledby="idea-snapshot-app-cta" className="mt-12">
         <h2
           id="idea-snapshot-app-cta"
           className="text-xl font-semibold tracking-tight text-navy"
@@ -266,15 +267,15 @@ export function ProductConceptView({
           className="mt-6"
           directPrompt={startContent.appDirectPrompt}
         />
-      </section>
+      </section>}
 
       <div className="mt-10 flex flex-wrap gap-3">
-        <Button type="button" onClick={onDevelop}>
+        {!isFullDraft && <Button type="button" onClick={onDevelop}>
           {startContent.developSpecification}
-        </Button>
+        </Button>}
         <SnapshotExportMenu idea={idea} locale={locale} labels={ui.exportMenu} pdf={ui.pdf} />
         <Button type="button" variant="secondary" onClick={onEditConcept}>
-          {resolvedEditLabel}
+          {isFullDraft ? startContent.editFullDraftCta : resolvedEditLabel}
         </Button>
         <Button type="button" variant="secondary" onClick={onStartNew}>
           {startContent.startNewCta}

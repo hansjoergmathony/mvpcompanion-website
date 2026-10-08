@@ -46,6 +46,13 @@ export const startContent = {
   conceptIntro: "Sie haben aus Ihrer ersten Idee einen strukturierten Ausgangspunkt gemacht.",
   conceptTagline:
     "Ihr erster strukturierter Blick auf die Idee — ein Ausgangspunkt, um das Produkt weiterzuentwickeln.",
+  fullDraftHeadline: "Ihr vollständiger Spezifikationsentwurf",
+  fullDraftIntro:
+    "Alle fünfzehn Stufen sind hier als zusammenhängender Arbeitsentwurf erfasst.",
+  fullDraftTagline:
+    "Prüfen Sie die vollständige Spezifikation, überarbeiten Sie einzelne Stufen oder exportieren Sie den gesamten Entwurf für die weitere Arbeit.",
+  fullDraftContentTitle: "Inhalt der vollständigen Spezifikation",
+  editFullDraftCta: "Vollständige Spezifikation bearbeiten",
   conceptDistinction: "Das ist Ihr Ausgangspunkt — nicht Ihre fertige MVP-Spezifikation.",
   conceptAppBridge:
     "Die MVPCompanion-App führt diesen Ausgangspunkt weiter, indem sie Annahmen hinterfragt, Lücken aufdeckt und Ihre MVP-Spezifikation schrittweise entwickelt.",
