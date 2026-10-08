@@ -1,4 +1,7 @@
+import { dictionary as de } from "@/content/de";
+import { dictionary as en, type Dictionary } from "@/content/en";
 import { buildProductConcept } from "@/lib/clarification";
+import type { Locale } from "@/lib/i18n/config";
 import {
   createIdeaSnapshotExport,
   getClarificationProgress,
@@ -7,8 +10,16 @@ import {
 } from "@/lib/project/ideaSnapshot";
 import type { Idea } from "@/lib/project/types";
 
-export function ideaExportFilename(idea: Idea, extension: "json" | "pdf"): string {
-  const title = getIdeaTitle(idea)
+function copyFor(locale: Locale) {
+  return locale === "de" ? de : en;
+}
+
+export function ideaExportFilename(
+  idea: Idea,
+  extension: "json" | "pdf",
+  locale: Locale = "en",
+): string {
+  const title = getIdeaTitle(idea, copyFor(locale).ui.untitledIdea)
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-zA-Z0-9]+/g, "-")
@@ -19,16 +30,20 @@ export function ideaExportFilename(idea: Idea, extension: "json" | "pdf"): strin
   return `mvpcompanion-${title || "idea"}.${extension}`;
 }
 
-export function exportIdeaAsJson(idea: Idea): void {
+export function exportIdeaAsJson(idea: Idea, locale: Locale = "en"): void {
   download(
     JSON.stringify(createIdeaSnapshotExport(idea), null, 2),
-    ideaExportFilename(idea, "json"),
+    ideaExportFilename(idea, "json", locale),
     "application/json;charset=utf-8",
   );
 }
 
-export function exportIdeaAsPdf(idea: Idea): void {
-  downloadPdf(createIdeaSnapshotPdf(idea), ideaExportFilename(idea, "pdf"));
+export function exportIdeaAsPdf(
+  idea: Idea,
+  locale: Locale = "en",
+  labels: Dictionary["ui"]["pdf"] = copyFor(locale).ui.pdf,
+): void {
+  downloadPdf(createIdeaSnapshotPdf(idea, locale, labels), ideaExportFilename(idea, "pdf", locale));
 }
 
 function download(content: string, filename: string, type: string) {
@@ -62,9 +77,14 @@ type PdfPage = { lines: string[]; y: number };
  * Generates a compact, standards-based PDF using built-in Helvetica fonts so exports
  * work without a server, canvas capture, or an additional browser dependency.
  */
-export function createIdeaSnapshotPdf(idea: Idea): Uint8Array {
-  const title = getIdeaTitle(idea);
-  const concept = buildProductConcept(idea);
+export function createIdeaSnapshotPdf(
+  idea: Idea,
+  locale: Locale = "en",
+  labels: Dictionary["ui"]["pdf"] = copyFor(locale).ui.pdf,
+): Uint8Array {
+  const copy = copyFor(locale);
+  const title = getIdeaTitle(idea, copy.ui.untitledIdea);
+  const concept = buildProductConcept(idea, locale);
   const progress = getClarificationProgress(idea);
   const pages: PdfPage[] = [{ lines: [], y: 758 }];
   let page = pages[0];
@@ -90,32 +110,36 @@ export function createIdeaSnapshotPdf(idea: Idea): Uint8Array {
     page.y -= 2;
   };
 
-  addLine("IDEA SNAPSHOT", 22, "0.04 0.12 0.25");
+  addLine(labels.heading, 22, "0.04 0.12 0.25");
   addParagraph(title, 15, "0.04 0.12 0.25");
-  addLine(`Status: ${readableStatus(idea.status)}`, 10);
+  addLine(`${labels.status}: ${labels.statuses[idea.status]}`, 10);
   addLine(
-    `Clarification: ${progress.clarified} clarified, ${progress.inProgress} in progress, ${progress.unresolved} unresolved`,
+    `${labels.clarification}: ${progress.clarified} ${labels.clarified}, ${progress.inProgress} ${labels.inProgress}, ${progress.unresolved} ${labels.unresolved}`,
     10,
   );
-  addLine(`Current stage: ${readableStage(idea.currentStage)}`, 10);
-  addLine(`Created: ${formatDate(idea.createdAt)}  |  Updated: ${formatDate(idea.updatedAt)}`, 9, "0.38 0.43 0.50");
+  addLine(`${labels.currentStage}: ${readableStage(idea.currentStage, labels)}`, 10);
+  addLine(
+    `${labels.created}: ${formatDate(idea.createdAt, locale, labels.unknownDate)}  |  ${labels.updated}: ${formatDate(idea.updatedAt, locale, labels.unknownDate)}`,
+    9,
+    "0.38 0.43 0.50",
+  );
   page.y -= 12;
 
-  addHeading("Snapshot content");
-  for (const stage of getSnapshotStages(idea)) {
-    addLine(`${stage.label} - ${readableStageStatus(stage.status)}`, 11);
+  addHeading(labels.snapshotContent);
+  for (const stage of getSnapshotStages(idea, locale, copy.priorStageLabel)) {
+    addLine(`${stage.label} - ${labels.stageStatus[stage.status]}`, 11);
     addParagraph(stage.content, 10, stage.status === "unresolved" ? "0.38 0.43 0.50" : undefined);
   }
 
-  addHeading("Recorded assumptions");
+  addHeading(labels.assumptions);
   concept.assumptions.forEach((item) => addParagraph(`- ${item}`, 10));
-  addHeading("Open questions");
+  addHeading(labels.openQuestions);
   concept.openQuestions.forEach((item) => addParagraph(`- ${item}`, 10));
 
-  return serializePdf(pages, title);
+  return serializePdf(pages, title, labels.footer);
 }
 
-function serializePdf(pages: PdfPage[], title: string): Uint8Array {
+function serializePdf(pages: PdfPage[], title: string, footer: string): Uint8Array {
   const objects: string[] = [];
   const pageObjectIds = pages.map((_, index) => 4 + index * 2);
   const contentObjectIds = pages.map((_, index) => 5 + index * 2);
@@ -130,7 +154,7 @@ function serializePdf(pages: PdfPage[], title: string): Uint8Array {
       "q 0.04 0.12 0.25 rg 0 790 595 52 re f Q",
       "BT /F1 15 Tf 1 1 1 rg 46 810 Td (MVPCompanion) Tj ET",
       ...page.lines,
-      `BT /F1 8 Tf 0.38 0.43 0.50 rg 46 28 Td (Idea Snapshot - ${pdfText(title)} - ${index + 1}/${pages.length}) Tj ET`,
+      `BT /F1 8 Tf 0.38 0.43 0.50 rg 46 28 Td (${pdfText(footer)} - ${pdfText(title)} - ${index + 1}/${pages.length}) Tj ET`,
     ].join("\n");
     objects[pageId] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentId} 0 R >>`;
     objects[contentId] = `<< /Length ${byteLength(content)} >>\nstream\n${content}\nendstream`;
@@ -170,17 +194,24 @@ function readableStatus(status: Idea["status"]): string {
   return status === "completed" ? "Completed" : status === "in_progress" ? "In progress" : "New";
 }
 
-function readableStage(stage: Idea["currentStage"]): string {
-  return stage === "intake" ? "Starting context" : stage === "summary" ? "Idea Snapshot" : stage === "mvp" ? "MVPCompanion" : stage.charAt(0).toUpperCase() + stage.slice(1);
+function readableStage(
+  stage: Idea["currentStage"],
+  labels: Dictionary["ui"]["pdf"],
+): string {
+  if (stage === "intake" || stage === "summary" || stage === "mvp") {
+    return labels.stages[stage];
+  }
+
+  return stage.charAt(0).toUpperCase() + stage.slice(1);
 }
 
 function readableStageStatus(status: "clarified" | "in_progress" | "unresolved"): string {
   return status === "clarified" ? "Clarified" : status === "in_progress" ? "In progress" : "Unresolved";
 }
 
-function formatDate(value: string): string {
+function formatDate(value: string, locale: Locale, unknown: string): string {
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "Unknown" : date.toLocaleDateString();
+  return Number.isNaN(date.getTime()) ? unknown : date.toLocaleDateString(locale);
 }
 
 function wrapPdfText(value: string, maxLength: number): string[] {
@@ -200,10 +231,21 @@ function wrapPdfText(value: string, maxLength: number): string[] {
 
 function pdfText(value: string): string {
   return value
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replaceAll("ä", "\u00E4")
+    .replaceAll("ö", "\u00F6")
+    .replaceAll("ü", "\u00FC")
+    .replaceAll("Ä", "\u00C4")
+    .replaceAll("Ö", "\u00D6")
+    .replaceAll("Ü", "\u00DC")
+    .replaceAll("ß", "\u00DF")
+    .replaceAll("–", "-")
+    .replaceAll("—", "-")
+    .replaceAll("„", "\"")
+    .replaceAll("“", "\"")
+    .replaceAll("”", "\"")
+    .replaceAll("’", "'")
     .replace(/[()\\]/g, "\\$&")
-    .replace(/[^\x20-\x7E]/g, "?");
+    .replace(/[^\x20-\x7E\u00A0-\u00FF]/g, "?");
 }
 
 function asciiBytes(value: string): Uint8Array {

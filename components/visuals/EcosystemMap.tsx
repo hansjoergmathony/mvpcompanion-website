@@ -1,6 +1,7 @@
-import { ecosystemContent } from "@/content/homepage";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
-export function EcosystemMap() {
+export async function EcosystemMap() {
+  const { ecosystemContent } = await getDictionary();
   return (
     <figure className="mt-10">
       <figcaption className="sr-only">
@@ -31,7 +32,7 @@ export function EcosystemMap() {
             </p>
             <p
               className={`mt-3 text-xs font-medium tracking-[0.14em] uppercase ${
-                part.availability === "Available now" ? "text-teal" : "text-muted"
+                part.available ? "text-teal" : "text-muted"
               }`}
             >
               {part.availability}

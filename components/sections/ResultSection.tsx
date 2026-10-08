@@ -1,9 +1,10 @@
-import { resultContent } from "@/content/homepage";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ResultDimensions } from "@/components/visuals/ResultDimensions";
 
-export function ResultSection() {
+export async function ResultSection() {
+  const { resultContent } = await getDictionary();
   return (
     <Section id="result">
       <SectionHeading

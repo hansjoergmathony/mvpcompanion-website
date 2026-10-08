@@ -9,19 +9,18 @@ import {
 } from "@/components/start/ProductConceptView";
 import { StageClarification } from "@/components/start/StageClarification";
 import { Button } from "@/components/ui/Button";
-import { processStages } from "@/content/process";
-import { buildProductConcept } from "@/lib/clarification";
+import type { Dictionary } from "@/content/en";
 import {
   emptyIntakeValues,
   getImplementedStages,
   getPriorStageKeys,
   getStageFocus,
   isImplementedStage,
-  priorStageLabel,
-  startContent,
-  totalStageCount,
+  type IntakeKey,
   type IntakeValues,
-} from "@/content/start";
+} from "@/content/start-path";
+import { buildProductConcept } from "@/lib/clarification";
+import type { Locale } from "@/lib/i18n/config";
 import {
   isStageKey,
   seedEmptyStageAnswers,
@@ -34,7 +33,12 @@ import {
 } from "@/lib/project/types";
 import { useIdeaLibrary } from "@/lib/project/useProject";
 
-const implementedStages = getImplementedStages();
+const STORED_UNTITLED = "Untitled Idea";
+
+function editableTitle(title: string | undefined): string {
+  const value = title?.trim() ?? "";
+  return !value || value === STORED_UNTITLED ? "" : value;
+}
 
 function confirmStage(stages: IdeaStages, key: StageKey): IdeaStages {
   const current = stages[key];
@@ -59,7 +63,16 @@ const fieldClassName =
 const ideaNameFieldClassName =
   "mt-3 w-full rounded-md border border-border bg-card px-4 py-3 text-base text-foreground placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue";
 
-export function StartExperience() {
+export function StartExperience({
+  copy,
+  locale,
+}: {
+  copy: Dictionary;
+  locale: Locale;
+}) {
+  const { priorStageLabel, processStages, stageFocusByNumber, startContent, ui } = copy;
+  const implementedStages = getImplementedStages(processStages);
+  const totalStageCount = processStages.length;
   const headingRef = useRef<HTMLHeadingElement>(null);
   const errorId = useId();
   const {
@@ -103,7 +116,10 @@ export function StartExperience() {
   }
 
   function updateIdeaTitle(title: string) {
-    updateActiveIdea((current) => ({ ...current, title }));
+    updateActiveIdea((current) => ({
+      ...current,
+      title: title.trim() ? title : STORED_UNTITLED,
+    }));
   }
 
   function handleIntakeSubmit(event: FormEvent<HTMLFormElement>) {
@@ -275,6 +291,11 @@ export function StartExperience() {
 
   const ideaLibrary = (
     <IdeaLibrary
+      labels={ui.library}
+      statuses={ui.pdf.statuses}
+      stageLabels={priorStageLabel}
+      untitled={ui.untitledIdea}
+      locale={locale}
       ideas={ideas}
       activeIdeaId={library.activeIdeaId}
       onCreate={handleCreateIdea}
@@ -305,11 +326,13 @@ export function StartExperience() {
           <ProductConceptView
             headingRef={headingRef}
             idea={activeIdea}
-            concept={buildProductConcept(activeIdea)}
+            copy={copy}
+            locale={locale}
+            concept={buildProductConcept(activeIdea, locale)}
             editLabel={
               currentStage === "summary"
                 ? startContent.editConceptCta
-                : "Back to clarification"
+                : startContent.backToClarification
             }
             onEditConcept={() => {
               if (currentStage === "summary") {
@@ -335,6 +358,7 @@ export function StartExperience() {
         <div className="mt-10">
           <MvpPlaceholderView
             headingRef={headingRef}
+            copy={copy}
             onBackToConcept={() => {
               updateActiveIdea((current) => ({
                 ...current,
@@ -353,7 +377,7 @@ export function StartExperience() {
       <>
         {ideaLibrary}
         <div className="mt-10 max-w-2xl">
-        <ClarificationPath current={1} />
+        <ClarificationPath current={1} startContent={startContent} />
         <p className="mt-8 text-xs uppercase tracking-[0.18em] text-muted">
           {String(currentProcessStage.number).padStart(2, "0")} /{" "}
           {String(totalStageCount).padStart(2, "0")}
@@ -388,8 +412,10 @@ export function StartExperience() {
               }
             }
             startingContext={startingContext}
-            ideaTitle={activeIdea?.title ?? "Untitled Idea"}
-            focus={getStageFocus(currentProcessStage.number)}
+            ideaTitle={editableTitle(activeIdea?.title)}
+            locale={locale}
+            startContent={startContent}
+            focus={getStageFocus(currentProcessStage.number, stageFocusByNumber)}
             contextNotes={contextNotes()}
             relatedAnswers={relatedAnswers()}
             onChangeIdeaTitle={updateIdeaTitle}
@@ -408,7 +434,7 @@ export function StartExperience() {
     <>
       {ideaLibrary}
       <div className="mt-10 max-w-2xl">
-      <ClarificationPath current={0} />
+      <ClarificationPath current={0} startContent={startContent} />
       <h1
         ref={headingRef}
         tabIndex={-1}
@@ -437,24 +463,27 @@ export function StartExperience() {
             <input
               name="title"
               type="text"
-              value={activeIdea?.title ?? "Untitled Idea"}
+              value={editableTitle(activeIdea?.title)}
               placeholder={startContent.ideaNamePlaceholder}
               onChange={(event) => updateIdeaTitle(event.target.value)}
               className={ideaNameFieldClassName}
             />
           </label>
-          {startContent.intakeFields.map((field) => (
-            <label key={field.key} className="block">
+          {startContent.intakeFields.map((field) => {
+            const key = field.key as IntakeKey;
+
+            return (
+            <label key={key} className="block">
               <span className="text-sm tracking-wide">{field.label}</span>
               <span className="mt-2 block text-sm leading-relaxed text-muted">
                 {field.prompt}
               </span>
               <textarea
-                name={field.key}
-                value={startingContext[field.key]}
-                aria-invalid={intakeError && !startingContext[field.key].trim()}
+                name={key}
+                value={startingContext[key]}
+                aria-invalid={intakeError && !startingContext[key].trim()}
                 aria-describedby={
-                  intakeError && !startingContext[field.key].trim()
+                  intakeError && !startingContext[key].trim()
                     ? errorId
                     : undefined
                 }
@@ -462,14 +491,15 @@ export function StartExperience() {
                   setIntakeError(false);
                   updateStartingContext({
                     ...startingContext,
-                    [field.key]: event.target.value,
+                    [key]: event.target.value,
                   });
                 }}
-                rows={field.key === "idea" ? 3 : 2}
+                rows={key === "idea" ? 3 : 2}
                 className={fieldClassName}
               />
             </label>
-          ))}
+            );
+          })}
         </div>
 
         {intakeError ? (

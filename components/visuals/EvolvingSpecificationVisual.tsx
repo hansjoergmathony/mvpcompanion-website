@@ -1,12 +1,11 @@
-import { processContent } from "@/content/homepage";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
-export function EvolvingSpecificationVisual() {
+export async function EvolvingSpecificationVisual() {
+  const { processContent } = await getDictionary();
+
   return (
     <figure className="mt-10 max-w-2xl">
-      <figcaption className="sr-only">
-        An idea becomes an integrated MVP Specification through decisions and
-        refinement, leading to a valuable, viable and buildable MVP.
-      </figcaption>
+      <figcaption className="sr-only">{processContent.growsHeadline}</figcaption>
 
       <ol className="space-y-3">
         {processContent.specificationFlow.map((step, index) => (

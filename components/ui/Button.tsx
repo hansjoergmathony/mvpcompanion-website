@@ -1,5 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
-import Link from "next/link";
+import { LocaleLink } from "@/components/i18n/LocaleLink";
 
 type Variant = "primary" | "secondary" | "inverse" | "inverseSecondary";
 
@@ -34,9 +36,9 @@ export function Button(props: LinkButtonProps | NativeButtonProps) {
 
     if (isInternal) {
       return (
-        <Link href={props.href} className={className}>
+        <LocaleLink href={props.href} className={className}>
           {props.children}
-        </Link>
+        </LocaleLink>
       );
     }
 

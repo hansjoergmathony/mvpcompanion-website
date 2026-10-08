@@ -1,11 +1,12 @@
-import Link from "next/link";
+import { LocaleLink } from "@/components/i18n/LocaleLink";
 import { Logo } from "@/components/brand/Logo";
 import { Container } from "@/components/ui/Container";
-import { publicContactEmail } from "@/content/legal";
-import { footerContent } from "@/content/homepage";
-import { legalNavigation, navigation, site } from "@/content/site";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
-export function Footer() {
+export async function Footer() {
+  const { footerContent, legalNavigation, navigation, publicContactEmail, site, ui } =
+    await getDictionary();
+
   return (
     <footer className="border-t border-border bg-navy text-white">
       <Container className="flex flex-col gap-10 py-14 md:flex-row md:items-start md:justify-between">
@@ -13,30 +14,28 @@ export function Footer() {
           <span className="inline-flex rounded-md bg-white px-2.5 py-1.5">
             <Logo />
           </span>
-          <p className="mt-4 text-sm leading-relaxed text-white/70">
-            {site.positioning}
-          </p>
+          <p className="mt-4 text-sm leading-relaxed text-white/70">{site.positioning}</p>
         </div>
 
         <div className="flex flex-col gap-8 sm:flex-row sm:gap-16">
-          <nav aria-label="Footer">
+          <nav aria-label={ui.chrome.footerNav}>
             <ul className="space-y-2 text-sm text-white/75">
               {navigation.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="transition-colors hover:text-white">
+                  <LocaleLink href={item.href} className="transition-colors hover:text-white">
                     {item.label}
-                  </Link>
+                  </LocaleLink>
                 </li>
               ))}
             </ul>
           </nav>
-          <nav aria-label="Legal">
+          <nav aria-label={ui.chrome.legalNav}>
             <ul className="space-y-2 text-sm text-white/75">
               {legalNavigation.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="transition-colors hover:text-white">
+                  <LocaleLink href={item.href} className="transition-colors hover:text-white">
                     {item.label}
-                  </Link>
+                  </LocaleLink>
                 </li>
               ))}
             </ul>

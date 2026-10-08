@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navigation } from "@/content/site";
+import { LocaleLink } from "@/components/i18n/LocaleLink";
+import { stripLocale } from "@/lib/i18n/paths";
 
 function navLinkClassName(isActive: boolean) {
   return isActive
@@ -11,29 +11,37 @@ function navLinkClassName(isActive: boolean) {
 }
 
 function isNavItemActive(pathname: string, href: string) {
+  const current = stripLocale(pathname);
+
   if (href === "/") {
-    return pathname === "/";
+    return current === "/";
   }
 
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return current === href || current.startsWith(`${href}/`);
 }
+
+type NavItem = {
+  label: string;
+  href: string;
+};
 
 type PrimaryNavProps = {
   variant: "desktop" | "mobile";
+  items: readonly NavItem[];
+  label: string;
   onNavigate?: () => void;
 };
 
-export function PrimaryNav({ variant, onNavigate }: PrimaryNavProps) {
+export function PrimaryNav({ variant, items, label, onNavigate }: PrimaryNavProps) {
   const pathname = usePathname();
-  const items = navigation;
 
   if (variant === "desktop") {
     return (
-      <nav aria-label="Primary">
+      <nav aria-label={label}>
         <ul className="flex items-center gap-8 text-sm text-muted">
           {items.map((item) => (
             <li key={item.href}>
-              <Link
+              <LocaleLink
                 href={item.href}
                 aria-current={
                   isNavItemActive(pathname, item.href) ? "page" : undefined
@@ -41,7 +49,7 @@ export function PrimaryNav({ variant, onNavigate }: PrimaryNavProps) {
                 className={navLinkClassName(isNavItemActive(pathname, item.href))}
               >
                 {item.label}
-              </Link>
+              </LocaleLink>
             </li>
           ))}
         </ul>
@@ -50,11 +58,11 @@ export function PrimaryNav({ variant, onNavigate }: PrimaryNavProps) {
   }
 
   return (
-    <nav aria-label="Mobile">
+    <nav aria-label={label}>
       <ul className="space-y-1 text-sm">
         {items.map((item) => (
           <li key={item.href}>
-            <Link
+            <LocaleLink
               href={item.href}
               onClick={onNavigate}
               aria-current={
@@ -67,7 +75,7 @@ export function PrimaryNav({ variant, onNavigate }: PrimaryNavProps) {
               }`}
             >
               {item.label}
-            </Link>
+            </LocaleLink>
           </li>
         ))}
       </ul>

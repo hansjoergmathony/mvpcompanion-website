@@ -2,10 +2,22 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import type { Dictionary } from "@/content/en";
+import type { Locale } from "@/lib/i18n/config";
 import { exportIdeaAsJson, exportIdeaAsPdf } from "@/lib/project/export";
 import type { Idea } from "@/lib/project/types";
 
-export function SnapshotExportMenu({ idea }: { idea: Idea }) {
+export function SnapshotExportMenu({
+  idea,
+  locale,
+  labels,
+  pdf,
+}: {
+  idea: Idea;
+  locale: Locale;
+  labels: Dictionary["ui"]["exportMenu"];
+  pdf: Dictionary["ui"]["pdf"];
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -17,7 +29,7 @@ export function SnapshotExportMenu({ idea }: { idea: Idea }) {
         aria-controls="snapshot-export-menu"
         onClick={() => setIsOpen((open) => !open)}
       >
-        Export
+        {labels.export}
       </Button>
       {isOpen ? (
         <div
@@ -30,22 +42,22 @@ export function SnapshotExportMenu({ idea }: { idea: Idea }) {
             role="menuitem"
             className="w-full rounded-lg px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-ice"
             onClick={() => {
-              exportIdeaAsJson(idea);
+              exportIdeaAsJson(idea, locale);
               setIsOpen(false);
             }}
           >
-            Export as JSON
+            {labels.json}
           </button>
           <button
             type="button"
             role="menuitem"
             className="w-full rounded-lg px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-ice"
             onClick={() => {
-              exportIdeaAsPdf(idea);
+              exportIdeaAsPdf(idea, locale, pdf);
               setIsOpen(false);
             }}
           >
-            Export as PDF
+            {labels.pdf}
           </button>
         </div>
       ) : null}

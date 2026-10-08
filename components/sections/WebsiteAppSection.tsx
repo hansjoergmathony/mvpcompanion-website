@@ -1,10 +1,10 @@
-import { websiteAppContent } from "@/content/homepage";
-import { appEntry } from "@/content/site";
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
-export function WebsiteAppSection() {
+export async function WebsiteAppSection() {
+  const { appEntry, websiteAppContent } = await getDictionary();
   return (
     <Section id="website-vs-app" tone="default">
       <SectionHeading

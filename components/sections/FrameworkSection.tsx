@@ -1,10 +1,11 @@
-import { frameworkContent } from "@/content/homepage";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { FrameworkDiagram } from "@/components/FrameworkDiagram";
 import { TraceabilityDiagram } from "@/components/TraceabilityDiagram";
 
-export function FrameworkSection() {
+export async function FrameworkSection() {
+  const { frameworkContent } = await getDictionary();
   return (
     <Section id="framework">
       <SectionHeading

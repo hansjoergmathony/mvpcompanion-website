@@ -1,8 +1,13 @@
-import {
-  formatPhaseStages,
-  processPhases,
-  type ProcessPhase,
-} from "@/content/process";
+import { formatPhaseStages, type ProcessPhase, type ProcessStage } from "@/content/framework";
+import type { Dictionary } from "@/content/en";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
+
+type JourneyCopy = {
+  phases: Dictionary["processPhases"];
+  stages: readonly ProcessStage[];
+  mapLabel: string;
+  flowLabel: string;
+};
 
 type PhaseJourneyVariant = "hero" | "compact" | "featured";
 
@@ -18,19 +23,27 @@ const phaseTone = [
   "from-teal/12 to-transparent",
 ] as const;
 
-export function PhaseJourney({ variant }: PhaseJourneyProps) {
+export async function PhaseJourney({ variant }: PhaseJourneyProps) {
+  const { processPage, processPhases, processStages } = await getDictionary();
+  const copy: JourneyCopy = {
+    phases: processPhases,
+    stages: processStages,
+    mapLabel: processPage.phasesLabel,
+    flowLabel: processPhases.map((phase) => phase.name).join(" → "),
+  };
+
   if (variant === "compact") {
-    return <CompactJourney />;
+    return <CompactJourney copy={copy} />;
   }
 
   if (variant === "featured") {
-    return <FeaturedJourney />;
+    return <FeaturedJourney copy={copy} />;
   }
 
-  return <HeroJourney />;
+  return <HeroJourney copy={copy} />;
 }
 
-function HeroJourney() {
+function HeroJourney({ copy }: { copy: JourneyCopy }) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-[0_20px_50px_-28px_rgba(11,31,58,0.28)]">
       <div
@@ -39,20 +52,18 @@ function HeroJourney() {
       />
       <div className="relative border-b border-border px-5 py-4">
         <p className="text-xs font-medium tracking-[0.18em] text-muted uppercase">
-          Method map
+          {copy.mapLabel}
         </p>
-        <p className="mt-1 text-sm text-navy">
-          Understand → Define → Shape → Specify → Learn
-        </p>
+        <p className="mt-1 text-sm text-navy">{copy.flowLabel}</p>
       </div>
-      <ol aria-label="Five phases of the MVPCompanion method" className="relative p-5">
+      <ol aria-label={copy.flowLabel} className="relative p-5">
         <span
           aria-hidden="true"
           className="absolute top-10 bottom-10 left-[29px] w-px bg-linear-to-b from-blue via-blue to-teal"
         />
-        {processPhases.map((phase, index) => (
-          <li key={phase.id} className={index === processPhases.length - 1 ? "" : "pb-4"}>
-            <PhaseNode phase={phase} index={index} />
+        {copy.phases.map((phase, index) => (
+          <li key={phase.id} className={index === copy.phases.length - 1 ? "" : "pb-4"}>
+            <PhaseNode phase={phase} index={index} copy={copy} />
           </li>
         ))}
       </ol>
@@ -60,8 +71,16 @@ function HeroJourney() {
   );
 }
 
-function PhaseNode({ phase, index }: { phase: ProcessPhase; index: number }) {
-  const isLast = index === processPhases.length - 1;
+function PhaseNode({
+  phase,
+  index,
+  copy,
+}: {
+  phase: ProcessPhase;
+  index: number;
+  copy: JourneyCopy;
+}) {
+  const isLast = index === copy.phases.length - 1;
 
   return (
     <div className="relative grid grid-cols-[22px_minmax(0,1fr)] items-start gap-4">
@@ -81,20 +100,20 @@ function PhaseNode({ phase, index }: { phase: ProcessPhase; index: number }) {
           {phase.name}
         </h3>
         <p className="mt-1 text-sm leading-relaxed text-muted">
-          {formatPhaseStages(phase)}
+          {formatPhaseStages(phase, copy.stages)}
         </p>
       </article>
     </div>
   );
 }
 
-function CompactJourney() {
+function CompactJourney({ copy }: { copy: JourneyCopy }) {
   return (
     <ol
-      aria-label="Understand, Define, Shape, Specify, Learn"
+      aria-label={copy.flowLabel}
       className="-mx-6 flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 pb-2 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
     >
-      {processPhases.map((phase, index) => (
+      {copy.phases.map((phase, index) => (
         <li
           key={phase.id}
           className="flex shrink-0 snap-start items-center gap-3 md:shrink"
@@ -107,7 +126,7 @@ function CompactJourney() {
               {phase.name}
             </p>
           </article>
-          {index < processPhases.length - 1 ? (
+          {index < copy.phases.length - 1 ? (
             <span aria-hidden="true" className="hidden text-blue/50 md:inline">
               →
             </span>
@@ -118,18 +137,18 @@ function CompactJourney() {
   );
 }
 
-function FeaturedJourney() {
+function FeaturedJourney({ copy }: { copy: JourneyCopy }) {
   return (
     <ol
-      aria-label="Five-phase overview"
+      aria-label={copy.flowLabel}
       className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-3 md:mx-0 md:grid md:grid-cols-5 md:overflow-visible md:px-0"
     >
-      {processPhases.map((phase, index) => {
-        const isLast = index === processPhases.length - 1;
+      {copy.phases.map((phase, index) => {
+        const isLast = index === copy.phases.length - 1;
 
         return (
           <li key={phase.id} className="relative min-w-[16rem] snap-start md:min-w-0">
-            {index < processPhases.length - 1 ? (
+            {index < copy.phases.length - 1 ? (
               <span
                 aria-hidden="true"
                 className="absolute top-7 right-[-0.55rem] z-10 hidden h-px w-4 bg-linear-to-r from-blue to-teal md:block"
@@ -147,7 +166,7 @@ function FeaturedJourney() {
                 {phase.name}
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-muted">
-                {formatPhaseStages(phase)}
+                {formatPhaseStages(phase, copy.stages)}
               </p>
             </article>
           </li>

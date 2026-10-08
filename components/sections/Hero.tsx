@@ -1,9 +1,10 @@
-import { heroContent } from "@/content/homepage";
 import { StartCallToAction } from "@/components/home/HomeStartActions";
 import { Container } from "@/components/ui/Container";
 import { HeroProgression } from "@/components/visuals/HeroProgression";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
-export function Hero() {
+export async function Hero() {
+  const { appEntry, heroContent, startContent } = await getDictionary();
   return (
     <section className="relative overflow-hidden bg-[linear-gradient(180deg,#f3f7fc_0%,#f7f9fc_56%,#ffffff_100%)] py-16 md:py-20 lg:py-24">
       <Container>
@@ -24,6 +25,8 @@ export function Hero() {
                 defaultPrimaryLabel={heroContent.primaryCta.label}
                 defaultSecondaryLabel={heroContent.secondaryCta.label}
                 defaultSecondaryHref={heroContent.secondaryCta.href}
+                resume={startContent}
+                appEntry={appEntry}
               />
             </div>
           </div>

@@ -1,9 +1,10 @@
-import { approachContent } from "@/content/homepage";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApproachJourney } from "@/components/visuals/ApproachJourney";
 
-export function ApproachSection() {
+export async function ApproachSection() {
+  const { approachContent } = await getDictionary();
   return (
     <Section id={approachContent.id} tone="ice">
       <SectionHeading

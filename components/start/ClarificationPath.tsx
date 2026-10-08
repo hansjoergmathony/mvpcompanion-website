@@ -1,12 +1,13 @@
-import { startContent } from "@/content/start";
+import type { Dictionary } from "@/content/en";
 
 type PathIndex = 0 | 1 | 2;
 
 type ClarificationPathProps = {
   current: PathIndex;
+  startContent: Dictionary["startContent"];
 };
 
-export function ClarificationPath({ current }: ClarificationPathProps) {
+export function ClarificationPath({ current, startContent }: ClarificationPathProps) {
   return (
     <ol
       aria-label={startContent.pathLabel}

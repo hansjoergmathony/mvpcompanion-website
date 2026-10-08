@@ -1,4 +1,5 @@
 import { buildProductConcept } from "@/lib/clarification";
+import type { Locale } from "@/lib/i18n/config";
 import type { StageFeedback } from "@/lib/clarification/types";
 import {
   isCurrentStage,
@@ -45,8 +46,16 @@ const stageLabels: Record<StageKey, string> = {
   context: "Context",
 };
 
-export function getIdeaTitle(idea: Idea): string {
-  return idea.title.trim() || "Untitled Idea";
+const storedUntitled = "Untitled Idea";
+
+export function getIdeaTitle(idea: Idea, placeholder = storedUntitled): string {
+  const title = idea.title.trim();
+
+  if (!title || title === storedUntitled) {
+    return placeholder;
+  }
+
+  return title;
 }
 
 export function getStageSnapshotStatus(
@@ -59,8 +68,12 @@ export function getStageSnapshotStatus(
   return stage.answer.trim() ? "in_progress" : "unresolved";
 }
 
-export function getSnapshotStages(idea: Idea): SnapshotStage[] {
-  const concept = buildProductConcept(idea);
+export function getSnapshotStages(
+  idea: Idea,
+  locale: Locale = "en",
+  labels: Record<StageKey, string> = stageLabels,
+): SnapshotStage[] {
+  const concept = buildProductConcept(idea, locale);
   const contentByKey: Record<StageKey, string> = {
     idea: concept.idea,
     problem: concept.problem,
@@ -72,7 +85,7 @@ export function getSnapshotStages(idea: Idea): SnapshotStage[] {
 
   return stageKeys.map((key) => ({
     key,
-    label: stageLabels[key],
+    label: labels[key],
     status: getStageSnapshotStatus(idea.stages[key]),
     content: contentByKey[key],
   }));

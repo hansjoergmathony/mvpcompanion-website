@@ -1,4 +1,4 @@
-import { processPhases } from "@/content/process";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
 const phaseIcons = [
   UnderstandIcon,
@@ -8,10 +8,13 @@ const phaseIcons = [
   LearnIcon,
 ] as const;
 
-export function ApproachJourney() {
+export async function ApproachJourney() {
+  const { processPhases } = await getDictionary();
+  const phaseLabel = processPhases.map((phase) => phase.name).join(", ");
+
   return (
     <ol
-      aria-label="Understand, Define, Shape, Specify, Learn"
+      aria-label={phaseLabel}
       className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5 lg:gap-5"
     >
       {processPhases.map((phase, index) => {

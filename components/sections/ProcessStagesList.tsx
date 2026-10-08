@@ -1,6 +1,9 @@
-import { getStagesForPhase, processPhases } from "@/content/process";
+import { getStagesForPhase } from "@/content/framework";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
-export function ProcessStagesList() {
+export async function ProcessStagesList() {
+  const { processPhases, processStages } = await getDictionary();
+
   return (
     <ol id="stages" className="mt-8 space-y-10">
       {processPhases.map((phase) => {
@@ -14,7 +17,7 @@ export function ProcessStagesList() {
               {phase.number} {phase.name}
             </p>
             <ol className="mt-4">
-              {getStagesForPhase(phase).map((stage) => (
+              {getStagesForPhase(phase, processStages).map((stage) => (
                 <li
                   key={stage.number}
                   className="grid gap-1 border-b border-border py-4 last:border-b-0 md:grid-cols-[3.25rem_minmax(13rem,18rem)_minmax(0,1fr)] md:items-baseline md:gap-6"

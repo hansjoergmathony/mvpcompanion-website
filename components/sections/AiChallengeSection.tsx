@@ -1,8 +1,9 @@
-import { aiChallengeContent } from "@/content/homepage";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
-export function AiChallengeSection() {
+export async function AiChallengeSection() {
+  const { aiChallengeContent } = await getDictionary();
   return (
     <Section id="ai-challenge" tone="ice">
       <SectionHeading

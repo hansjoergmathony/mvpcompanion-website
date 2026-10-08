@@ -1,16 +1,13 @@
-import {
-  getStagesForPhase,
-  processPhases,
-} from "@/content/process";
+import { getStagesForPhase } from "@/content/framework";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
-export function ProcessOverview() {
+export async function ProcessOverview() {
+  const { processPage, processPhases, processStages } = await getDictionary();
+
   return (
-    <ol
-      aria-label="MVPCompanion method map — five phases and fifteen stages"
-      className="space-y-6"
-    >
+    <ol aria-label={processPage.phasesLabel} className="space-y-6">
       {processPhases.map((phase, index) => {
-        const stages = getStagesForPhase(phase);
+        const stages = getStagesForPhase(phase, processStages);
 
         return (
           <li key={phase.id} className="min-w-0">

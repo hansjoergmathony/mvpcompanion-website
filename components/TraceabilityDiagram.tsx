@@ -1,9 +1,10 @@
-import { frameworkContent } from "@/content/homepage";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
-const chain = frameworkContent.qualityPrinciple.chain;
-const caption = chain.join(" → ");
+export async function TraceabilityDiagram() {
+  const { frameworkContent } = await getDictionary();
+  const chain = frameworkContent.qualityPrinciple.chain;
+  const caption = chain.join(" → ");
 
-export function TraceabilityDiagram() {
   return (
     <figure>
       <figcaption className="sr-only">{caption}</figcaption>
@@ -13,8 +14,8 @@ export function TraceabilityDiagram() {
       >
         {chain.map((item, index) => {
           const isLast = index === chain.length - 1;
-          const isMetric = item === "Metric";
-          const isAcceptanceCriterion = item === "Acceptance Criterion";
+          const isMetric = index === chain.length - 1;
+          const isAcceptanceCriterion = index === chain.length - 2;
 
           return (
             <li key={item} className="contents">
@@ -27,15 +28,7 @@ export function TraceabilityDiagram() {
                     : "border-border bg-card text-navy"
                 }`}
               >
-                {isAcceptanceCriterion ? (
-                  <span>
-                    Acceptance
-                    <br />
-                    Criterion
-                  </span>
-                ) : (
-                  item
-                )}
+                {item}
               </div>
               {isLast ? null : <Connector />}
             </li>

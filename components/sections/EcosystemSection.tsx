@@ -1,9 +1,10 @@
-import { ecosystemContent } from "@/content/homepage";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { EcosystemMap } from "@/components/visuals/EcosystemMap";
 
-export function EcosystemSection() {
+export async function EcosystemSection() {
+  const { ecosystemContent } = await getDictionary();
   return (
     <Section id="ecosystem" tone="ice">
       <SectionHeading

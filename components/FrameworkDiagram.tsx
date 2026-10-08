@@ -1,4 +1,5 @@
-import { frameworkContent } from "@/content/homepage";
+import type { Dictionary } from "@/content/en";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
 const NAVY = "#0b1f3a";
 const BLUE = "#1a56db";
@@ -6,12 +7,15 @@ const TEAL = "#128a73";
 const BORDER = "#d5deea";
 const FONT = "inherit";
 
-export function FrameworkDiagram() {
+export async function FrameworkDiagram() {
+  const { frameworkContent: content } = await getDictionary();
+
   return (
     <figure className="mt-10">
-      <figcaption className="sr-only">{frameworkContent.structure}</figcaption>
+      <figcaption className="sr-only">{content.structure}</figcaption>
       <div className="sm:hidden">
         <FrameworkSvg
+          content={content}
           idPrefix="framework-narrow"
           viewBoxWidth={360}
           viewBoxHeight={510}
@@ -20,6 +24,7 @@ export function FrameworkDiagram() {
       </div>
       <div className="hidden sm:block">
         <FrameworkSvg
+          content={content}
           idPrefix="framework-wide"
           viewBoxWidth={960}
           viewBoxHeight={420}
@@ -31,11 +36,13 @@ export function FrameworkDiagram() {
 }
 
 function FrameworkSvg({
+  content,
   idPrefix,
   viewBoxWidth,
   viewBoxHeight,
   layout,
 }: {
+  content: Dictionary["frameworkContent"];
   idPrefix: string;
   viewBoxWidth: number;
   viewBoxHeight: number;
@@ -73,7 +80,7 @@ function FrameworkSvg({
       preserveAspectRatio="xMidYMid meet"
       className="block h-auto w-full"
       role="img"
-      aria-label={frameworkContent.structure}
+      aria-label={content.structure}
     >
       <defs>
         <linearGradient id={specFill} x1="0" y1="0" x2="1" y2="1">
@@ -92,8 +99,8 @@ function FrameworkSvg({
         top={leftTop}
         width={sourceWidth}
         height={sourceHeight}
-        eyebrow={frameworkContent.method.focus}
-        title={frameworkContent.method.name}
+        eyebrow={content.method.focus}
+        title={content.method.name}
       />
 
       {split ? (
@@ -136,8 +143,8 @@ function FrameworkSvg({
         top={rightTop}
         width={sourceWidth}
         height={sourceHeight}
-        eyebrow={frameworkContent.process.focus}
-        title={frameworkContent.process.name}
+        eyebrow={content.process.focus}
+        title={content.process.name}
       />
 
       {split ? (
@@ -165,6 +172,7 @@ function FrameworkSvg({
       )}
 
       <SpecBlock
+        content={content}
         x={specX}
         y={specY}
         width={specW}
@@ -189,7 +197,7 @@ function FrameworkSvg({
         fontWeight="600"
         letterSpacing="0.15em"
       >
-        {frameworkContent.outcome.label.toUpperCase()}
+        {content.outcome.label.toUpperCase()}
       </text>
     </svg>
   );
@@ -286,6 +294,7 @@ function RoundedMerge({
 }
 
 function SpecBlock({
+  content,
   x,
   y,
   width,
@@ -294,6 +303,7 @@ function SpecBlock({
   fillId,
   compact,
 }: {
+  content: Dictionary["frameworkContent"];
   x: number;
   y: number;
   width: number;
@@ -328,7 +338,7 @@ function SpecBlock({
         fontWeight="600"
         letterSpacing="-0.02em"
       >
-        {frameworkContent.spec.name}
+        {content.spec.name}
       </text>
       <line
         x1={centerX - (compact ? 108 : 160)}
@@ -347,11 +357,11 @@ function SpecBlock({
         fontSize={compact ? "12" : "13"}
         fontWeight="500"
       >
-        <tspan>{frameworkContent.method.focus}</tspan>
+        <tspan>{content.method.focus}</tspan>
         <tspan fill={BLUE} dx="12">
           +
         </tspan>
-        <tspan dx="12">{frameworkContent.process.focus}</tspan>
+        <tspan dx="12">{content.process.focus}</tspan>
       </text>
     </g>
   );

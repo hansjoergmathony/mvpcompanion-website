@@ -24,17 +24,36 @@ import type {
   StageFeedback,
 } from "@/lib/clarification/types";
 
+function summaryStillNeeds(request: ClarificationRequest) {
+  const name = request.stageName;
+  return request.locale === "de"
+    ? `Die Phase „${name}“ braucht noch eine konkrete Aussage.`
+    : `This ${name.toLowerCase()} stage still needs a concrete statement.`;
+}
+
+function pick(request: ClarificationRequest, english: string, german: string) {
+  return request.locale === "de" ? german : english;
+}
+
 export function interpretStage(request: ClarificationRequest): StageFeedback {
   const answer = normalizeAnswer(request.answer);
 
   if (wordCount(answer) < 4) {
     return finish({
-      summary: `This ${request.stageName.toLowerCase()} stage still needs a concrete statement.`,
+      summary: summaryStillNeeds(request),
       observations: [
-        `${request.purpose} The current answer is too brief to clarify that.`,
+        pick(
+          request,
+          `${request.purpose} The current answer is too brief to clarify that.`,
+          `${request.purpose} Die aktuelle Antwort ist zu kurz, um das zu klären.`,
+        ),
       ],
       uncertainties: [
-        `It is not yet clear how this ${request.stageName.toLowerCase()} should be framed.`,
+        pick(
+          request,
+          `It is not yet clear how this ${request.stageName.toLowerCase()} should be framed.`,
+          `Es ist noch nicht klar, wie „${request.stageName}“ gefasst werden soll.`,
+        ),
       ],
       suggestions: [request.question],
       blocking: true,
@@ -67,7 +86,11 @@ function interpretIdea(
 ): StageFeedback {
   const restated = stripLeadIn(answer);
   const summary = restated
-    ? `The idea hypothesis is ${articleLead(restated)}${decapitalize(restated)}.`
+    ? pick(
+        request,
+        `The idea hypothesis is ${articleLead(restated)}${decapitalize(restated)}.`,
+        `Die Hypothese zur Idee lautet: ${restated}`,
+      )
     : firstMeaningfulSentence(answer);
   const observations: string[] = [];
   const uncertainties: string[] = [];
@@ -79,35 +102,71 @@ function interpretIdea(
 
   if (locksImplementation) {
     observations.push(
-      "This is already describing features, screens, or technology, before the idea itself is framed.",
+      pick(
+        request,
+        "This is already describing features, screens, or technology, before the idea itself is framed.",
+        "Das beschreibt schon Funktionen, Oberflächen oder Technik, bevor die Idee selbst gefasst ist.",
+      ),
     );
     suggestions.push(
-      "What could this become, before any features or implementation details?",
+      pick(
+        request,
+        "What could this become, before any features or implementation details?",
+        "Was könnte daraus werden, noch bevor Funktionen oder Umsetzung dazukommen?",
+      ),
     );
   }
 
   if (mentionsSolution(restated) && !mentionsCentralObject(answer) && wordCount(restated) < 12) {
     observations.push(
-      "This names a kind of product more than a product concept.",
+      pick(
+        request,
+        "This names a kind of product more than a product concept.",
+        "Das benennt eher eine Produktart als ein Produktkonzept.",
+      ),
     );
     suggestions.push(
-      "If this existed, what would someone actually be working with?",
+      pick(
+        request,
+        "If this existed, what would someone actually be working with?",
+        "Wenn es das gäbe: Womit würde jemand tatsächlich arbeiten?",
+      ),
     );
   }
 
   if (hasMultipleFoci(answer) && !mentionsNonTarget(answer)) {
     uncertainties.push(
-      "This could be two different product ideas rather than one idea hypothesis.",
+      pick(
+        request,
+        "This could be two different product ideas rather than one idea hypothesis.",
+        "Das könnten zwei verschiedene Produktideen sein, nicht eine Hypothese.",
+      ),
     );
-    suggestions.push("If only one of these existed first, what would it be?");
+    suggestions.push(
+      pick(
+        request,
+        "If only one of these existed first, what would it be?",
+        "Wenn zuerst nur eines davon existierte, was wäre es?",
+      ),
+    );
     blocking = true;
   }
 
   if (wordCount(answer) < 8 && !mentionsCentralObject(answer)) {
     uncertainties.push(
-      "The idea is still a label. It is not yet a hypothesis for what this could become.",
+      pick(
+        request,
+        "The idea is still a label. It is not yet a hypothesis for what this could become.",
+        "Die Idee ist noch ein Etikett. Sie ist noch keine Hypothese dafür, was daraus werden könnte.",
+      ),
     );
-    suggestions.push("What could this be, in one concrete sentence?");
+    suggestions.push(
+      pick(
+        request,
+        "What could this be, in one concrete sentence?",
+        "Was könnte das sein, in einem konkreten Satz?",
+      ),
+    );
     blocking = true;
   }
 
@@ -127,7 +186,11 @@ function interpretProblem(
   const idea =
     priorStatement(request, "idea") || request.startingContext.idea;
   const restated = stripLeadIn(answer);
-  const summary = `The problem is that ${decapitalize(restated)}.`;
+  const summary = pick(
+    request,
+    `The problem is that ${decapitalize(restated)}.`,
+    `Das Problem ist, dass ${decapitalize(restated)}.`,
+  );
   const observations: string[] = [];
   const uncertainties: string[] = [];
   const suggestions: string[] = [];
@@ -143,9 +206,19 @@ function interpretProblem(
 
   if (idea && restatesPrior(answer, idea)) {
     uncertainties.push(
-      "This restates the idea. A problem exists even if that product is never built.",
+      pick(
+        request,
+        "This restates the idea. A problem exists even if that product is never built.",
+        "Das wiederholt die Idee. Ein Problem besteht auch dann, wenn das Produkt nie gebaut wird.",
+      ),
     );
-    suggestions.push("What is going wrong today, independently of the product?");
+    suggestions.push(
+      pick(
+        request,
+        "What is going wrong today, independently of the product?",
+        "Was läuft heute schief, unabhängig vom Produkt?",
+      ),
+    );
     blocking = true;
   }
 
@@ -153,59 +226,109 @@ function interpretProblem(
     const split = splitProblemAndSolution(answer, idea);
     frames.push(
       {
-        label: "Problem",
+        label: pick(request, "Problem", "Problem"),
         text:
           split.problem ||
-          "Not yet stated independently of the proposed product.",
+          pick(
+            request,
+            "Not yet stated independently of the proposed product.",
+            "Noch nicht unabhängig vom vorgeschlagenen Produkt formuliert.",
+          ),
       },
       {
-        label: "Solution",
+        label: pick(request, "Solution", "Lösung"),
         text: split.solution,
       },
     );
 
     if (!describesProblem) {
       uncertainties.push(
-        "The answer describes the proposed product, not the underlying problem.",
+        pick(
+          request,
+          "The answer describes the proposed product, not the underlying problem.",
+          "Die Antwort beschreibt das vorgeschlagene Produkt, nicht das zugrunde liegende Problem.",
+        ),
       );
       suggestions.push(
-        "What real problem exists if this product is not built?",
+        pick(
+          request,
+          "What real problem exists if this product is not built?",
+          "Welches echte Problem besteht, wenn dieses Produkt nicht gebaut wird?",
+        ),
       );
       blocking = true;
     } else {
       observations.push(
-        "The problem and the proposed solution are still mixed together.",
+        pick(
+          request,
+          "The problem and the proposed solution are still mixed together.",
+          "Problem und vorgeschlagene Lösung sind noch vermischt.",
+        ),
       );
     }
   }
 
   if (hasMultipleFoci(answer) && describesProblem) {
     uncertainties.push(
-      "More than one problem is present. The primary problem still needs to be chosen.",
+      pick(
+        request,
+        "More than one problem is present. The primary problem still needs to be chosen.",
+        "Es sind mehrere Probleme genannt. Das Hauptproblem muss noch gewählt werden.",
+      ),
     );
-    suggestions.push("Which problem must this product solve first?");
+    suggestions.push(
+      pick(
+        request,
+        "Which problem must this product solve first?",
+        "Welches Problem muss dieses Produkt zuerst lösen?",
+      ),
+    );
     blocking = true;
   }
 
   if (wordCount(answer) < 10 && !describesProblem) {
     uncertainties.push(
-      "The problem is still general. It is not yet clear what is failing for someone today.",
+      pick(
+        request,
+        "The problem is still general. It is not yet clear what is failing for someone today.",
+        "Das Problem ist noch allgemein. Es ist noch nicht klar, was für jemanden heute scheitert.",
+      ),
     );
-    suggestions.push("What specifically is difficult, missing, or going wrong?");
+    suggestions.push(
+      pick(
+        request,
+        "What specifically is difficult, missing, or going wrong?",
+        "Was genau ist schwierig, fehlt oder läuft schief?",
+      ),
+    );
     blocking = true;
   }
 
-  if (/\b(always|never|everyone|all readers|all users)\b/i.test(answer)) {
-    assumptions.push("This assumes the problem is broadly true, not yet evidenced.");
+  if (/\b(always|never|everyone|all readers|all users|immer|niemals|jeder|jede|alle nutzer|alle leser)\b/i.test(answer)) {
+    assumptions.push(
+      pick(
+        request,
+        "This assumes the problem is broadly true, not yet evidenced.",
+        "Das nimmt an, das Problem gelte allgemein — belegt ist das noch nicht.",
+      ),
+    );
   } else {
     assumptions.push(
-      "This is still an assumption until there is evidence that someone actually experiences it.",
+      pick(
+        request,
+        "This is still an assumption until there is evidence that someone actually experiences it.",
+        "Das bleibt eine Annahme, bis belegt ist, dass jemand es tatsächlich erlebt.",
+      ),
     );
   }
 
   if (idea && !describesSolution && !restatesPrior(answer, idea)) {
     observations.push(
-      "The problem is being framed separately from the idea, which is the point of this stage.",
+      pick(
+        request,
+        "The problem is being framed separately from the idea, which is the point of this stage.",
+        "Das Problem wird getrennt von der Idee gefasst. Genau darum geht es in dieser Phase.",
+      ),
     );
   }
 
@@ -227,7 +350,11 @@ function interpretUser(
   const problem =
     priorStatement(request, "problem") || request.startingContext.problem;
   const restated = stripLeadIn(answer);
-  const summary = `The primary user is ${decapitalize(restated)}.`;
+  const summary = pick(
+    request,
+    `The primary user is ${decapitalize(restated)}.`,
+    `Der primäre Nutzer ist ${decapitalize(restated)}.`,
+  );
   const observations: string[] = [];
   const uncertainties: string[] = [];
   const suggestions: string[] = [];
@@ -235,17 +362,37 @@ function interpretUser(
 
   if (problem && restatesPrior(answer, problem)) {
     uncertainties.push(
-      "This restates the problem. This stage is about who experiences it.",
+      pick(
+        request,
+        "This restates the problem. This stage is about who experiences it.",
+        "Das wiederholt das Problem. In dieser Phase geht es darum, wer es erlebt.",
+      ),
     );
-    suggestions.push("Who has this problem most clearly?");
+    suggestions.push(
+      pick(
+        request,
+        "Who has this problem most clearly?",
+        "Wer hat dieses Problem am deutlichsten?",
+      ),
+    );
     blocking = true;
   }
 
   if (mentionsEveryone(answer)) {
     uncertainties.push(
-      "A product for everyone does not yet identify a primary user.",
+      pick(
+        request,
+        "A product for everyone does not yet identify a primary user.",
+        "Ein Produkt für alle benennt noch keinen primären Nutzer.",
+      ),
     );
-    suggestions.push("Who has this problem most clearly?");
+    suggestions.push(
+      pick(
+        request,
+        "Who has this problem most clearly?",
+        "Wer hat dieses Problem am deutlichsten?",
+      ),
+    );
     blocking = true;
   }
 
@@ -255,34 +402,62 @@ function interpretUser(
     mentionsSecondaryUsers(answer)
   ) {
     observations.push(
-      "Secondary users are named. For this stage, the primary user is the one who must be served first.",
+      pick(
+        request,
+        "Secondary users are named. For this stage, the primary user is the one who must be served first.",
+        "Sekundäre Nutzer sind genannt. In dieser Phase zählt der primäre Nutzer, der zuerst bedient werden muss.",
+      ),
     );
     suggestions.push(
-      "If the product could only serve one user first, who would that be?",
+      pick(
+        request,
+        "If the product could only serve one user first, who would that be?",
+        "Wenn das Produkt zuerst nur einen Nutzer bedienen könnte, wer wäre das?",
+      ),
     );
   } else if (hasMultipleFoci(answer) && !mentionsNonTarget(answer)) {
     uncertainties.push(
-      "Several possible users are named. The primary user is not yet chosen.",
+      pick(
+        request,
+        "Several possible users are named. The primary user is not yet chosen.",
+        "Mehrere mögliche Nutzer sind genannt. Der primäre Nutzer ist noch nicht gewählt.",
+      ),
     );
     suggestions.push(
-      "If the product could only serve one user first, who would that be?",
+      pick(
+        request,
+        "If the product could only serve one user first, who would that be?",
+        "Wenn das Produkt zuerst nur einen Nutzer bedienen könnte, wer wäre das?",
+      ),
     );
     blocking = true;
   }
 
   if (mentionsNonTarget(answer)) {
     observations.push(
-      "A non-target is set aside. The focus of this stage is the primary user.",
+      pick(
+        request,
+        "A non-target is set aside. The focus of this stage is the primary user.",
+        "Eine Nicht-Zielgruppe ist ausgeklammert. Der Fokus dieser Phase ist der primäre Nutzer.",
+      ),
     );
   } else if (wordCount(answer) >= 8 && !blocking) {
     observations.push(
-      "The primary user is named. Who is outside that target can stay implicit for now.",
+      pick(
+        request,
+        "The primary user is named. Who is outside that target can stay implicit for now.",
+        "Der primäre Nutzer ist benannt. Wer außerhalb liegt, kann vorerst unausgesprochen bleiben.",
+      ),
     );
   }
 
   if (problem && !restatesPrior(answer, problem) && wordCount(answer) > 6) {
     observations.push(
-      "The user should be the person who has the stated problem, not a generic audience.",
+      pick(
+        request,
+        "The user should be the person who has the stated problem, not a generic audience.",
+        "Der Nutzer sollte die Person sein, die das genannte Problem hat, keine allgemeine Zielgruppe.",
+      ),
     );
   }
 
@@ -304,7 +479,11 @@ function interpretValue(
   const user =
     priorStatement(request, "user") || request.startingContext.user;
   const restated = stripLeadIn(answer);
-  const summary = `The desired outcome is ${articleLead(restated)}${decapitalize(restated)}.`;
+  const summary = pick(
+    request,
+    `The desired outcome is ${articleLead(restated)}${decapitalize(restated)}.`,
+    `Das gewünschte Ergebnis ist, dass ${decapitalize(restated)}.`,
+  );
   const observations: string[] = [];
   const uncertainties: string[] = [];
   const suggestions: string[] = [];
@@ -312,41 +491,87 @@ function interpretValue(
 
   if (problem && restatesPrior(answer, problem) && !mentionsOutcome(answer)) {
     uncertainties.push(
-      "This restates the problem. Value is what becomes better if that problem is solved.",
+      pick(
+        request,
+        "This restates the problem. Value is what becomes better if that problem is solved.",
+        "Das wiederholt das Problem. Wert ist, was besser wird, wenn das Problem gelöst ist.",
+      ),
     );
-    suggestions.push("What changes for the user if this works?");
+    suggestions.push(
+      pick(
+        request,
+        "What changes for the user if this works?",
+        "Was verändert sich für den Nutzer, wenn das funktioniert?",
+      ),
+    );
     blocking = true;
   }
 
   if (mentionsFeatures(answer) && !mentionsOutcome(answer)) {
     observations.push(
-      "This is still a feature. Feature → capability → user outcome → value.",
+      pick(
+        request,
+        "This is still a feature. Feature → capability → user outcome → value.",
+        "Das ist noch eine Funktion. Funktion → Fähigkeit → Ergebnis für den Nutzer → Wert.",
+      ),
     );
     uncertainties.push(
-      "It is not yet clear what outcome that feature would create for the user.",
+      pick(
+        request,
+        "It is not yet clear what outcome that feature would create for the user.",
+        "Es ist noch nicht klar, welches Ergebnis diese Funktion für den Nutzer schaffen würde.",
+      ),
     );
     suggestions.push(
-      "If that feature exists, what can the user do that they cannot do today?",
+      pick(
+        request,
+        "If that feature exists, what can the user do that they cannot do today?",
+        "Wenn es diese Funktion gibt: Was kann der Nutzer dann, was heute nicht geht?",
+      ),
     );
     blocking = true;
   } else if (mentionsCapability(answer) && !mentionsOutcome(answer)) {
     observations.push(
-      "This describes a capability. Value is the user outcome that capability makes possible.",
+      pick(
+        request,
+        "This describes a capability. Value is the user outcome that capability makes possible.",
+        "Das beschreibt eine Fähigkeit. Wert ist das Ergebnis für den Nutzer, das diese Fähigkeit möglich macht.",
+      ),
     );
-    suggestions.push("What becomes better for the user because of that capability?");
+    suggestions.push(
+      pick(
+        request,
+        "What becomes better for the user because of that capability?",
+        "Was wird für den Nutzer besser, weil es diese Fähigkeit gibt?",
+      ),
+    );
   }
 
   if (user && problem && !blocking) {
     observations.push(
-      "Value should be the outcome for the primary user if the stated problem is solved.",
+      pick(
+        request,
+        "Value should be the outcome for the primary user if the stated problem is solved.",
+        "Wert sollte das Ergebnis für den primären Nutzer sein, wenn das genannte Problem gelöst ist.",
+      ),
     );
   }
 
   if (hasMultipleFoci(answer) && mentionsOutcome(answer)) {
     observations.push(
-      "Several outcomes are named. One primary outcome is enough to continue.",
+      pick(
+        request,
+        "Several outcomes are named. One primary outcome is enough to continue.",
+        "Mehrere Ergebnisse sind genannt. Ein Hauptergebnis reicht, um weiterzugehen.",
+      ),
     );
-    suggestions.push("What is the main outcome the product should create?");
+    suggestions.push(
+      pick(
+        request,
+        "What is the main outcome the product should create?",
+        "Was ist das Hauptergebnis, das das Produkt schaffen soll?",
+      ),
+    );
   }
 
   return finish({
@@ -366,7 +591,7 @@ function interpretProduct(
   const problem =
     priorStatement(request, "problem") || request.startingContext.problem;
   const restated = stripLeadIn(answer);
-  const summary = productSummary(restated);
+  const summary = productSummary(request, restated);
   const observations: string[] = [];
   const uncertainties: string[] = [];
   const suggestions: string[] = [];
@@ -374,9 +599,19 @@ function interpretProduct(
 
   if (value && restatesPrior(answer, value) && !mentionsCentralObject(answer)) {
     uncertainties.push(
-      "This restates the desired outcome. This stage names the product that would create it.",
+      pick(
+        request,
+        "This restates the desired outcome. This stage names the product that would create it.",
+        "Das wiederholt das gewünschte Ergebnis. Diese Phase benennt das Produkt, das es erzeugen würde.",
+      ),
     );
-    suggestions.push("What is the product, and what does the user work with?");
+    suggestions.push(
+      pick(
+        request,
+        "What is the product, and what does the user work with?",
+        "Was ist das Produkt, und womit arbeitet der Nutzer?",
+      ),
+    );
     blocking = true;
   } else if (
     problem &&
@@ -384,46 +619,80 @@ function interpretProduct(
     !mentionsCentralObject(answer)
   ) {
     uncertainties.push(
-      "This restates the problem. This stage is about what the product fundamentally is.",
+      pick(
+        request,
+        "This restates the problem. This stage is about what the product fundamentally is.",
+        "Das wiederholt das Problem. In dieser Phase geht es darum, was das Produkt im Kern ist.",
+      ),
     );
-    suggestions.push("What kind of product would exist, and around what?");
+    suggestions.push(
+      pick(
+        request,
+        "What kind of product would exist, and around what?",
+        "Welche Art von Produkt würde existieren, und worum dreht es sich?",
+      ),
+    );
     blocking = true;
   }
 
   const isFeatureList =
     mentionsFeatures(answer) &&
-    !/\b(is a|is an|the product is)\b/i.test(answer);
+    !/\b(is a|is an|the product is|ist ein|ist eine|das produkt ist)\b/i.test(answer);
 
   if (isFeatureList) {
     observations.push(
-      "This is still a feature list. A product concept names the thing itself, not its parts.",
+      pick(
+        request,
+        "This is still a feature list. A product concept names the thing itself, not its parts.",
+        "Das ist noch eine Funktionsliste. Ein Produktkonzept benennt das Ding selbst, nicht seine Teile.",
+      ),
     );
     uncertainties.push(
-      "The central object is not yet named — the collection, record, or thing the user works with.",
+      pick(
+        request,
+        "The central object is not yet named — the collection, record, or thing the user works with.",
+        "Das zentrale Objekt ist noch nicht benannt — die Sammlung, der Datensatz oder das Ding, mit dem der Nutzer arbeitet.",
+      ),
     );
     suggestions.push(
-      "What is this product, what does it revolve around, and what does the user do with it?",
+      pick(
+        request,
+        "What is this product, what does it revolve around, and what does the user do with it?",
+        "Was ist dieses Produkt, worum dreht es sich, und was macht der Nutzer damit?",
+      ),
     );
     blocking = true;
   }
 
   if (
     !mentionsCentralObject(answer) &&
-    !/\b(is a|is an|it is|it's)\b/i.test(answer) &&
+    !/\b(is a|is an|it is|it's|ist ein|ist eine|es ist)\b/i.test(answer) &&
     wordCount(answer) < 12
   ) {
     uncertainties.push(
-      "The product mental model is still thin. It is not yet clear what the user would be working with.",
+      pick(
+        request,
+        "The product mental model is still thin. It is not yet clear what the user would be working with.",
+        "Das mentale Modell des Produkts ist noch dünn. Es ist noch nicht klar, womit der Nutzer arbeiten würde.",
+      ),
     );
     suggestions.push(
-      "What is the product, and what is the main thing inside it?",
+      pick(
+        request,
+        "What is the product, and what is the main thing inside it?",
+        "Was ist das Produkt, und was ist das Wesentliche darin?",
+      ),
     );
     blocking = true;
   }
 
   if (mentionsCentralObject(answer) && !mentionsFeatures(answer)) {
     observations.push(
-      "The product is being named as a concept, not as a list of screens.",
+      pick(
+        request,
+        "The product is being named as a concept, not as a list of screens.",
+        "Das Produkt wird als Konzept benannt, nicht als Liste von Oberflächen.",
+      ),
     );
   }
 
@@ -442,7 +711,11 @@ function interpretContext(
 ): StageFeedback {
   const product = priorStatement(request, "product");
   const restated = stripLeadIn(answer);
-  const summary = `Over time, ${decapitalize(restated)}.`;
+  const summary = pick(
+    request,
+    `Over time, ${decapitalize(restated)}.`,
+    `Mit der Zeit: ${decapitalize(restated)}.`,
+  );
   const observations: string[] = [];
   const uncertainties: string[] = [];
   const suggestions: string[] = [];
@@ -450,37 +723,65 @@ function interpretContext(
 
   if (product && restatesPrior(answer, product) && !mentionsTime(answer)) {
     uncertainties.push(
-      "This restates what the product is. This stage is about what happens to it after someone starts using it.",
+      pick(
+        request,
+        "This restates what the product is. This stage is about what happens to it after someone starts using it.",
+        "Das wiederholt, was das Produkt ist. In dieser Phase geht es darum, was danach mit ihm geschieht.",
+      ),
     );
     suggestions.push(
-      "What happens to the main thing in the product first, and what happens later?",
+      pick(
+        request,
+        "What happens to the main thing in the product first, and what happens later?",
+        "Was geschieht zuerst mit dem Wesentlichen im Produkt, und was später?",
+      ),
     );
     blocking = true;
   }
 
   if (!mentionsTime(answer)) {
     uncertainties.push(
-      "The answer is still a snapshot. It does not yet show how the main thing changes after first use.",
+      pick(
+        request,
+        "The answer is still a snapshot. It does not yet show how the main thing changes after first use.",
+        "Die Antwort ist noch eine Momentaufnahme. Sie zeigt noch nicht, wie sich das Wesentliche nach der ersten Nutzung verändert.",
+      ),
     );
     suggestions.push(
-      "What are the important states — for example unused, in use, and later?",
+      pick(
+        request,
+        "What are the important states — for example unused, in use, and later?",
+        "Welche Zustände sind wichtig — zum Beispiel ungenutzt, in Nutzung und später?",
+      ),
     );
     blocking = true;
   } else if (wordCount(answer) < 10) {
     observations.push(
-      "A first change is named. A later state would make the lifecycle clearer, but this is enough to continue.",
+      pick(
+        request,
+        "A first change is named. A later state would make the lifecycle clearer, but this is enough to continue.",
+        "Eine erste Veränderung ist genannt. Ein späterer Zustand würde den Lebenszyklus klarer machen, aber das reicht zum Weitergehen.",
+      ),
     );
   }
 
   if (mentionsFeatures(answer) && !mentionsTime(answer)) {
     observations.push(
-      "This still describes features rather than what happens to the central object over time.",
+      pick(
+        request,
+        "This still describes features rather than what happens to the central object over time.",
+        "Das beschreibt noch Funktionen, nicht was mit dem zentralen Objekt im Laufe der Zeit geschieht.",
+      ),
     );
   }
 
   if (product && mentionsTime(answer)) {
     observations.push(
-      "The lifecycle should belong to the product concept already named, not to a new product.",
+      pick(
+        request,
+        "The lifecycle should belong to the product concept already named, not to a new product.",
+        "Der Lebenszyklus sollte zum bereits benannten Produktkonzept gehören, nicht zu einem neuen Produkt.",
+      ),
     );
   }
 
@@ -546,8 +847,16 @@ function articleLead(value: string): string {
   return /^(a|an|the)\b/i.test(value) ? "" : "that ";
 }
 
-function productSummary(restated: string): string {
+function productSummary(request: ClarificationRequest, restated: string): string {
   const text = decapitalize(restated);
+
+  if (request.locale === "de") {
+    if (/^(ein|eine|der|die|das)\b/i.test(restated)) {
+      return `Das Produkt ist ${text}.`;
+    }
+
+    return `Das Produkt wird beschrieben als ${text}.`;
+  }
 
   if (/^(a|an|the)\b/i.test(restated)) {
     return `The product is ${text}.`;

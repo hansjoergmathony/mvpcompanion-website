@@ -1,8 +1,13 @@
+import { dictionary as de } from "@/content/de";
+import { dictionary as en } from "@/content/en";
+import { isLocale, type Locale } from "@/lib/i18n/config";
+
 export type ContactMessageInput = {
   name: string;
   email: string;
   message: string;
   subject?: string;
+  locale?: string;
 };
 
 export type SendContactResult =
@@ -11,34 +16,42 @@ export type SendContactResult =
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function validateContactInput(input: ContactMessageInput): string | null {
+export function validateContactInput(
+  input: ContactMessageInput,
+  locale: Locale = "en",
+): string | null {
+  const copy = (locale === "de" ? de : en).ui.contact;
   const name = input.name.trim();
   const email = input.email.trim();
   const message = input.message.trim();
 
   if (name.length < 2 || name.length > 120) {
-    return "Please enter your name (2–120 characters).";
+    return copy.nameError;
   }
 
   if (!emailPattern.test(email) || email.length > 254) {
-    return "Please enter a valid email address.";
+    return copy.emailError;
   }
 
   if (message.length < 10 || message.length > 5000) {
-    return "Please enter a message (10–5000 characters).";
+    return copy.messageError;
   }
 
   if (input.subject && input.subject.trim().length > 200) {
-    return "Subject must be 200 characters or fewer.";
+    return copy.subjectError;
   }
 
   return null;
 }
 
+export function contactLocale(value: string | undefined): Locale {
+  return value && isLocale(value) ? value : "en";
+}
+
 export async function sendContactMessage(
   input: ContactMessageInput,
 ): Promise<SendContactResult> {
-  const validationError = validateContactInput(input);
+  const validationError = validateContactInput(input, contactLocale(input.locale));
   if (validationError) {
     return { ok: false, reason: "invalid_input" };
   }

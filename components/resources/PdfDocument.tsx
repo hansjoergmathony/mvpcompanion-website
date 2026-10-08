@@ -1,13 +1,22 @@
 type PdfDocumentProps = {
   src: string;
   title: string;
+  readOnline: string;
+  openDocument: string;
+  downloadPdf: string;
 };
 
-export function PdfDocument({ src, title }: PdfDocumentProps) {
+export function PdfDocument({
+  src,
+  title,
+  readOnline,
+  openDocument,
+  downloadPdf,
+}: PdfDocumentProps) {
   return (
-    <section aria-label={`${title} document`} className="mt-8">
+    <section aria-label={title} className="mt-8">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-        <p className="text-sm text-muted">Read the original document online.</p>
+        <p className="text-sm text-muted">{readOnline}</p>
         <div className="flex flex-wrap gap-3">
           <a
             href={src}
@@ -15,14 +24,14 @@ export function PdfDocument({ src, title }: PdfDocumentProps) {
             rel="noreferrer"
             className="text-sm font-medium text-blue underline-offset-4 hover:underline"
           >
-            Open full document
+            {openDocument}
           </a>
           <a
             href={src}
             download
             className="text-sm font-medium text-blue underline-offset-4 hover:underline"
           >
-            Download PDF
+            {downloadPdf}
           </a>
         </div>
       </div>

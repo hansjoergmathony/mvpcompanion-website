@@ -2,9 +2,9 @@
 
 import { useId, useState, type FormEvent, type RefObject } from "react";
 import { Button } from "@/components/ui/Button";
-import { startContent } from "@/content/start";
-import { interpretAnswer } from "@/lib/clarification";
-import type { ProcessStage } from "@/content/process";
+import type { Dictionary } from "@/content/en";
+import type { ProcessStage } from "@/content/framework";
+import type { Locale } from "@/lib/i18n/config";
 import type { StageKey, StageState, StartingContext } from "@/lib/project/types";
 
 const fieldClassName =
@@ -32,6 +32,8 @@ type StageClarificationProps = {
   onSubmitFeedback: (next: StageState) => void;
   onContinue: () => void;
   onPrevious: () => void;
+  startContent: Dictionary["startContent"];
+  locale: Locale;
 };
 
 export function StageClarification({
@@ -49,9 +51,13 @@ export function StageClarification({
   onSubmitFeedback,
   onContinue,
   onPrevious,
+  startContent,
+  locale,
 }: StageClarificationProps) {
   const [answerError, setAnswerError] = useState(false);
   const [isRefining, setIsRefining] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const answerErrorId = useId();
   const feedback = stageState.feedback ?? null;
   const canReturnToPrevious = stageKey !== "idea";
@@ -61,7 +67,7 @@ export function StageClarification({
     stageState.submittedAnswer === stageState.answer.trim() &&
     !isRefining;
 
-  function handleReview(event: FormEvent<HTMLFormElement>) {
+  async function handleReview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const answer = stageState.answer.trim();
@@ -71,7 +77,7 @@ export function StageClarification({
       return;
     }
 
-    const nextFeedback = interpretAnswer({
+    const clarificationRequest = {
       stageKey,
       stageName: stage.name,
       question: stage.question,
@@ -79,15 +85,41 @@ export function StageClarification({
       answer,
       startingContext,
       relatedAnswers,
-    });
+      locale,
+    };
 
-    setAnswerError(false);
-    setIsRefining(false);
-    onSubmitFeedback({
-      answer,
-      submittedAnswer: answer,
-      feedback: nextFeedback,
-    });
+    setIsGenerating(true);
+    setGenerationError(null);
+
+    try {
+      const response = await fetch("/api/clarification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(clarificationRequest),
+      });
+      const result = (await response.json()) as {
+        feedback?: NonNullable<StageState["feedback"]>;
+        error?: string;
+      };
+
+      if (!response.ok || !result.feedback) {
+        throw new Error(result.error || startContent.aiGenerationError);
+      }
+
+      setAnswerError(false);
+      setIsRefining(false);
+      onSubmitFeedback({
+        answer,
+        submittedAnswer: answer,
+        feedback: result.feedback,
+      });
+    } catch (error) {
+      setGenerationError(
+        error instanceof Error ? error.message : startContent.aiGenerationError,
+      );
+    } finally {
+      setIsGenerating(false);
+    }
   }
 
   return (
@@ -105,7 +137,11 @@ export function StageClarification({
       ) : null}
 
       {!showsStartingContext ? (
-        <IdeaNameField value={ideaTitle} onChange={onChangeIdeaTitle} />
+        <IdeaNameField
+          value={ideaTitle}
+          onChange={onChangeIdeaTitle}
+          startContent={startContent}
+        />
       ) : null}
 
       {contextNotes.length ? (
@@ -121,7 +157,11 @@ export function StageClarification({
             </p>
           ) : null}
           {showsStartingContext ? (
-            <IdeaNameField value={ideaTitle} onChange={onChangeIdeaTitle} />
+            <IdeaNameField
+          value={ideaTitle}
+          onChange={onChangeIdeaTitle}
+          startContent={startContent}
+        />
           ) : null}
           {contextNotes.map((note) => (
             <div key={`${note.label}-${note.text}`} className="mt-5">
@@ -145,7 +185,7 @@ export function StageClarification({
       ) : null}
 
       {feedback && (hasReviewedAnswer || isRefining) ? (
-        <FeedbackPanel feedback={feedback} />
+        <FeedbackPanel feedback={feedback} startContent={startContent} />
       ) : null}
 
       {hasReviewedAnswer && feedback ? (
@@ -188,6 +228,7 @@ export function StageClarification({
               aria-describedby={answerError ? answerErrorId : undefined}
               onChange={(event) => {
                 setAnswerError(false);
+                setGenerationError(null);
                 onChangeAnswer(event.target.value);
               }}
               rows={6}
@@ -199,8 +240,15 @@ export function StageClarification({
               {startContent.stageAnswerError}
             </p>
           ) : null}
+          {generationError ? (
+            <p className="mt-4 text-sm" role="alert">
+              {generationError}
+            </p>
+          ) : null}
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button type="submit">{startContent.reviewLabel}</Button>
+            <Button type="submit" disabled={isGenerating}>
+              {isGenerating ? startContent.reviewingLabel : startContent.reviewLabel}
+            </Button>
             {canReturnToPrevious ? (
               <Button type="button" variant="secondary" onClick={onPrevious}>
                 {startContent.previousLabel}
@@ -216,9 +264,11 @@ export function StageClarification({
 function IdeaNameField({
   value,
   onChange,
+  startContent,
 }: {
   value: string;
   onChange: (value: string) => void;
+  startContent: Dictionary["startContent"];
 }) {
   return (
     <label className="mt-6 block">
@@ -239,8 +289,10 @@ function IdeaNameField({
 
 function FeedbackPanel({
   feedback,
+  startContent,
 }: {
   feedback: NonNullable<StageState["feedback"]>;
+  startContent: Dictionary["startContent"];
 }) {
   return (
     <div className="mt-12 border-t border-border pt-10">
@@ -288,19 +340,29 @@ function FeedbackPanel({
         </div>
       ) : null}
 
-      {feedback.uncertainties[0] ? (
+      {feedback.uncertainties.length ? (
         <div className="mt-10">
           <p className="text-xs uppercase tracking-[0.18em] text-muted">
             {startContent.unclearLabel}
           </p>
-          <p className="mt-4 text-base leading-relaxed">
-            {feedback.uncertainties[0]}
-          </p>
-          {feedback.suggestions[0] ? (
-            <p className="mt-4 text-base leading-relaxed text-muted">
-              {feedback.suggestions[0]}
+          {feedback.uncertainties.map((uncertainty) => (
+            <p key={uncertainty} className="mt-4 text-base leading-relaxed">
+              {uncertainty}
             </p>
-          ) : null}
+          ))}
+        </div>
+      ) : null}
+
+      {feedback.suggestions.length ? (
+        <div className="mt-10">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted">
+            {startContent.openQuestionsLabel}
+          </p>
+          <ul className="mt-4 list-disc space-y-3 pl-5 text-base leading-relaxed text-muted">
+            {feedback.suggestions.map((suggestion) => (
+              <li key={suggestion}>{suggestion}</li>
+            ))}
+          </ul>
         </div>
       ) : null}
     </div>

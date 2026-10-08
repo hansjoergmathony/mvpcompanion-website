@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { dictionary as de } from "@/content/de";
+import { dictionary as en } from "@/content/en";
 import {
+  contactLocale,
   sendContactMessage,
   validateContactInput,
   type ContactMessageInput,
@@ -11,22 +14,25 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+    return NextResponse.json({ error: en.ui.contact.invalidRequest }, { status: 400 });
   }
 
   if (!body || typeof body !== "object") {
-    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+    return NextResponse.json({ error: en.ui.contact.invalidRequest }, { status: 400 });
   }
 
   const input = body as Partial<ContactMessageInput>;
+  const locale = contactLocale(input.locale ? String(input.locale) : undefined);
+  const copy = (locale === "de" ? de : en).ui.contact;
   const payload: ContactMessageInput = {
     name: String(input.name ?? ""),
     email: String(input.email ?? ""),
     message: String(input.message ?? ""),
     subject: input.subject ? String(input.subject) : undefined,
+    locale,
   };
 
-  const validationError = validateContactInput(payload);
+  const validationError = validateContactInput(payload, locale);
   if (validationError) {
     return NextResponse.json({ error: validationError }, { status: 400 });
   }
@@ -44,7 +50,7 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json(
-    { error: "Something went wrong. Please try again or contact us directly." },
+    { error: copy.sendFailed },
     { status: 503 },
   );
 }

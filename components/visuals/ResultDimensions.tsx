@@ -1,9 +1,11 @@
-import { resultContent } from "@/content/homepage";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
-export function ResultDimensions() {
+export async function ResultDimensions() {
+  const { resultContent } = await getDictionary();
+
   return (
     <ol
-      aria-label="Valuable, Viable, Buildable"
+      aria-label={resultContent.dimensions.map((item) => item.name).join(", ")}
       className="grid border-y border-border lg:grid-cols-3"
     >
       {resultContent.dimensions.map((dimension, index) => {

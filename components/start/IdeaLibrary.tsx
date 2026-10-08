@@ -10,9 +10,19 @@ import {
   type IdeaSnapshotImportFailureReason,
   type IdeaSnapshotExport,
 } from "@/lib/project/ideaSnapshot";
-import { isStageKey, stageNumberByKey, type Idea } from "@/lib/project/types";
+import type { Dictionary } from "@/content/en";
+import type { Locale } from "@/lib/i18n/config";
+import { isStageKey, type Idea, type StageKey } from "@/lib/project/types";
+
+type LibraryLabels = Dictionary["ui"]["library"];
+type StatusLabels = Dictionary["ui"]["pdf"]["statuses"];
 
 type IdeaLibraryProps = {
+  labels: LibraryLabels;
+  statuses: StatusLabels;
+  stageLabels: Record<StageKey, string>;
+  untitled: string;
+  locale: Locale;
   ideas: Idea[];
   activeIdeaId: string | null;
   onCreate: () => void;
@@ -22,27 +32,27 @@ type IdeaLibraryProps = {
   onImport: (idea: Idea) => void;
 };
 
-function ideaDescription(idea: Idea): string {
-  return idea.stages.idea.answer.trim() || "No Idea hypothesis yet.";
+function ideaDescription(idea: Idea, empty: string): string {
+  return idea.stages.idea.answer.trim() || empty;
 }
 
-function clarificationLabel(idea: Idea): string {
+function clarificationLabel(idea: Idea, labels: LibraryLabels, stageLabels: Record<StageKey, string>): string {
   if (isStageKey(idea.currentStage)) {
-    return `Clarification · Stage ${stageNumberByKey[idea.currentStage]}`;
+    return `${labels.stagePrefix} · ${stageLabels[idea.currentStage]}`;
   }
 
   if (idea.currentStage === "intake") {
-    return "Clarification · Starting context";
+    return labels.startingContext;
   }
 
-  return "Clarification · Idea Snapshot";
+  return labels.ideaSnapshot;
 }
 
-function updatedLabel(updatedAt: string): string {
+function updatedLabel(updatedAt: string, labels: LibraryLabels): string {
   const updated = new Date(updatedAt);
 
   if (Number.isNaN(updated.getTime())) {
-    return "Updated recently";
+    return labels.updatedRecently;
   }
 
   const today = new Date();
@@ -57,17 +67,22 @@ function updatedLabel(updatedAt: string): string {
   );
 
   if (daysAgo <= 0) {
-    return "Updated today";
+    return labels.updatedToday;
   }
 
   if (daysAgo === 1) {
-    return "Updated yesterday";
+    return labels.updatedYesterday;
   }
 
-  return `Updated ${daysAgo} days ago`;
+  return labels.updatedDaysAgo.replace("{days}", String(daysAgo));
 }
 
 export function IdeaLibrary({
+  labels,
+  statuses,
+  stageLabels,
+  untitled,
+  locale,
   ideas,
   activeIdeaId,
   onCreate,
@@ -92,7 +107,7 @@ export function IdeaLibrary({
     }
 
     if (!file.name.toLowerCase().endsWith(".json")) {
-      setImportError("Invalid JSON file.");
+      setImportError(labels.invalidJson);
       return;
     }
 
@@ -103,9 +118,9 @@ export function IdeaLibrary({
         return;
       }
 
-      setImportError(importErrorMessage(parsed.reason));
+      setImportError(importErrorMessage(parsed.reason, labels));
     } catch {
-      setImportError("Invalid JSON file.");
+      setImportError(labels.invalidJson);
     }
   }
 
@@ -116,23 +131,23 @@ export function IdeaLibrary({
           id="my-ideas-heading"
           className="text-xl font-semibold tracking-tight text-navy"
         >
-          My Ideas
+          {labels.heading}
         </h2>
         <div className="flex flex-wrap gap-3">
           {activeIdeaId ? (
             <Button type="button" variant="secondary" onClick={onViewSnapshot}>
-              View Idea Snapshot
+              {labels.viewSnapshot}
             </Button>
           ) : null}
           <Button type="button" variant="secondary" onClick={onCreate}>
-            + New Idea
+            {labels.newIdea}
           </Button>
           <Button
             type="button"
             variant="secondary"
             onClick={() => fileInputRef.current?.click()}
           >
-            Import Snapshot
+            {labels.importSnapshot}
           </Button>
           <input
             ref={fileInputRef}
@@ -145,7 +160,7 @@ export function IdeaLibrary({
       </div>
 
       {ideas.length === 0 ? (
-        <p className="mt-5 text-base leading-relaxed text-muted">No ideas yet.</p>
+        <p className="mt-5 text-base leading-relaxed text-muted">{labels.empty}</p>
       ) : (
         <ul className="mt-5 space-y-3">
           {ideas.map((idea) => {
@@ -162,18 +177,18 @@ export function IdeaLibrary({
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="min-w-0">
                     <p className="truncate text-base font-semibold tracking-tight text-navy">
-                      {getIdeaTitle(idea)}
+                      {getIdeaTitle(idea, untitled)}
                     </p>
                     <p className="mt-1 break-words text-sm leading-relaxed text-muted">
-                      {ideaDescription(idea)}
+                      {ideaDescription(idea, labels.noHypothesis)}
                     </p>
                     <p className="mt-2 text-xs uppercase tracking-[0.14em] text-muted">
-                      {clarificationLabel(idea)}
+                      {clarificationLabel(idea, labels, stageLabels)}
                     </p>
-                    <p className="mt-1 text-sm text-muted">{updatedLabel(idea.updatedAt)}</p>
+                    <p className="mt-1 text-sm text-muted">{updatedLabel(idea.updatedAt, labels)}</p>
                     {isActive ? (
                       <p className="mt-2 text-xs uppercase tracking-[0.14em] text-blue">
-                        Currently open
+                        {labels.currentlyOpen}
                       </p>
                     ) : null}
                   </div>
@@ -183,14 +198,14 @@ export function IdeaLibrary({
                       variant="secondary"
                       onClick={() => onOpen(idea.id)}
                     >
-                      Open
+                      {labels.open}
                     </Button>
                     <button
                       type="button"
                       className="text-sm text-muted underline underline-offset-4 transition-colors hover:text-foreground"
                       onClick={() => setIdeaToDelete(idea)}
                     >
-                      Delete
+                      {labels.delete}
                     </button>
                   </div>
                 </div>
@@ -209,6 +224,11 @@ export function IdeaLibrary({
       {importPreview ? (
         <ImportPreview
           snapshot={importPreview}
+          labels={labels}
+          statuses={statuses}
+          stageLabels={stageLabels}
+          untitled={untitled}
+          locale={locale}
           onCancel={() => setImportPreview(null)}
           onImport={() => {
             onImport(importPreview.idea);
@@ -226,15 +246,14 @@ export function IdeaLibrary({
           aria-describedby="delete-idea-description"
         >
           <h3 id="delete-idea-title" className="text-base font-medium text-navy">
-            Delete this Idea?
+            {labels.deleteTitle}
           </h3>
           <p id="delete-idea-description" className="mt-2 text-sm leading-relaxed text-muted">
-            This will remove the Idea from this browser. Make sure you have exported
-            it if you want to keep a copy.
+            {labels.deleteBody}
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Button type="button" variant="secondary" onClick={() => setIdeaToDelete(null)}>
-              Cancel
+              {labels.cancel}
             </Button>
             <Button
               type="button"
@@ -243,7 +262,7 @@ export function IdeaLibrary({
                 setIdeaToDelete(null);
               }}
             >
-              Delete Idea
+              {labels.deleteIdea}
             </Button>
           </div>
         </div>
@@ -254,16 +273,26 @@ export function IdeaLibrary({
 
 function ImportPreview({
   snapshot,
+  labels,
+  statuses,
+  stageLabels,
+  untitled,
+  locale,
   onCancel,
   onImport,
 }: {
   snapshot: IdeaSnapshotExport;
+  labels: LibraryLabels;
+  statuses: StatusLabels;
+  stageLabels: Record<StageKey, string>;
+  untitled: string;
+  locale: Locale;
   onCancel: () => void;
   onImport: () => void;
 }) {
   const { idea } = snapshot;
   const progress = getClarificationProgress(idea);
-  const availableSections = getSnapshotStages(idea)
+  const availableSections = getSnapshotStages(idea, locale, stageLabels)
     .filter((stage) => stage.status !== "unresolved")
     .map((stage) => stage.label);
 
@@ -273,75 +302,74 @@ function ImportPreview({
       className="mt-6 rounded-xl border border-border bg-ice px-5 py-6"
     >
       <h3 id="import-preview-title" className="text-lg font-semibold tracking-tight text-navy">
-        Import as a new Idea
+        {labels.importTitle}
       </h3>
-      <p className="mt-2 text-sm leading-relaxed text-muted">
-        Your existing Ideas will not be changed.
-      </p>
+      <p className="mt-2 text-sm leading-relaxed text-muted">{labels.importBody}</p>
       <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
         <div>
-          <dt className="text-xs uppercase tracking-[0.14em] text-muted">Idea</dt>
-          <dd className="mt-1 font-medium text-navy">{getIdeaTitle(idea)}</dd>
+          <dt className="text-xs uppercase tracking-[0.14em] text-muted">{labels.idea}</dt>
+          <dd className="mt-1 font-medium text-navy">{getIdeaTitle(idea, untitled)}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-[0.14em] text-muted">Snapshot format</dt>
+          <dt className="text-xs uppercase tracking-[0.14em] text-muted">{labels.format}</dt>
           <dd className="mt-1 text-foreground">
             MVPCompanion Idea Snapshot v{snapshot.formatVersion}
           </dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-[0.14em] text-muted">Created</dt>
-          <dd className="mt-1 text-foreground">{formatDate(idea.createdAt)}</dd>
+          <dt className="text-xs uppercase tracking-[0.14em] text-muted">{labels.created}</dt>
+          <dd className="mt-1 text-foreground">{formatDate(idea.createdAt, locale, labels.unknownDate)}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-[0.14em] text-muted">Updated</dt>
-          <dd className="mt-1 text-foreground">{formatDate(idea.updatedAt)}</dd>
+          <dt className="text-xs uppercase tracking-[0.14em] text-muted">{labels.updated}</dt>
+          <dd className="mt-1 text-foreground">{formatDate(idea.updatedAt, locale, labels.unknownDate)}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-[0.14em] text-muted">Status</dt>
-          <dd className="mt-1 text-foreground">{idea.status.replace("_", " ")}</dd>
+          <dt className="text-xs uppercase tracking-[0.14em] text-muted">{labels.status}</dt>
+          <dd className="mt-1 text-foreground">{statuses[idea.status]}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-[0.14em] text-muted">Clarification progress</dt>
+          <dt className="text-xs uppercase tracking-[0.14em] text-muted">{labels.progress}</dt>
           <dd className="mt-1 text-foreground">
-            {progress.clarified} clarified · {progress.inProgress} in progress · {progress.unresolved} unresolved
+            {labels.progressValue
+              .replace("{clarified}", String(progress.clarified))
+              .replace("{inProgress}", String(progress.inProgress))
+              .replace("{unresolved}", String(progress.unresolved))}
           </dd>
         </div>
       </dl>
       <div className="mt-5">
-        <p className="text-xs uppercase tracking-[0.14em] text-muted">Available sections</p>
+        <p className="text-xs uppercase tracking-[0.14em] text-muted">{labels.availableSections}</p>
         <p className="mt-2 text-sm text-foreground">
-          {availableSections.length ? availableSections.join(" · ") : "No sections clarified yet"}
+          {availableSections.length ? availableSections.join(" · ") : labels.noSections}
         </p>
       </div>
       <div className="mt-6 flex flex-wrap gap-3">
         <Button type="button" variant="secondary" onClick={onCancel}>
-          Cancel
+          {labels.cancel}
         </Button>
         <Button type="button" onClick={onImport}>
-          Import as New Idea
+          {labels.importNew}
         </Button>
       </div>
     </section>
   );
 }
 
-function importErrorMessage(
-  reason: IdeaSnapshotImportFailureReason,
-): string {
+function importErrorMessage(reason: IdeaSnapshotImportFailureReason, labels: LibraryLabels): string {
   switch (reason) {
     case "not_snapshot":
-      return "This file is not an MVPCompanion Idea Snapshot.";
+      return labels.notSnapshot;
     case "unsupported_version":
-      return "This Snapshot format version is not supported.";
+      return labels.unsupportedVersion;
     case "invalid_json":
-      return "Invalid JSON file.";
+      return labels.invalidJson;
     default:
-      return "This Idea Snapshot is malformed.";
+      return labels.malformed;
   }
 }
 
-function formatDate(value: string): string {
+function formatDate(value: string, locale: Locale, unknown: string): string {
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "Unknown" : date.toLocaleDateString();
+  return Number.isNaN(date.getTime()) ? unknown : date.toLocaleDateString(locale);
 }

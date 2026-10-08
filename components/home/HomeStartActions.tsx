@@ -1,9 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { AppEntryLinks } from "@/components/app/AppEntryLinks";
-import { startContent } from "@/content/start";
+import type { Dictionary } from "@/content/en";
+import { localeFromPathname, localizePath } from "@/lib/i18n/paths";
 import { useIdeaLibrary } from "@/lib/project/useProject";
 
 type StartCallToActionProps = {
@@ -17,6 +18,17 @@ type StartCallToActionProps = {
   defaultDetail?: string;
   defaultSnapshotNote?: string;
   showAppEntry?: boolean;
+  resume: Pick<
+    Dictionary["startContent"],
+    | "viewConceptHeadline"
+    | "viewConceptSupporting"
+    | "viewConceptCta"
+    | "continueHeadline"
+    | "continueSupporting"
+    | "continueCta"
+    | "startNewCta"
+  >;
+  appEntry: Dictionary["appEntry"];
 };
 
 export function StartCallToAction({
@@ -30,8 +42,11 @@ export function StartCallToAction({
   defaultDetail,
   defaultSnapshotNote,
   showAppEntry = false,
+  resume,
+  appEntry,
 }: StartCallToActionProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isReady, isResumable, isCompleted, activeIdea, createIdea } =
     useIdeaLibrary();
 
@@ -40,16 +55,16 @@ export function StartCallToAction({
   const headline = !showContinue
     ? defaultHeadline
     : viewingConcept
-      ? startContent.viewConceptHeadline
-      : startContent.continueHeadline;
+      ? resume.viewConceptHeadline
+      : resume.continueHeadline;
   const supporting = !showContinue
     ? defaultSupporting
     : viewingConcept
-      ? startContent.viewConceptSupporting
-      : startContent.continueSupporting;
+      ? resume.viewConceptSupporting
+      : resume.continueSupporting;
   const primaryLabel = viewingConcept
-    ? startContent.viewConceptCta
-    : startContent.continueCta;
+    ? resume.viewConceptCta
+    : resume.continueCta;
   const headlineClassName = inverted
     ? "text-4xl leading-[1.1] font-semibold tracking-tight text-white md:text-5xl"
     : "text-4xl leading-[1.1] font-semibold tracking-tight text-navy md:text-5xl";
@@ -66,7 +81,7 @@ export function StartCallToAction({
 
   function handleCreateIdea() {
     createIdea();
-    router.push("/start");
+    router.push(localizePath("/start", localeFromPathname(pathname)));
   }
 
   return (
@@ -109,7 +124,7 @@ export function StartCallToAction({
                 variant={secondaryVariant}
                 onClick={handleCreateIdea}
               >
-                {startContent.startNewCta}
+                {resume.startNewCta}
               </Button>
             </>
           ) : (
@@ -127,7 +142,7 @@ export function StartCallToAction({
         <div className="mt-10 min-h-[3.25rem]" aria-hidden="true" />
       )}
       {showAppEntry && !showContinue ? (
-        <AppEntryLinks inverted={inverted} className="mt-8" />
+        <AppEntryLinks appEntry={appEntry} inverted={inverted} className="mt-8" />
       ) : null}
     </>
   );

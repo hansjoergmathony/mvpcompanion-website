@@ -2,14 +2,23 @@
 
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
-import { publicContactEmail } from "@/content/legal";
+import type { Dictionary } from "@/content/en";
+import type { Locale } from "@/lib/i18n/config";
 
 type FormState = "idle" | "submitting" | "success" | "error";
 
 const fieldClassName =
   "mt-2 w-full rounded-md border border-border bg-card px-4 py-3 text-base leading-relaxed text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue";
 
-export function ContactForm() {
+export function ContactForm({
+  copy,
+  email,
+  locale,
+}: {
+  copy: Dictionary["ui"]["contact"];
+  email: string;
+  locale: Locale;
+}) {
   const [formState, setFormState] = useState<FormState>("idle");
   const [fieldError, setFieldError] = useState<string | null>(null);
 
@@ -30,6 +39,7 @@ export function ContactForm() {
           email: data.get("email"),
           subject: data.get("subject"),
           message: data.get("message"),
+          locale,
         }),
       });
 
@@ -61,7 +71,7 @@ export function ContactForm() {
         className="rounded-xl border border-border bg-ice px-6 py-5 text-lg text-navy"
         role="status"
       >
-        Thanks — your message has been sent.
+        {copy.success}
       </p>
     );
   }
@@ -69,14 +79,13 @@ export function ContactForm() {
   return (
     <div>
       <p className="max-w-xl text-base leading-relaxed text-muted">
-        You can also reach us directly at{" "}
+        {copy.directPrefix}{" "}
         <a
-          href={`mailto:${publicContactEmail}`}
+          href={`mailto:${email}`}
           className="font-medium text-blue underline-offset-2 hover:underline"
         >
-          {publicContactEmail}
-        </a>
-        .
+          {email}
+        </a>.
       </p>
 
       <form
@@ -86,7 +95,7 @@ export function ContactForm() {
       >
         <div>
           <label htmlFor="contact-name" className="text-sm font-medium text-navy">
-            Name <span className="text-blue">*</span>
+            {copy.name} <span className="text-blue">{copy.required}</span>
           </label>
           <input
             id="contact-name"
@@ -100,7 +109,7 @@ export function ContactForm() {
 
         <div>
           <label htmlFor="contact-email" className="text-sm font-medium text-navy">
-            Email <span className="text-blue">*</span>
+            {copy.email} <span className="text-blue">{copy.required}</span>
           </label>
           <input
             id="contact-email"
@@ -114,7 +123,7 @@ export function ContactForm() {
 
         <div>
           <label htmlFor="contact-subject" className="text-sm font-medium text-navy">
-            Subject <span className="text-muted">(optional)</span>
+            {copy.subject} <span className="text-muted">{copy.optional}</span>
           </label>
           <input
             id="contact-subject"
@@ -127,7 +136,7 @@ export function ContactForm() {
 
         <div>
           <label htmlFor="contact-message" className="text-sm font-medium text-navy">
-            Message <span className="text-blue">*</span>
+            {copy.message} <span className="text-blue">{copy.required}</span>
           </label>
           <textarea
             id="contact-message"
@@ -146,7 +155,7 @@ export function ContactForm() {
 
         {formState === "error" ? (
           <p className="text-sm text-red-700" role="alert">
-            Something went wrong. Please try again or contact us directly.
+            {copy.sendFailed}
           </p>
         ) : null}
 
@@ -154,7 +163,7 @@ export function ContactForm() {
           type="submit"
           disabled={formState === "submitting"}
         >
-          {formState === "submitting" ? "Sending…" : "Send message"}
+          {formState === "submitting" ? copy.sending : copy.send}
         </Button>
       </form>
     </div>

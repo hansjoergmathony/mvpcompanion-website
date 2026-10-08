@@ -1,10 +1,11 @@
-import { processContent } from "@/content/homepage";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { ProcessStagesList } from "@/components/sections/ProcessStagesList";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { EvolvingSpecificationVisual } from "@/components/visuals/EvolvingSpecificationVisual";
 
-export function ProcessSection() {
+export async function ProcessSection() {
+  const { processContent } = await getDictionary();
   return (
     <Section id="process" tone="ice">
       <SectionHeading

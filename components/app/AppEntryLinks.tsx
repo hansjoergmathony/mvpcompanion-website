@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { appEntry } from "@/content/site";
 import { Button } from "@/components/ui/Button";
+import type { Dictionary } from "@/content/en";
 
 type AppEntryLinksProps = {
+  appEntry: Dictionary["appEntry"];
   inverted?: boolean;
   showContinue?: boolean;
   showDirect?: boolean;
@@ -11,6 +11,7 @@ type AppEntryLinksProps = {
 };
 
 export function AppEntryLinks({
+  appEntry,
   inverted = false,
   showContinue = true,
   showDirect = true,
@@ -49,17 +50,13 @@ export function AppEntryLinks({
       {showDirect ? (
         <div className="space-y-2">
           {directPrompt ? (
-            <p
-              className={
-                inverted ? "text-sm text-white/65" : "text-sm text-muted"
-              }
-            >
+            <p className={inverted ? "text-sm text-white/65" : "text-sm text-muted"}>
               {directPrompt}
             </p>
           ) : null}
-          <Link href={appEntry.href} className={linkClassName}>
+          <a href={appEntry.href} className={linkClassName}>
             {appEntry.directStartLabel}
-          </Link>
+          </a>
         </div>
       ) : null}
     </div>

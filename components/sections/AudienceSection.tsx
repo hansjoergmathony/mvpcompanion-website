@@ -1,8 +1,9 @@
-import { audienceContent } from "@/content/homepage";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
-export function AudienceSection() {
+export async function AudienceSection() {
+  const { audienceContent } = await getDictionary();
   return (
     <Section id="audience">
       <SectionHeading

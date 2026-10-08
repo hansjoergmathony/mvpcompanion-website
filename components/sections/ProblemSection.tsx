@@ -1,7 +1,8 @@
-import { problemContent } from "@/content/homepage";
 import { Section } from "@/components/ui/Section";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
-export function ProblemSection() {
+export async function ProblemSection() {
+  const { problemContent } = await getDictionary();
   return (
     <Section id="problem">
       <div className="grid gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-16">

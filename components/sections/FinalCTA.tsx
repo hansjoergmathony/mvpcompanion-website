@@ -1,8 +1,9 @@
-import { finalCtaContent } from "@/content/homepage";
 import { StartCallToAction } from "@/components/home/HomeStartActions";
 import { Section } from "@/components/ui/Section";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
-export function FinalCTA() {
+export async function FinalCTA() {
+  const { appEntry, finalCtaContent, startContent } = await getDictionary();
   return (
     <Section id="start" tone="navy" className="relative overflow-hidden">
       <span
@@ -25,6 +26,8 @@ export function FinalCTA() {
           defaultSecondaryLabel={finalCtaContent.secondaryCta.label}
           defaultSecondaryHref={finalCtaContent.secondaryCta.href}
           showAppEntry
+          resume={startContent}
+          appEntry={appEntry}
         />
       </div>
     </Section>

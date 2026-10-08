@@ -35,6 +35,7 @@ export type ClarificationRequest = {
     user: string;
   };
   relatedAnswers: Partial<Record<ClarificationStageKey, string>>;
+  locale?: "en" | "de";
 };
 
 export type ClarificationEngine = {

@@ -1,4 +1,4 @@
-import { processPhases } from "@/content/process";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
 const phaseIcons = [
   UnderstandIcon,
@@ -8,11 +8,13 @@ const phaseIcons = [
   LearnIcon,
 ] as const;
 
-export function HeroProgression() {
+export async function HeroProgression() {
+  const { processPhases, processPage } = await getDictionary();
+
   return (
     <div className="rounded-2xl border border-border bg-card p-4 shadow-[0_16px_40px_-28px_rgba(11,31,58,0.22)] sm:p-5">
       <ol
-        aria-label="Five phases of the MVPCompanion process"
+        aria-label={processPage.principle}
         className="relative"
       >
         <span
