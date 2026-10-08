@@ -6,6 +6,7 @@ import {
   isCurrentStage,
   isDraftArea,
   stageKeys,
+  workspaceStageKeys,
   type Idea,
   type IdeaStatus,
   type StageKey,
@@ -118,6 +119,28 @@ export function countFilledFields(idea: Idea, keys: readonly StageKey[] = stageK
   return { filled, total: keys.length };
 }
 
+/**
+ * A complete imported specification should open as a document, rather than
+ * resuming the stage-by-stage editor. The first six fields alone are still a
+ * Clarify snapshot; every workspace field must contain an answer to qualify.
+ */
+function presentCompleteImportAsFullDraft(idea: Idea): Idea {
+  const hasCompleteSpecification = workspaceStageKeys.every((key) =>
+    Boolean(idea.stages[key]?.answer.trim()),
+  );
+
+  if (!hasCompleteSpecification) {
+    return idea;
+  }
+
+  return {
+    ...idea,
+    area: "workspace",
+    currentStage: "summary",
+    status: "in_progress",
+  };
+}
+
 export function getClarificationProgress(idea: Idea) {
   const stages = getSnapshotStages(idea);
   const clarified = stages.filter((stage) => stage.status === "clarified").length;
@@ -208,7 +231,7 @@ export function parseIdeaSnapshotImport(value: unknown): IdeaSnapshotImportResul
       snapshot: {
         format: IDEA_SNAPSHOT_FORMAT,
         formatVersion: IDEA_SNAPSHOT_FORMAT_VERSION,
-        idea,
+        idea: presentCompleteImportAsFullDraft(idea),
       },
     };
   }
@@ -277,7 +300,7 @@ function parsePrivatePrototypeExport(value: Record<string, unknown>): Idea | nul
     ? derivedName
     : "Untitled Idea");
 
-  return {
+  return presentCompleteImportAsFullDraft({
     id: `prototype-${crypto.randomUUID()}`,
     title,
     createdAt: updatedAt,
@@ -287,7 +310,7 @@ function parsePrivatePrototypeExport(value: Record<string, unknown>): Idea | nul
     currentStage: "jobs",
     status: "in_progress",
     area: "workspace",
-  };
+  });
 }
 
 function readPrototypeField(
