@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type RefObject } from "r
 import { Button } from "@/components/ui/Button";
 import { exportIdeaAsJson } from "@/lib/project/export";
 import {
+  countFilledFields,
   getClarificationProgress,
   getIdeaTitle,
   getSnapshotStages,
@@ -13,7 +14,13 @@ import {
 } from "@/lib/project/ideaSnapshot";
 import type { Dictionary } from "@/content/en";
 import type { Locale } from "@/lib/i18n/config";
-import { isStageKey, stageKeys, type Idea, type StageKey } from "@/lib/project/types";
+import {
+  isStageKey,
+  stageKeys,
+  workspaceStageKeys,
+  type Idea,
+  type StageKey,
+} from "@/lib/project/types";
 
 type LibraryLabels = Dictionary["ui"]["library"];
 type StatusLabels = Dictionary["ui"]["pdf"]["statuses"];
@@ -51,7 +58,15 @@ function ideaDescription(idea: Idea, empty: string): string {
   return idea.stages.idea.answer.trim() || empty;
 }
 
+function isCompleteSpecification(idea: Idea): boolean {
+  return workspaceStageKeys.every((key) => Boolean(idea.stages[key]?.answer.trim()));
+}
+
 function clarificationLabel(idea: Idea, labels: LibraryLabels, stageLabels: Record<StageKey, string>): string {
+  if (isCompleteSpecification(idea)) {
+    return labels.fullSpecification;
+  }
+
   if (isStageKey(idea.currentStage)) {
     return `${labels.stagePrefix} · ${stageLabels[idea.currentStage]}`;
   }
@@ -117,6 +132,7 @@ export function IdeaLibrary({
   >(null);
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const activeIdea = ideas.find((idea) => idea.id === activeIdeaId) ?? null;
 
   useEffect(() => {
     if (ideaToDelete) {
@@ -173,7 +189,9 @@ export function IdeaLibrary({
         <div className="flex flex-wrap gap-3">
           {activeIdeaId ? (
             <Button type="button" variant="secondary" onClick={onViewSnapshot}>
-              {labels.viewSnapshot}
+              {activeIdea && isCompleteSpecification(activeIdea)
+                ? labels.viewFullSpecification
+                : labels.viewSnapshot}
             </Button>
           ) : null}
           <Button type="button" variant="secondary" onClick={onCreate}>
@@ -267,9 +285,7 @@ export function IdeaLibrary({
         <ImportPreview
           snapshot={importPreview.snapshot}
           sourceVersion={importPreview.sourceVersion}
-          replacesDraft={draftHasContent(
-            ideas.find((idea) => idea.id === activeIdeaId) ?? null,
-          )}
+          replacesDraft={draftHasContent(activeIdea)}
           labels={labels}
           statuses={statuses}
           stageLabels={stageLabels}
@@ -277,15 +293,13 @@ export function IdeaLibrary({
           locale={locale}
           headingRef={importHeadingRef}
           onDownloadBackup={() => {
-            const active = ideas.find((idea) => idea.id === activeIdeaId);
-            if (active) {
-              exportIdeaAsJson(active, locale);
+            if (activeIdea) {
+              exportIdeaAsJson(activeIdea, locale);
             }
           }}
           onCancel={() => setImportPreview(null)}
           onImport={() => {
-            const active = ideas.find((idea) => idea.id === activeIdeaId) ?? null;
-            if (active) {
+            if (activeIdea) {
               onReplace(importPreview.snapshot.idea);
             } else {
               onImport(importPreview.snapshot.idea);
@@ -357,7 +371,9 @@ function ImportPreview({
   onImport: () => void;
 }) {
   const { idea } = snapshot;
+  const isFullSpecification = isCompleteSpecification(idea);
   const progress = getClarificationProgress(idea);
+  const specificationProgress = countFilledFields(idea);
   const availableSections = getSnapshotStages(idea, locale, stageLabels)
     .filter((stage) => stage.status !== "unresolved")
     .map((stage) => stage.label);
@@ -368,10 +384,22 @@ function ImportPreview({
       className="mt-6 rounded-xl border border-border bg-ice px-5 py-6"
     >
       <h3 id="import-preview-title" ref={headingRef} tabIndex={-1} className="text-lg font-semibold tracking-tight text-navy outline-none">
-        {replacesDraft ? labels.importReplaceTitle : labels.importTitle}
+        {isFullSpecification
+          ? replacesDraft
+            ? labels.importFullSpecificationReplaceTitle
+            : labels.importFullSpecificationTitle
+          : replacesDraft
+            ? labels.importReplaceTitle
+            : labels.importTitle}
       </h3>
       <p className="mt-2 text-sm leading-relaxed text-muted">
-        {replacesDraft ? labels.importReplaceBody : labels.importBody}
+        {isFullSpecification
+          ? replacesDraft
+            ? labels.importFullSpecificationReplaceBody
+            : labels.importFullSpecificationBody
+          : replacesDraft
+            ? labels.importReplaceBody
+            : labels.importBody}
       </p>
       <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
         <div>
@@ -386,6 +414,12 @@ function ImportPreview({
               : `MVPCompanion Idea Snapshot v${sourceVersion}`}
           </dd>
         </div>
+        {isFullSpecification ? (
+          <div>
+            <dt className="text-xs uppercase tracking-[0.14em] text-muted">{labels.fileContents}</dt>
+            <dd className="mt-1 text-foreground">{labels.fullSpecificationContents}</dd>
+          </div>
+        ) : null}
         <div>
           <dt className="text-xs uppercase tracking-[0.14em] text-muted">{labels.created}</dt>
           <dd className="mt-1 text-foreground">{formatDate(idea.createdAt, locale, labels.unknownDate)}</dd>
@@ -399,17 +433,25 @@ function ImportPreview({
           <dd className="mt-1 text-foreground">{statuses[idea.status]}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-[0.14em] text-muted">{labels.progress}</dt>
+          <dt className="text-xs uppercase tracking-[0.14em] text-muted">
+            {isFullSpecification ? labels.specificationProgress : labels.progress}
+          </dt>
           <dd className="mt-1 text-foreground">
-            {labels.progressValue
-              .replace("{clarified}", String(progress.clarified))
-              .replace("{inProgress}", String(progress.inProgress))
-              .replace("{unresolved}", String(progress.unresolved))}
+            {isFullSpecification
+              ? labels.specificationProgressValue
+                  .replace("{filled}", String(specificationProgress.filled))
+                  .replace("{total}", String(specificationProgress.total))
+              : labels.progressValue
+                  .replace("{clarified}", String(progress.clarified))
+                  .replace("{inProgress}", String(progress.inProgress))
+                  .replace("{unresolved}", String(progress.unresolved))}
           </dd>
         </div>
       </dl>
       <div className="mt-5">
-        <p className="text-xs uppercase tracking-[0.14em] text-muted">{labels.availableSections}</p>
+        <p className="text-xs uppercase tracking-[0.14em] text-muted">
+          {isFullSpecification ? labels.includedStages : labels.availableSections}
+        </p>
         <p className="mt-2 text-sm text-foreground">
           {availableSections.length ? availableSections.join(" · ") : labels.noSections}
         </p>
@@ -424,7 +466,13 @@ function ImportPreview({
           {labels.cancel}
         </Button>
         <Button type="button" onClick={onImport}>
-          {replacesDraft ? labels.importReplace : labels.importNew}
+          {isFullSpecification
+            ? replacesDraft
+              ? labels.importReplaceFullSpecification
+              : labels.importFullSpecification
+            : replacesDraft
+              ? labels.importReplace
+              : labels.importNew}
         </Button>
       </div>
     </section>
