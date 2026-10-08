@@ -113,7 +113,7 @@ export function IdeaLibrary({
   const deleteHeadingRef = useRef<HTMLHeadingElement>(null);
   const importHeadingRef = useRef<HTMLHeadingElement>(null);
   const [importPreview, setImportPreview] = useState<
-    { snapshot: IdeaSnapshotExport; sourceVersion: 1 | 2 } | null
+    { snapshot: IdeaSnapshotExport; sourceVersion: 1 | 2 | "prototype-v1" } | null
   >(null);
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -344,7 +344,7 @@ function ImportPreview({
   onImport,
 }: {
   snapshot: IdeaSnapshotExport;
-  sourceVersion: 1 | 2;
+  sourceVersion: 1 | 2 | "prototype-v1";
   replacesDraft: boolean;
   labels: LibraryLabels;
   statuses: StatusLabels;
@@ -381,7 +381,9 @@ function ImportPreview({
         <div>
           <dt className="text-xs uppercase tracking-[0.14em] text-muted">{labels.format}</dt>
           <dd className="mt-1 text-foreground">
-            MVPCompanion Idea Snapshot v{sourceVersion}
+            {sourceVersion === "prototype-v1"
+              ? "MVPCompanion Private Prototype v1"
+              : `MVPCompanion Idea Snapshot v${sourceVersion}`}
           </dd>
         </div>
         <div>

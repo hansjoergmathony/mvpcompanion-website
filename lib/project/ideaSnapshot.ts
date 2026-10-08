@@ -30,7 +30,7 @@ export type IdeaSnapshotImportFailureReason =
   | "malformed_idea";
 
 export type IdeaSnapshotImportResult =
-  | { ok: true; snapshot: IdeaSnapshotExport; sourceVersion: 1 | 2 }
+  | { ok: true; snapshot: IdeaSnapshotExport; sourceVersion: 1 | 2 | "prototype-v1" }
   | { ok: false; reason: IdeaSnapshotImportFailureReason };
 
 export type SnapshotStage = {
@@ -178,40 +178,124 @@ function ideaForExport(idea: Idea): Idea {
  *   Missing later stages stay empty. Texts, ids, and timestamps are kept.
  * - `mvpcompanion.idea-snapshot` version 2: current full-draft backup.
  *
- * No prototype file format is registered. The private prototype dataset was
- * not available, so unknown envelopes are rejected and leave local data unchanged.
+ * - private prototype schemaVersion 1: maps its named `fields` safely onto
+ *   the 15 stage ids. Extra source fields are retained with their related stage.
+ *
+ * Unknown envelopes are rejected and leave local data unchanged.
  */
 export function parseIdeaSnapshotImport(value: unknown): IdeaSnapshotImportResult {
   if (!isRecord(value)) {
     return { ok: false, reason: "invalid_json" };
   }
 
-  if (value.format !== IDEA_SNAPSHOT_FORMAT) {
-    return { ok: false, reason: "not_snapshot" };
+  if (value.format === IDEA_SNAPSHOT_FORMAT) {
+    if (
+      typeof value.formatVersion !== "number" ||
+      !supportedFormatVersions.includes(value.formatVersion as 1 | 2)
+    ) {
+      return { ok: false, reason: "unsupported_version" };
+    }
+
+    const sourceVersion = value.formatVersion as 1 | 2;
+    const idea = parseImportedIdea(value.idea);
+    if (!idea) {
+      return { ok: false, reason: "malformed_idea" };
+    }
+
+    return {
+      ok: true,
+      sourceVersion,
+      snapshot: {
+        format: IDEA_SNAPSHOT_FORMAT,
+        formatVersion: IDEA_SNAPSHOT_FORMAT_VERSION,
+        idea,
+      },
+    };
   }
 
-  if (
-    typeof value.formatVersion !== "number" ||
-    !supportedFormatVersions.includes(value.formatVersion as 1 | 2)
-  ) {
-    return { ok: false, reason: "unsupported_version" };
+  const prototypeIdea = parsePrivatePrototypeExport(value);
+  if (prototypeIdea) {
+    return {
+      ok: true,
+      sourceVersion: "prototype-v1",
+      snapshot: {
+        format: IDEA_SNAPSHOT_FORMAT,
+        formatVersion: IDEA_SNAPSHOT_FORMAT_VERSION,
+        idea: prototypeIdea,
+      },
+    };
   }
 
-  const sourceVersion = value.formatVersion as 1 | 2;
-  const idea = parseImportedIdea(value.idea);
-  if (!idea) {
+  if (value.schemaVersion === 1 && "fields" in value) {
     return { ok: false, reason: "malformed_idea" };
   }
 
+  return { ok: false, reason: "not_snapshot" };
+}
+
+function parsePrivatePrototypeExport(value: Record<string, unknown>): Idea | null {
+  if (value.schemaVersion !== 1 || !isRecord(value.fields)) {
+    return null;
+  }
+
+  const fields = value.fields;
+  const idea = readPrototypeField(fields, "idea");
+  const problem = readPrototypeField(fields, "problem");
+  const user = readPrototypeField(fields, "user");
+  const updatedAt = readDate(value.updatedAt);
+
+  if (idea === null || problem === null || user === null || !updatedAt) {
+    return null;
+  }
+
+  const stages = createEmptyStages();
+  const imported = (key: string) => readPrototypeField(fields, key) ?? "";
+  const combine = (...parts: string[]) => parts.filter(Boolean).join("\n\n");
+
+  stages.idea.answer = combine(idea, imported("assumptions"));
+  stages.problem.answer = combine(problem, imported("evidence"));
+  stages.user.answer = user;
+  stages.value.answer = combine(imported("value"), imported("viability"));
+  stages.product.answer = imported("product");
+  stages.context.answer = imported("context");
+  stages.jobs.answer = imported("jobs");
+  stages.scope.answer = combine(imported("scope"), imported("nonScope"));
+  stages.experience.answer = imported("experience");
+  stages.informationArchitecture.answer = imported("architecture");
+  stages.data.answer = imported("data");
+  stages.requirements.answer = combine(
+    imported("requirements"),
+    imported("acceptance"),
+  );
+  stages.learning.answer = combine(imported("learning"), imported("metric"));
+  stages.technicalBoundaries.answer = imported("technical");
+  stages.mvpBoundary.answer = imported("boundary");
+
+  const sourceName = readPrototypeField(value, "name") ?? "";
+  const derivedName = idea.split(":", 1)[0]?.trim() ?? "";
+  const title = sourceName || (derivedName.length >= 2 && derivedName.length <= 120
+    ? derivedName
+    : "Untitled Idea");
+
   return {
-    ok: true,
-    sourceVersion,
-    snapshot: {
-      format: IDEA_SNAPSHOT_FORMAT,
-      formatVersion: IDEA_SNAPSHOT_FORMAT_VERSION,
-      idea,
-    },
+    id: `prototype-${crypto.randomUUID()}`,
+    title,
+    createdAt: updatedAt,
+    updatedAt,
+    startingContext: { idea, problem, user },
+    stages,
+    currentStage: "jobs",
+    status: "in_progress",
+    area: "workspace",
   };
+}
+
+function readPrototypeField(
+  fields: Record<string, unknown>,
+  key: string,
+): string | null {
+  const value = fields[key];
+  return typeof value === "string" ? value.trim() : null;
 }
 
 function parseImportedIdea(value: unknown): Idea | null {
