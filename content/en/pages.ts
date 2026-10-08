@@ -1,5 +1,5 @@
 import { audienceContent, ecosystemContent } from "./homepage";
-import { bookSample, shortPaper } from "./resources";
+import { bookSample, shortPaper, stageProcess } from "./resources";
 import { site } from "./site";
 
 export const aboutPage = {
@@ -53,4 +53,5 @@ export const resourcesPage = {
   parts: ecosystemContent.parts,
   bookSample,
   shortPaper,
+  stageProcess,
 } as const;

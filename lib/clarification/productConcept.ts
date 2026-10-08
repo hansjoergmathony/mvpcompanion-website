@@ -6,8 +6,8 @@ import {
 import type { ProductConcept } from "@/lib/clarification/types";
 import {
   stageKeys,
+  type ClarifyStageKey,
   type Idea,
-  type StageKey,
   type StageState,
 } from "@/lib/project/types";
 
@@ -16,7 +16,7 @@ const MISSING = {
   de: "Das ist noch nicht geklärt.",
 } as const;
 
-const SUMMARY_PREFIX: Record<StageKey, RegExp> = {
+const SUMMARY_PREFIX: Record<ClarifyStageKey, RegExp> = {
   idea: /^(?:the idea hypothesis is (?:that )?|die hypothese zur idee lautet:\s*)/i,
   problem: /^(?:the problem is that |das problem ist, dass )/i,
   user: /^(?:the primary user is |der primäre nutzer ist )/i,
@@ -67,7 +67,7 @@ export function buildProductConcept(
   };
 }
 
-function understood(stage: StageState, key: StageKey): string {
+function understood(stage: StageState, key: ClarifyStageKey): string {
   const answer = normalizeAnswer(stage.answer);
   const summary = normalizeAnswer(stage.feedback?.summary ?? "");
   const cleanedSummary = stripEngineLead(summary, key);
@@ -88,7 +88,7 @@ function understood(stage: StageState, key: StageKey): string {
   return cleanedSummary || answer;
 }
 
-function stripEngineLead(value: string, key: StageKey): string {
+function stripEngineLead(value: string, key: ClarifyStageKey): string {
   if (!value) {
     return value;
   }
@@ -200,12 +200,12 @@ function labelForPart(part: string, locale: "en" | "de"): string {
     en: {
       primaryUser: "primary user",
       desiredOutcome: "desired outcome",
-      lifecycle: "context / lifecycle",
+      lifecycle: "lifecycle",
     },
     de: {
       primaryUser: "Der primäre Nutzer",
       desiredOutcome: "Das gewünschte Ergebnis",
-      lifecycle: "Der Kontext / Lebenszyklus",
+      lifecycle: "Der Lebenszyklus",
     },
   } as const;
 

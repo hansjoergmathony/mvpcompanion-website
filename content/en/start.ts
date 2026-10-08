@@ -10,7 +10,7 @@ export const totalStageCount = processStages.length;
 export const startContent = {
   title: "Clarify your starting point.",
   supporting:
-    "Answer a few essential questions about your idea, problem, users, value, product and context. This website clarification covers the same conceptual areas as the beginning of the shared method — it creates an Idea Snapshot, not the full MVPCompanion process.",
+    "Answer a few essential questions about your idea, problem, users, value, product and lifecycle. This website clarification covers the same conceptual areas as the beginning of the shared method — it creates an Idea Snapshot, not the full MVPCompanion process.",
   intakeLabel: "Starting context",
   startingContextDescription:
     "The original context you provided when you started.",
@@ -28,6 +28,9 @@ export const startContent = {
   hearingLabel: "Here's what I'm hearing",
   unclearLabel: "One thing is still unclear",
   refineLabel: "Refine your answer",
+  answerLabel: "Your answer",
+  refineHint:
+    "Revise your full answer using the feedback above, then review it again.",
   confirmLabel: "Looks good — continue",
   stageAnswerError: "Add an answer before this stage can be reviewed.",
   intakeError: "Add your idea, the problem, and the user to begin.",
@@ -59,7 +62,7 @@ export const startContent = {
     "The MVPCompanion app will take this starting point further by challenging assumptions, uncovering gaps and progressively developing your MVP specification.",
   startingPointTitle: "Your starting point",
   startingPointBody:
-    "You now have a structured view of your idea, problem, user, value, product and context.",
+    "You now have a structured view of your idea, problem, user, value, product and lifecycle.",
   startingPointExpectation:
     "There is more to resolve before this becomes a focused, testable and buildable MVP.",
   whatClarifiedTitle: "What you've clarified",
@@ -71,7 +74,7 @@ export const startContent = {
     "An initial target user",
     "An initial value proposition",
     "An initial product definition",
-    "An initial understanding of context / lifecycle",
+    "An initial understanding of the lifecycle",
   ] as const,
   whatComesNextTitle: "What comes next",
   whatComesNextIntro:
@@ -81,7 +84,7 @@ export const startContent = {
     "Scope",
     "Experience",
     "Information Architecture",
-    "Data",
+    "Data Model",
     "Requirements",
     "Learning",
     "Technical Boundaries",
@@ -107,15 +110,44 @@ export const startContent = {
   viewConceptCta: "View your Idea Snapshot",
   mvpHeadline: "Continue in MVPCompanion — coming soon",
   mvpSupporting:
-    "The full 15-stage framework, AI-supported analysis, and evolving MVP Specification will be available in the app — not in this website clarification flow.",
+    "You can keep drafting the remaining stages in this workspace. Deeper analysis, follow-up questions and refinement are planned for the MVPCompanion app, which is not available yet.",
   mvpBackToConcept: "Back to Idea Snapshot",
+  developSpecification: "Develop your specification",
+  workspaceTitle: "Develop your specification.",
+  workspaceSupporting:
+    "This is the same draft. Continue from Jobs through the remaining stages. The first six stay editable.",
+  filledFields: "{filled} of {total} completed fields",
+  filledNote:
+    "Completed fields record what you have written. They are not evidence or market validation.",
+  clarifyProgress: "Clarify",
+  overallProgress: "Full draft",
+  backToClarify: "Back to Clarify",
+  noAiReview:
+    "This stage is saved as you write it. Stages 7–15 have no separate AI review.",
+  saveAndContinue: "Save and continue",
+  exampleEyebrow: "Teaching example",
+  exampleTitle: "BookScout",
+  exampleBody:
+    "An illustrative example, not customer evidence. Your own draft stays separate until you choose to use the example as a template.",
+  exampleView: "View BookScout",
+  exampleUse: "Use as a template",
+  exampleClose: "Close example",
+  exampleConfirmTitle: "Replace the current draft?",
+  exampleConfirmBody:
+    "BookScout will replace the answers in the active draft. Download a JSON backup first if you want to keep them. You can undo the replacement afterwards.",
+  exampleDownload: "Download JSON backup",
+  exampleReplace: "Replace draft",
+  exampleCancel: "Cancel",
+  undoReplace: "Undo replacement",
+  showSixStages: "Show the six Clarify stages",
+  showAllStages: "Show all 15 stages",
   ideaSnapshotStages: [
     { number: "01", id: "idea", label: "Idea" },
     { number: "02", id: "problem", label: "Problem" },
     { number: "03", id: "user", label: "User" },
     { number: "04", id: "value", label: "Value" },
     { number: "05", id: "product", label: "Product" },
-    { number: "06", id: "context", label: "Context" },
+    { number: "06", id: "context", label: "Lifecycle" },
   ] as const,
   assumptionsTitle: "Recorded assumptions",
   openQuestionsTitle: "Open questions",
@@ -123,8 +155,10 @@ export const startContent = {
   emptyAnswer: "Not added yet",
   remainingLabel: "Continues in the app",
   soFarLabel: "So far",
-  assumptionsLabel: "Assumptions",
-  openQuestionsLabel: "Open questions",
+  assumptionsLabel: "Unconfirmed hypotheses",
+  openQuestionsLabel: "Open questions — not evidence",
+  aiHypothesisNote:
+    "Notes from clarification are unconfirmed hypotheses. They are not evidence or market validation.",
   intakeFields: [
     {
       key: "idea",
@@ -222,7 +256,7 @@ export const stageFocusByNumber: Record<
   },
   6: {
     uncertainty:
-      "This stage names what happens to the main thing in the product after first use, and later.",
+      "This stage names the relevant states of the central object and the transitions between them.",
     prior: ["product"],
   },
 };
@@ -233,7 +267,16 @@ export const priorStageLabel: Record<StageKey, string> = {
   user: "User",
   value: "Value",
   product: "Product",
-  context: "Context",
+  context: "Lifecycle",
+  jobs: "Jobs",
+  scope: "Scope",
+  experience: "Experience",
+  informationArchitecture: "Information Architecture",
+  data: "Data Model",
+  requirements: "Requirements",
+  learning: "Learning",
+  technicalBoundaries: "Technical Boundaries",
+  mvpBoundary: "MVP Boundary",
 };
 
 export function getStageFocus(stageNumber: number): string | null {

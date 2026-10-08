@@ -1,0 +1,11 @@
+{
+  "format": "mvpcompanion.idea-snapshot",
+  "formatVersion": 2,
+  "idea": {
+    "id": "broken",
+    "title": "Should not replace",
+    "stages": {
+      "idea": { "answer": 12 }
+    }
+  }
+}

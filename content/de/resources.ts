@@ -23,3 +23,10 @@ export const shortPaper = {
   author: "Hans-Jörg Mathony & ChatGPT",
   href: "/book_samples/MVPComanion_From_Idea_to_MVP_Short_Paper.pdf",
 } as const;
+
+export const stageProcess = {
+  title: "Der Prozess in 15 Stufen",
+  subtitle: "Von der Idee zur MVP-Grenze, Stufe für Stufe.",
+  positioning: "Ein Prozessüberblick über die fünfzehn Stufen der MVPCompanion-Methode.",
+  href: "/resources/MVPCompanion_15_Stage_Process.pdf",
+} as const;

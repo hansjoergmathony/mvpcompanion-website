@@ -2,7 +2,9 @@ import { buildProductConcept } from "@/lib/clarification";
 import type { Locale } from "@/lib/i18n/config";
 import type { StageFeedback } from "@/lib/clarification/types";
 import {
+  createEmptyStages,
   isCurrentStage,
+  isDraftArea,
   stageKeys,
   type Idea,
   type IdeaStatus,
@@ -12,7 +14,8 @@ import {
 } from "@/lib/project/types";
 
 export const IDEA_SNAPSHOT_FORMAT = "mvpcompanion.idea-snapshot";
-export const IDEA_SNAPSHOT_FORMAT_VERSION = 1;
+export const IDEA_SNAPSHOT_FORMAT_VERSION = 2;
+const supportedFormatVersions = [1, 2] as const;
 
 export type IdeaSnapshotExport = {
   format: typeof IDEA_SNAPSHOT_FORMAT;
@@ -27,7 +30,7 @@ export type IdeaSnapshotImportFailureReason =
   | "malformed_idea";
 
 export type IdeaSnapshotImportResult =
-  | { ok: true; snapshot: IdeaSnapshotExport }
+  | { ok: true; snapshot: IdeaSnapshotExport; sourceVersion: 1 | 2 }
   | { ok: false; reason: IdeaSnapshotImportFailureReason };
 
 export type SnapshotStage = {
@@ -43,7 +46,16 @@ const stageLabels: Record<StageKey, string> = {
   user: "User",
   value: "Value",
   product: "Product",
-  context: "Context",
+  context: "Lifecycle",
+  jobs: "Jobs",
+  scope: "Scope",
+  experience: "Experience",
+  informationArchitecture: "Information Architecture",
+  data: "Data Model",
+  requirements: "Requirements",
+  learning: "Learning",
+  technicalBoundaries: "Technical Boundaries",
+  mvpBoundary: "MVP Boundary",
 };
 
 const storedUntitled = "Untitled Idea";
@@ -74,6 +86,7 @@ export function getSnapshotStages(
   labels: Record<StageKey, string> = stageLabels,
 ): SnapshotStage[] {
   const concept = buildProductConcept(idea, locale);
+  const open = locale === "de" ? "Das ist noch nicht geklärt." : "This has not been clarified yet.";
   const contentByKey: Record<StageKey, string> = {
     idea: concept.idea,
     problem: concept.problem,
@@ -81,6 +94,15 @@ export function getSnapshotStages(
     value: concept.valueProposition,
     product: concept.product,
     context: concept.lifecycle,
+    jobs: idea.stages.jobs.answer.trim() || open,
+    scope: idea.stages.scope.answer.trim() || open,
+    experience: idea.stages.experience.answer.trim() || open,
+    informationArchitecture: idea.stages.informationArchitecture.answer.trim() || open,
+    data: idea.stages.data.answer.trim() || open,
+    requirements: idea.stages.requirements.answer.trim() || open,
+    learning: idea.stages.learning.answer.trim() || open,
+    technicalBoundaries: idea.stages.technicalBoundaries.answer.trim() || open,
+    mvpBoundary: idea.stages.mvpBoundary.answer.trim() || open,
   };
 
   return stageKeys.map((key) => ({
@@ -89,6 +111,11 @@ export function getSnapshotStages(
     status: getStageSnapshotStatus(idea.stages[key]),
     content: contentByKey[key],
   }));
+}
+
+export function countFilledFields(idea: Idea, keys: readonly StageKey[] = stageKeys) {
+  const filled = keys.filter((key) => idea.stages[key]?.answer.trim()).length;
+  return { filled, total: keys.length };
 }
 
 export function getClarificationProgress(idea: Idea) {
@@ -108,17 +135,51 @@ export function getClarificationProgress(idea: Idea) {
  * Stable exchange envelope for future MVPCompanion JSON imports.
  * Only persisted Idea fields are included; no React or UI state is exported.
  */
+/**
+ * Backup of the active draft. Field ids stay language-independent.
+ * Provider feedback and anything that is not part of the written draft are omitted.
+ */
 export function createIdeaSnapshotExport(idea: Idea): IdeaSnapshotExport {
   return {
     format: IDEA_SNAPSHOT_FORMAT,
     formatVersion: IDEA_SNAPSHOT_FORMAT_VERSION,
-    idea,
+    idea: ideaForExport(idea),
+  };
+}
+
+function ideaForExport(idea: Idea): Idea {
+  const stages = createEmptyStages();
+  for (const key of stageKeys) {
+    const stage = idea.stages[key];
+    const submittedAnswer = stage?.submittedAnswer;
+    stages[key] = {
+      answer: stage?.answer ?? "",
+      ...(typeof submittedAnswer === "string" ? { submittedAnswer } : {}),
+    };
+  }
+
+  return {
+    id: idea.id,
+    title: idea.title,
+    createdAt: idea.createdAt,
+    updatedAt: idea.updatedAt,
+    startingContext: { ...idea.startingContext },
+    stages,
+    currentStage: idea.currentStage,
+    status: idea.status,
+    area: idea.area,
   };
 }
 
 /**
- * Validates the stable MVPCompanion exchange envelope before any Idea is added to
- * local storage. Future format versions must be explicitly supported here.
+ * Explicit file mappings. A `.json` extension is not enough.
+ *
+ * - `mvpcompanion.idea-snapshot` version 1: Clarify export with stages 1–6.
+ *   Missing later stages stay empty. Texts, ids, and timestamps are kept.
+ * - `mvpcompanion.idea-snapshot` version 2: current full-draft backup.
+ *
+ * No prototype file format is registered. The private prototype dataset was
+ * not available, so unknown envelopes are rejected and leave local data unchanged.
  */
 export function parseIdeaSnapshotImport(value: unknown): IdeaSnapshotImportResult {
   if (!isRecord(value)) {
@@ -129,10 +190,14 @@ export function parseIdeaSnapshotImport(value: unknown): IdeaSnapshotImportResul
     return { ok: false, reason: "not_snapshot" };
   }
 
-  if (value.formatVersion !== IDEA_SNAPSHOT_FORMAT_VERSION) {
+  if (
+    typeof value.formatVersion !== "number" ||
+    !supportedFormatVersions.includes(value.formatVersion as 1 | 2)
+  ) {
     return { ok: false, reason: "unsupported_version" };
   }
 
+  const sourceVersion = value.formatVersion as 1 | 2;
   const idea = parseImportedIdea(value.idea);
   if (!idea) {
     return { ok: false, reason: "malformed_idea" };
@@ -140,6 +205,7 @@ export function parseIdeaSnapshotImport(value: unknown): IdeaSnapshotImportResul
 
   return {
     ok: true,
+    sourceVersion,
     snapshot: {
       format: IDEA_SNAPSHOT_FORMAT,
       formatVersion: IDEA_SNAPSHOT_FORMAT_VERSION,
@@ -174,10 +240,9 @@ function parseImportedIdea(value: unknown): Idea | null {
     return null;
   }
 
-  const exportedTitle = readOptionalString(value.title);
   const title =
-    exportedTitle && exportedTitle !== startingContext.idea.trim()
-      ? exportedTitle
+    typeof value.title === "string" && value.title.trim()
+      ? value.title
       : "Untitled Idea";
 
   return {
@@ -189,6 +254,9 @@ function parseImportedIdea(value: unknown): Idea | null {
     status,
     startingContext,
     stages,
+    area: isDraftArea(readOptionalString(value.area) ?? "")
+      ? (readOptionalString(value.area) as Idea["area"])
+      : "clarify",
   };
 }
 
@@ -210,8 +278,12 @@ function parseStages(value: unknown): Idea["stages"] | null {
     return null;
   }
 
-  const stages = {} as Idea["stages"];
+  const stages = createEmptyStages();
   for (const key of stageKeys) {
+    if (value[key] === undefined) {
+      continue;
+    }
+
     const stage = parseStageState(value[key]);
     if (!stage) {
       return null;

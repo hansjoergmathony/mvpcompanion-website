@@ -1,14 +1,16 @@
 import { dictionary as de } from "@/content/de";
 import { dictionary as en, type Dictionary } from "@/content/en";
-import { buildProductConcept } from "@/lib/clarification";
 import type { Locale } from "@/lib/i18n/config";
 import {
   createIdeaSnapshotExport,
-  getClarificationProgress,
   getIdeaTitle,
-  getSnapshotStages,
 } from "@/lib/project/ideaSnapshot";
-import type { Idea } from "@/lib/project/types";
+import {
+  stageKeys,
+  stageNumberByKey,
+  type Idea,
+  type StageKey,
+} from "@/lib/project/types";
 
 function copyFor(locale: Locale) {
   return locale === "de" ? de : en;
@@ -16,7 +18,7 @@ function copyFor(locale: Locale) {
 
 export function ideaExportFilename(
   idea: Idea,
-  extension: "json" | "pdf",
+  extension: "json" | "pdf" | "md",
   locale: Locale = "en",
 ): string {
   const title = getIdeaTitle(idea, copyFor(locale).ui.untitledIdea)
@@ -30,6 +32,8 @@ export function ideaExportFilename(
   return `mvpcompanion-${title || "idea"}.${extension}`;
 }
 
+export type ExportScope = "snapshot" | "full";
+
 export function exportIdeaAsJson(idea: Idea, locale: Locale = "en"): void {
   download(
     JSON.stringify(createIdeaSnapshotExport(idea), null, 2),
@@ -42,8 +46,24 @@ export function exportIdeaAsPdf(
   idea: Idea,
   locale: Locale = "en",
   labels: Dictionary["ui"]["pdf"] = copyFor(locale).ui.pdf,
+  scope: ExportScope = "snapshot",
 ): void {
-  downloadPdf(createIdeaSnapshotPdf(idea, locale, labels), ideaExportFilename(idea, "pdf", locale));
+  downloadPdf(
+    createIdeaSnapshotPdf(idea, locale, labels, scope),
+    ideaExportFilename(idea, "pdf", locale),
+  );
+}
+
+export function exportIdeaAsMarkdown(
+  idea: Idea,
+  locale: Locale = "en",
+  scope: ExportScope = "snapshot",
+): void {
+  download(
+    createIdeaMarkdown(idea, locale, scope),
+    ideaExportFilename(idea, "md", locale),
+    "text/markdown;charset=utf-8",
+  );
 }
 
 function download(content: string, filename: string, type: string) {
@@ -81,11 +101,11 @@ export function createIdeaSnapshotPdf(
   idea: Idea,
   locale: Locale = "en",
   labels: Dictionary["ui"]["pdf"] = copyFor(locale).ui.pdf,
+  scope: ExportScope = "snapshot",
 ): Uint8Array {
   const copy = copyFor(locale);
   const title = getIdeaTitle(idea, copy.ui.untitledIdea);
-  const concept = buildProductConcept(idea, locale);
-  const progress = getClarificationProgress(idea);
+  const rows = exportRows(idea, locale, scope);
   const pages: PdfPage[] = [{ lines: [], y: 758 }];
   let page = pages[0];
 
@@ -110,33 +130,29 @@ export function createIdeaSnapshotPdf(
     page.y -= 2;
   };
 
-  addLine(labels.heading, 22, "0.04 0.12 0.25");
+  addLine(scope === "full" ? labels.headingFull : labels.heading, 18, "0.04 0.12 0.25");
   addParagraph(title, 15, "0.04 0.12 0.25");
   addLine(`${labels.status}: ${labels.statuses[idea.status]}`, 10);
+  addLine(`${labels.currentStage}: ${readableStage(idea.currentStage, labels, copy.priorStageLabel)}`, 10);
   addLine(
-    `${labels.clarification}: ${progress.clarified} ${labels.clarified}, ${progress.inProgress} ${labels.inProgress}, ${progress.unresolved} ${labels.unresolved}`,
-    10,
-  );
-  addLine(`${labels.currentStage}: ${readableStage(idea.currentStage, labels)}`, 10);
-  addLine(
-    `${labels.created}: ${formatDate(idea.createdAt, locale, labels.unknownDate)}  |  ${labels.updated}: ${formatDate(idea.updatedAt, locale, labels.unknownDate)}`,
+    `${labels.created}: ${formatDate(idea.createdAt, locale, labels.unknownDate)}  |  ${labels.updated}: ${formatDate(idea.updatedAt, locale, labels.unknownDate)}  |  ${labels.exported}: ${formatDate(new Date().toISOString(), locale, labels.unknownDate)}`,
     9,
     "0.38 0.43 0.50",
   );
-  page.y -= 12;
+  addParagraph(labels.notValidation, 9, "0.38 0.43 0.50");
+  page.y -= 8;
 
-  addHeading(labels.snapshotContent);
-  for (const stage of getSnapshotStages(idea, locale, copy.priorStageLabel)) {
-    addLine(`${stage.label} - ${labels.stageStatus[stage.status]}`, 11);
-    addParagraph(stage.content, 10, stage.status === "unresolved" ? "0.38 0.43 0.50" : undefined);
+  for (const row of rows) {
+    const number = String(row.number).padStart(2, "0");
+    addHeading(`${number} ${row.label} — ${row.open ? labels.openContent : labels.filledField}`);
+    addParagraph(row.content, 10, row.open ? "0.38 0.43 0.50" : undefined);
+    if (row.additional) {
+      addLine(labels.additionalField, 9, "0.10 0.39 0.67");
+      addParagraph(row.additional, 10);
+    }
   }
 
-  addHeading(labels.assumptions);
-  concept.assumptions.forEach((item) => addParagraph(`- ${item}`, 10));
-  addHeading(labels.openQuestions);
-  concept.openQuestions.forEach((item) => addParagraph(`- ${item}`, 10));
-
-  return serializePdf(pages, title, labels.footer);
+  return serializePdf(pages, title, scope === "full" ? labels.footerFull : labels.footer);
 }
 
 function serializePdf(pages: PdfPage[], title: string, footer: string): Uint8Array {
@@ -154,7 +170,7 @@ function serializePdf(pages: PdfPage[], title: string, footer: string): Uint8Arr
       "q 0.04 0.12 0.25 rg 0 790 595 52 re f Q",
       "BT /F1 15 Tf 1 1 1 rg 46 810 Td (MVPCompanion) Tj ET",
       ...page.lines,
-      `BT /F1 8 Tf 0.38 0.43 0.50 rg 46 28 Td (${pdfText(footer)} - ${pdfText(title)} - ${index + 1}/${pages.length}) Tj ET`,
+      `BT /F1 8 Tf 0.38 0.43 0.50 rg 46 28 Td (${pdfText(`${footer} - ${title.slice(0, 48)} - ${index + 1}/${pages.length}`)}) Tj ET`,
     ].join("\n");
     objects[pageId] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentId} 0 R >>`;
     objects[contentId] = `<< /Length ${byteLength(content)} >>\nstream\n${content}\nendstream`;
@@ -190,23 +206,72 @@ function serializePdf(pages: PdfPage[], title: string, footer: string): Uint8Arr
   return result;
 }
 
-function readableStatus(status: Idea["status"]): string {
-  return status === "completed" ? "Completed" : status === "in_progress" ? "In progress" : "New";
-}
-
 function readableStage(
   stage: Idea["currentStage"],
   labels: Dictionary["ui"]["pdf"],
+  stageLabels: Record<StageKey, string>,
 ): string {
   if (stage === "intake" || stage === "summary" || stage === "mvp") {
     return labels.stages[stage];
   }
 
-  return stage.charAt(0).toUpperCase() + stage.slice(1);
+  return stageLabels[stage];
 }
 
-function readableStageStatus(status: "clarified" | "in_progress" | "unresolved"): string {
-  return status === "clarified" ? "Clarified" : status === "in_progress" ? "In progress" : "Unresolved";
+type ExportRow = {
+  number: number;
+  label: string;
+  open: boolean;
+  content: string;
+  additional: string;
+};
+
+function exportRows(idea: Idea, locale: Locale, scope: ExportScope): ExportRow[] {
+  const copy = copyFor(locale);
+  const openLabel = copy.ui.pdf.openContent;
+  return stageKeys
+    .filter((key) => scope === "full" || stageNumberByKey[key] <= 6)
+    .map((key) => {
+      const stage = idea.stages[key];
+      const answer = stage?.answer ?? "";
+      const submitted = stage?.submittedAnswer?.trim() ?? "";
+      const additional =
+        submitted && submitted !== answer.trim() ? stage?.submittedAnswer ?? "" : "";
+      return {
+        number: stageNumberByKey[key],
+        label: copy.priorStageLabel[key],
+        open: !answer.trim(),
+        content: answer.trim() ? answer : openLabel,
+        additional,
+      };
+    });
+}
+
+export function createIdeaMarkdown(idea: Idea, locale: Locale, scope: ExportScope): string {
+  const copy = copyFor(locale);
+  const labels = copy.ui.pdf;
+  const title = getIdeaTitle(idea, copy.ui.untitledIdea);
+  const rows = exportRows(idea, locale, scope);
+  const lines = [
+    `# ${title}`,
+    "",
+    `${labels.exported}: ${formatDate(new Date().toISOString(), locale, labels.unknownDate)}`,
+    `${labels.updated}: ${formatDate(idea.updatedAt, locale, labels.unknownDate)}`,
+    "",
+    labels.notValidation,
+    "",
+  ];
+
+  rows.forEach((row) => {
+    const number = String(row.number).padStart(2, "0");
+    const state = row.open ? labels.openContent : labels.filledField;
+    lines.push(`## ${number} ${row.label}`, "", `_${state}_`, "", row.content, "");
+    if (row.additional) {
+      lines.push(`**${labels.additionalField}**`, "", row.additional, "");
+    }
+  });
+
+  return lines.join("\n");
 }
 
 function formatDate(value: string, locale: Locale, unknown: string): string {
@@ -215,7 +280,15 @@ function formatDate(value: string, locale: Locale, unknown: string): string {
 }
 
 function wrapPdfText(value: string, maxLength: number): string[] {
-  const words = value.replace(/\s+/g, " ").trim().split(" ");
+  const words = value
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .flatMap((word) =>
+      word.length <= maxLength
+        ? [word]
+        : word.match(new RegExp(`.{1,${maxLength}}`, "g")) ?? [word],
+    );
   const lines: string[] = [];
   let line = "";
   for (const word of words) {

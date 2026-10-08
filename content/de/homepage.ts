@@ -220,7 +220,7 @@ export const websiteAppContent = {
       items: [
         "Die MVPCompanion-Methode erkunden",
         "Strukturierte Klärungsfragen durchgehen",
-        "Idee, Problem, Nutzer, Wert, Produkt und Kontext klären",
+        "Idee, Problem, Nutzer, Wert, Produkt und Lebenszyklus klären",
         "Einen Ideen-Snapshot erstellen",
         "Einen nützlichen Ausgangspunkt für die weitere Arbeit schaffen",
       ],
@@ -326,7 +326,7 @@ export const finalCtaContent = {
   headline: "Sie haben eine Idee?",
   supporting: "Klären Sie Ihren Ausgangspunkt.",
   detail:
-    "Beantworten Sie ein paar wesentliche Fragen zu Idee, Problem, Nutzern, Wert, Produkt und Kontext.",
+    "Beantworten Sie ein paar wesentliche Fragen zu Idee, Problem, Nutzern, Wert, Produkt und Lebenszyklus.",
   snapshotNote:
     "Sie erstellen einen Ideen-Snapshot — einen strukturierten Ausgangspunkt, keine fertige MVP-Spezifikation.",
   primaryCta: {

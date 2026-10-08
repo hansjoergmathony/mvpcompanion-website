@@ -38,10 +38,10 @@ export const processStages: readonly ProcessStage[] = [
   },
   {
     number: 6,
-    name: "Kontext",
-    question: "Was passiert mit der Hauptsache im Produkt über die Zeit?",
-    purpose: "Beschreiben, wie sich das zentrale Objekt des Produkts über die Zeit verändert.",
-    output: "Lebenszyklus- / Kontextmodell",
+    name: "Lebenszyklus",
+    question: "Beschreibe seine relevanten Zustände und die Übergänge zwischen ihnen.",
+    purpose: "Die relevanten Zustände des zentralen Objekts und die Übergänge zwischen ihnen benennen.",
+    output: "Lebenszyklusmodell",
   },
   {
     number: 7,
@@ -60,23 +60,25 @@ export const processStages: readonly ProcessStage[] = [
   {
     number: 9,
     name: "Erlebnis",
-    question: "Wie kommt der Nutzer zum Wert?",
-    purpose: "Beschreiben, wie der Nutzer zum Wert gelangt.",
-    output: "Zentrale Nutzerflüsse plus Screen-Inventar",
+    question:
+      "Beschreiben Sie den vollständigen Kernablauf, einschließlich mindestens eines wichtigen Fehler- oder No-Result-Falls.",
+    purpose:
+      "Den vollständigen Kernablauf beschreiben, einschließlich mindestens eines wichtigen Fehlers oder leeren Ergebnisses.",
+    output: "Kernablauf einschließlich eines Fehler- oder No-Result-Falls",
   },
   {
     number: 10,
     name: "Informationsarchitektur",
-    question: "Wie ist das Produkt organisiert?",
-    purpose: "Beschreiben, wie das Produkt aufgebaut ist.",
-    output: "Informationsarchitektur plus Navigationsmodell",
+    question: "Welche zentralen Informationen und Objekte umfasst das Produkt?",
+    purpose: "Die zentralen Informationen und Objekte und ihre Anordnung benennen.",
+    output: "Zentrale Informationen, Objekte und ihre Anordnung",
   },
   {
     number: 11,
-    name: "Daten",
-    question: "Welche Entitäten und Felder werden gebraucht?",
-    purpose: "Die Daten beschreiben, die das Produkt zum Betrieb braucht.",
-    output: "MVP-Entitäten- und Datenmodell",
+    name: "Datenmodell",
+    question: "Welche Entitäten und Felder braucht das Datenmodell?",
+    purpose: "Das Datenmodell beschreiben, das das Produkt braucht.",
+    output: "MVP-Datenmodell",
   },
   {
     number: 12,
@@ -95,9 +97,12 @@ export const processStages: readonly ProcessStage[] = [
   {
     number: 14,
     name: "Technische Grenzen",
-    question: "Welche technischen Grenzen zählen?",
-    purpose: "Technische Einschränkungen und große Risiken beschreiben.",
-    output: "Grobarchitektur plus technische Einschränkungen",
+    question:
+      "Welche Plattform- und Architekturannahmen, Abhängigkeiten, Datenschutzgrenzen, technischen Risiken und offenen Machbarkeitsfragen zählen?",
+    purpose:
+      "Plattform- und Architekturannahmen, Abhängigkeiten, Datenschutz, technische Risiken und offene Machbarkeitsfragen festhalten.",
+    output:
+      "Plattform- und Architekturannahmen, Abhängigkeiten, Datenschutz, Risiken und offene Machbarkeitsfragen",
   },
   {
     number: 15,

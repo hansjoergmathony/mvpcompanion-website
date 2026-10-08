@@ -1,0 +1,32 @@
+{
+  "format": "mvpcompanion.idea-snapshot",
+  "formatVersion": 2,
+  "idea": {
+    "id": "backup-v2-bookscout",
+    "title": "BookScout",
+    "createdAt": "2026-04-04T08:00:00.000Z",
+    "updatedAt": "2026-04-05T09:15:00.000Z",
+    "currentStage": "jobs",
+    "status": "in_progress",
+    "area": "workspace",
+    "startingContext": {
+      "idea": "BookScout recommends books to readers based on the books on their own bookshelves. The usefulness of this idea is a hypothesis.",
+      "problem": "Choosing the next book is hard.",
+      "user": "An adult reader with a personal shelf."
+    },
+    "stages": {
+      "idea": {
+        "answer": "BookScout recommends books to readers based on the books on their own bookshelves. The usefulness of this idea is a hypothesis."
+      },
+      "problem": { "answer": "Choosing the next book is hard." },
+      "user": { "answer": "An adult reader with a personal shelf." },
+      "value": { "answer": "" },
+      "product": { "answer": "" },
+      "context": { "answer": "Owned, considered, set aside." },
+      "jobs": {
+        "answer": "Record books on the shelf and ask for one next-book recommendation.",
+        "submittedAnswer": "Record owned books, then ask."
+      }
+    }
+  }
+}

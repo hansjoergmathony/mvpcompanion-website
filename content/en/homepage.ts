@@ -223,7 +223,7 @@ export const websiteAppContent = {
       items: [
         "Explore the MVPCompanion method",
         "Work through structured clarification questions",
-        "Clarify Idea, Problem, User, Value, Product and Context",
+        "Clarify Idea, Problem, User, Value, Product and Lifecycle",
         "Create an Idea Snapshot",
         "Establish a useful starting point for deeper work",
       ],
@@ -329,7 +329,7 @@ export const finalCtaContent = {
   headline: "Have an idea?",
   supporting: "Start clarifying your starting point.",
   detail:
-    "Answer a few essential questions about your idea, problem, users, value, product and context.",
+    "Answer a few essential questions about your idea, problem, users, value, product and lifecycle.",
   snapshotNote:
     "You will create an Idea Snapshot — a structured starting point, not a finished MVP specification.",
   primaryCta: {

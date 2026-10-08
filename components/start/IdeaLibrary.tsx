@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type RefObject } from "react";
 import { Button } from "@/components/ui/Button";
+import { exportIdeaAsJson } from "@/lib/project/export";
 import {
   getClarificationProgress,
   getIdeaTitle,
@@ -12,7 +13,7 @@ import {
 } from "@/lib/project/ideaSnapshot";
 import type { Dictionary } from "@/content/en";
 import type { Locale } from "@/lib/i18n/config";
-import { isStageKey, type Idea, type StageKey } from "@/lib/project/types";
+import { isStageKey, stageKeys, type Idea, type StageKey } from "@/lib/project/types";
 
 type LibraryLabels = Dictionary["ui"]["library"];
 type StatusLabels = Dictionary["ui"]["pdf"]["statuses"];
@@ -30,7 +31,21 @@ type IdeaLibraryProps = {
   onViewSnapshot: () => void;
   onDelete: (id: string) => void;
   onImport: (idea: Idea) => void;
+  onReplace: (idea: Idea) => void;
+  canUndo: boolean;
+  onUndo: () => void;
 };
+
+function draftHasContent(idea: Idea | null): boolean {
+  if (!idea) {
+    return false;
+  }
+
+  return Boolean(
+    (idea.title.trim() && idea.title !== "Untitled Idea") ||
+      stageKeys.some((key) => idea.stages[key]?.answer.trim()),
+  );
+}
 
 function ideaDescription(idea: Idea, empty: string): string {
   return idea.stages.idea.answer.trim() || empty;
@@ -90,11 +105,30 @@ export function IdeaLibrary({
   onViewSnapshot,
   onDelete,
   onImport,
+  onReplace,
+  canUndo,
+  onUndo,
 }: IdeaLibraryProps) {
   const [ideaToDelete, setIdeaToDelete] = useState<Idea | null>(null);
-  const [importPreview, setImportPreview] = useState<IdeaSnapshotExport | null>(null);
+  const deleteHeadingRef = useRef<HTMLHeadingElement>(null);
+  const importHeadingRef = useRef<HTMLHeadingElement>(null);
+  const [importPreview, setImportPreview] = useState<
+    { snapshot: IdeaSnapshotExport; sourceVersion: 1 | 2 } | null
+  >(null);
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (ideaToDelete) {
+      deleteHeadingRef.current?.focus();
+    }
+  }, [ideaToDelete]);
+
+  useEffect(() => {
+    if (importPreview) {
+      importHeadingRef.current?.focus();
+    }
+  }, [importPreview]);
 
   async function handleImportFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -114,7 +148,10 @@ export function IdeaLibrary({
     try {
       const parsed = parseIdeaSnapshotImport(JSON.parse(await file.text()) as unknown);
       if (parsed.ok) {
-        setImportPreview(parsed.snapshot);
+        setImportPreview({
+          snapshot: parsed.snapshot,
+          sourceVersion: parsed.sourceVersion,
+        });
         return;
       }
 
@@ -149,6 +186,11 @@ export function IdeaLibrary({
           >
             {labels.importSnapshot}
           </Button>
+          {canUndo ? (
+            <Button type="button" variant="secondary" onClick={onUndo}>
+              {labels.undoReplace}
+            </Button>
+          ) : null}
           <input
             ref={fileInputRef}
             type="file"
@@ -223,15 +265,31 @@ export function IdeaLibrary({
 
       {importPreview ? (
         <ImportPreview
-          snapshot={importPreview}
+          snapshot={importPreview.snapshot}
+          sourceVersion={importPreview.sourceVersion}
+          replacesDraft={draftHasContent(
+            ideas.find((idea) => idea.id === activeIdeaId) ?? null,
+          )}
           labels={labels}
           statuses={statuses}
           stageLabels={stageLabels}
           untitled={untitled}
           locale={locale}
+          headingRef={importHeadingRef}
+          onDownloadBackup={() => {
+            const active = ideas.find((idea) => idea.id === activeIdeaId);
+            if (active) {
+              exportIdeaAsJson(active, locale);
+            }
+          }}
           onCancel={() => setImportPreview(null)}
           onImport={() => {
-            onImport(importPreview.idea);
+            const active = ideas.find((idea) => idea.id === activeIdeaId) ?? null;
+            if (active) {
+              onReplace(importPreview.snapshot.idea);
+            } else {
+              onImport(importPreview.snapshot.idea);
+            }
             setImportPreview(null);
           }}
         />
@@ -245,7 +303,7 @@ export function IdeaLibrary({
           aria-labelledby="delete-idea-title"
           aria-describedby="delete-idea-description"
         >
-          <h3 id="delete-idea-title" className="text-base font-medium text-navy">
+          <h3 id="delete-idea-title" ref={deleteHeadingRef} tabIndex={-1} className="text-base font-medium text-navy outline-none">
             {labels.deleteTitle}
           </h3>
           <p id="delete-idea-description" className="mt-2 text-sm leading-relaxed text-muted">
@@ -273,20 +331,28 @@ export function IdeaLibrary({
 
 function ImportPreview({
   snapshot,
+  sourceVersion,
+  replacesDraft,
   labels,
   statuses,
   stageLabels,
   untitled,
   locale,
+  headingRef,
+  onDownloadBackup,
   onCancel,
   onImport,
 }: {
   snapshot: IdeaSnapshotExport;
+  sourceVersion: 1 | 2;
+  replacesDraft: boolean;
   labels: LibraryLabels;
   statuses: StatusLabels;
   stageLabels: Record<StageKey, string>;
   untitled: string;
   locale: Locale;
+  headingRef: RefObject<HTMLHeadingElement | null>;
+  onDownloadBackup: () => void;
   onCancel: () => void;
   onImport: () => void;
 }) {
@@ -301,10 +367,12 @@ function ImportPreview({
       aria-labelledby="import-preview-title"
       className="mt-6 rounded-xl border border-border bg-ice px-5 py-6"
     >
-      <h3 id="import-preview-title" className="text-lg font-semibold tracking-tight text-navy">
-        {labels.importTitle}
+      <h3 id="import-preview-title" ref={headingRef} tabIndex={-1} className="text-lg font-semibold tracking-tight text-navy outline-none">
+        {replacesDraft ? labels.importReplaceTitle : labels.importTitle}
       </h3>
-      <p className="mt-2 text-sm leading-relaxed text-muted">{labels.importBody}</p>
+      <p className="mt-2 text-sm leading-relaxed text-muted">
+        {replacesDraft ? labels.importReplaceBody : labels.importBody}
+      </p>
       <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
         <div>
           <dt className="text-xs uppercase tracking-[0.14em] text-muted">{labels.idea}</dt>
@@ -313,7 +381,7 @@ function ImportPreview({
         <div>
           <dt className="text-xs uppercase tracking-[0.14em] text-muted">{labels.format}</dt>
           <dd className="mt-1 text-foreground">
-            MVPCompanion Idea Snapshot v{snapshot.formatVersion}
+            MVPCompanion Idea Snapshot v{sourceVersion}
           </dd>
         </div>
         <div>
@@ -345,11 +413,16 @@ function ImportPreview({
         </p>
       </div>
       <div className="mt-6 flex flex-wrap gap-3">
+        {replacesDraft ? (
+          <Button type="button" variant="secondary" onClick={onDownloadBackup}>
+            {labels.importDownload}
+          </Button>
+        ) : null}
         <Button type="button" variant="secondary" onClick={onCancel}>
           {labels.cancel}
         </Button>
         <Button type="button" onClick={onImport}>
-          {labels.importNew}
+          {replacesDraft ? labels.importReplace : labels.importNew}
         </Button>
       </div>
     </section>

@@ -6,6 +6,11 @@ import { alternatePath, localeFromPathname } from "@/lib/i18n/paths";
 
 const options = ["en", "de"] as const;
 
+function persistLocaleAndOpen(locale: Locale, href: string) {
+  document.cookie = `${LOCALE_COOKIE}=${locale}; Path=/; Max-Age=31536000; SameSite=Lax`;
+  window.location.assign(href);
+}
+
 export function LanguageSwitch({ label }: { label: string }) {
   const pathname = usePathname();
   const current = localeFromPathname(pathname);
@@ -15,9 +20,8 @@ export function LanguageSwitch({ label }: { label: string }) {
       return;
     }
 
-    document.cookie = `${LOCALE_COOKIE}=${locale}; Path=/; Max-Age=31536000; SameSite=Lax`;
     const hash = window.location.hash;
-    window.location.assign(`${alternatePath(pathname, locale)}${hash}`);
+    persistLocaleAndOpen(locale, `${alternatePath(pathname, locale)}${hash}`);
   }
 
   return (

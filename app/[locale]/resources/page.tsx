@@ -78,6 +78,22 @@ export default async function ResourcesPage() {
             </Button>
           </div>
         </article>
+        <article className="mt-8 max-w-3xl border-t border-border pt-8">
+          <p className="text-xs font-medium tracking-[0.2em] text-blue uppercase">
+            {ui.resourcesPage.processEyebrow}
+          </p>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy">
+            {resourcesPage.stageProcess.title}
+          </h2>
+          <p className="mt-3 text-base leading-relaxed text-muted">
+            {resourcesPage.stageProcess.positioning}
+          </p>
+          <div className="mt-6">
+            <Button href="/resources/15-stage-process" variant="secondary">
+              {ui.resourcesPage.readProcess}
+            </Button>
+          </div>
+        </article>
         <p className="mt-14 text-xs font-medium tracking-[0.2em] text-blue uppercase">
           {resourcesPage.methodLabel}
         </p>

@@ -214,11 +214,11 @@ export function StageClarification({
         <form className="mt-10" onSubmit={handleReview} noValidate>
           <label className="block">
             <span className="text-xs uppercase tracking-[0.18em] text-muted">
-              Your answer
+              {startContent.answerLabel}
             </span>
             {isRefining ? (
               <span className="mt-3 block text-sm leading-relaxed text-muted">
-                Revise your full answer using the feedback above, then review it again.
+                {startContent.refineHint}
               </span>
             ) : null}
             <span className="sr-only">{stage.question}</span>
@@ -296,7 +296,8 @@ function FeedbackPanel({
 }) {
   return (
     <div className="mt-12 border-t border-border pt-10">
-      <p className="text-xs uppercase tracking-[0.18em] text-muted">
+      <p className="text-sm leading-relaxed text-muted">{startContent.aiHypothesisNote}</p>
+      <p className="mt-6 text-xs uppercase tracking-[0.18em] text-muted">
         {startContent.hearingLabel}
       </p>
           <p className="mt-4 break-words text-xl leading-snug tracking-tight">

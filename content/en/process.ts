@@ -52,10 +52,10 @@ export const processStages: readonly ProcessStage[] = [
   },
   {
     number: 6,
-    name: "Context",
-    question: "What happens to the main thing in the product over time?",
-    purpose: "Define how the product's central object changes over time.",
-    output: "Lifecycle / Context Model",
+    name: "Lifecycle",
+    question: "Describe its relevant states and the transitions between them.",
+    purpose: "Name the relevant states of the central object and how it moves between them.",
+    output: "Lifecycle model",
   },
   {
     number: 7,
@@ -74,23 +74,25 @@ export const processStages: readonly ProcessStage[] = [
   {
     number: 9,
     name: "Experience",
-    question: "How does the user get value?",
-    purpose: "Define how the user gets to value.",
-    output: "Core User Flows + Screen Inventory",
+    question:
+      "What is the complete core flow, including at least one important error or no-result case?",
+    purpose:
+      "Describe the complete core flow, including at least one important failure or empty result.",
+    output: "Core flow including an error or no-result case",
   },
   {
     number: 10,
     name: "Information Architecture",
-    question: "How is the product organized?",
-    purpose: "Define how the product is organized.",
-    output: "Information Architecture + navigation model",
+    question: "What central information and objects does the product organize?",
+    purpose: "Name the central information and objects and how they are arranged.",
+    output: "Central information, objects, and their organization",
   },
   {
     number: 11,
-    name: "Data",
-    question: "What entities and fields are needed?",
-    purpose: "Define the data the product needs to operate.",
-    output: "MVP Entity/Data Model",
+    name: "Data Model",
+    question: "What entities and fields does the data model need?",
+    purpose: "Define the data model the product needs.",
+    output: "MVP data model",
   },
   {
     number: 12,
@@ -109,9 +111,12 @@ export const processStages: readonly ProcessStage[] = [
   {
     number: 14,
     name: "Technical Boundaries",
-    question: "What technical boundaries matter?",
-    purpose: "Define the technical constraints and major risks.",
-    output: "High-level architecture + technical constraints",
+    question:
+      "Which platform and architecture assumptions, dependencies, privacy constraints, technical risks, and open feasibility questions matter?",
+    purpose:
+      "Record platform and architecture assumptions, dependencies, privacy, technical risks, and open feasibility questions.",
+    output:
+      "Platform and architecture assumptions, dependencies, privacy, risks, and open feasibility questions",
   },
   {
     number: 15,

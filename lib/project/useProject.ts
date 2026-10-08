@@ -5,6 +5,7 @@ import {
   createIdea,
   deleteIdea as deleteStoredIdea,
   importIdea as importStoredIdea,
+  replaceActiveIdea as replaceStoredActiveIdea,
   loadIdeaLibrary,
   selectIdea as selectStoredIdea,
   subscribeIdeaLibrary,
@@ -17,7 +18,7 @@ import {
   type IdeaLibrary,
 } from "@/lib/project/types";
 
-const emptyLibrary: IdeaLibrary = { version: 1, activeIdeaId: null, ideas: [] };
+const emptyLibrary: IdeaLibrary = { version: 2, activeIdeaId: null, ideas: [] };
 
 function getLibrarySnapshot() {
   return loadIdeaLibrary();
@@ -70,6 +71,10 @@ export function useIdeaLibrary() {
     return importStoredIdea(idea);
   }, []);
 
+  const replaceActiveIdea = useCallback((idea: Idea) => {
+    return replaceStoredActiveIdea(idea);
+  }, []);
+
   return {
     library,
     ideas: library.ideas,
@@ -79,6 +84,7 @@ export function useIdeaLibrary() {
     isCompleted: hasCompletedConcept(activeIdea),
     createIdea: createNewIdea,
     importIdea,
+    replaceActiveIdea,
     selectIdea,
     updateActiveIdea,
     deleteIdea,

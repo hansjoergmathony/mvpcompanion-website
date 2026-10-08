@@ -3,7 +3,7 @@ import type { StageFeedback } from "@/lib/clarification/types";
 export const IDEA_LIBRARY_STORAGE_KEY = "mvpcompanion.idea-library";
 export const LEGACY_PROJECT_STORAGE_KEY = "mvpcompanion.project";
 
-export const stageKeys = [
+export const clarifyStageKeys = [
   "idea",
   "problem",
   "user",
@@ -12,7 +12,23 @@ export const stageKeys = [
   "context",
 ] as const;
 
+export const workspaceStageKeys = [
+  "jobs",
+  "scope",
+  "experience",
+  "informationArchitecture",
+  "data",
+  "requirements",
+  "learning",
+  "technicalBoundaries",
+  "mvpBoundary",
+] as const;
+
+export const stageKeys = [...clarifyStageKeys, ...workspaceStageKeys] as const;
+
+export type ClarifyStageKey = (typeof clarifyStageKeys)[number];
 export type StageKey = (typeof stageKeys)[number];
+export type DraftArea = "clarify" | "workspace";
 
 export type IdeaStatus = "new" | "in_progress" | "completed";
 
@@ -41,10 +57,11 @@ export type Idea = {
   stages: IdeaStages;
   currentStage: CurrentStage;
   status: IdeaStatus;
+  area: DraftArea;
 };
 
 export type IdeaLibrary = {
-  version: 1;
+  version: 1 | 2;
   activeIdeaId: string | null;
   ideas: Idea[];
 };
@@ -62,6 +79,15 @@ export const stageNumberByKey: Record<StageKey, number> = {
   value: 4,
   product: 5,
   context: 6,
+  jobs: 7,
+  scope: 8,
+  experience: 9,
+  informationArchitecture: 10,
+  data: 11,
+  requirements: 12,
+  learning: 13,
+  technicalBoundaries: 14,
+  mvpBoundary: 15,
 };
 
 export const stageKeyByNumber: Record<number, StageKey> = {
@@ -71,6 +97,15 @@ export const stageKeyByNumber: Record<number, StageKey> = {
   4: "value",
   5: "product",
   6: "context",
+  7: "jobs",
+  8: "scope",
+  9: "experience",
+  10: "informationArchitecture",
+  11: "data",
+  12: "requirements",
+  13: "learning",
+  14: "technicalBoundaries",
+  15: "mvpBoundary",
 };
 
 export function createEmptyStages(): IdeaStages {
@@ -81,6 +116,15 @@ export function createEmptyStages(): IdeaStages {
     value: { answer: "" },
     product: { answer: "" },
     context: { answer: "" },
+    jobs: { answer: "" },
+    scope: { answer: "" },
+    experience: { answer: "" },
+    informationArchitecture: { answer: "" },
+    data: { answer: "" },
+    requirements: { answer: "" },
+    learning: { answer: "" },
+    technicalBoundaries: { answer: "" },
+    mvpBoundary: { answer: "" },
   };
 }
 
@@ -104,11 +148,20 @@ export function createIdea(): Idea {
     stages: createEmptyStages(),
     currentStage: "intake",
     status: "new",
+    area: "clarify",
   };
 }
 
 export function isStageKey(value: string): value is StageKey {
   return stageKeys.includes(value as StageKey);
+}
+
+export function isClarifyStageKey(value: string): value is ClarifyStageKey {
+  return clarifyStageKeys.includes(value as ClarifyStageKey);
+}
+
+export function isDraftArea(value: string): value is DraftArea {
+  return value === "clarify" || value === "workspace";
 }
 
 export function isCurrentStage(value: string): value is CurrentStage {

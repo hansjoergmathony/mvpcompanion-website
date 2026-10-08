@@ -28,6 +28,7 @@ export const sitemapPaths = [
   "/book/sample",
   "/resources",
   "/resources/from-idea-to-mvp",
+  "/resources/15-stage-process",
   "/contact",
   "/impressum",
   "/datenschutz",
@@ -43,7 +44,7 @@ export const ctas = {
     href: "/#method",
   },
   clarify: {
-    label: "Clarify your starting point →",
+    label: "Clarify your idea →",
     href: "/start",
   },
 } as const;

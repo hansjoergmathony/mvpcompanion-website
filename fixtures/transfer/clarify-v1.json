@@ -1,0 +1,35 @@
+{
+  "format": "mvpcompanion.idea-snapshot",
+  "formatVersion": 1,
+  "idea": {
+    "id": "clarify-v1-bookscout",
+    "title": "BookScout",
+    "createdAt": "2026-03-01T10:00:00.000Z",
+    "updatedAt": "2026-03-02T11:30:00.000Z",
+    "currentStage": "context",
+    "status": "in_progress",
+    "startingContext": {
+      "idea": "BookScout empfiehlt Leserinnen und Lesern Bücher auf Basis der Bücher in ihrem eigenen Bücherregal. Die Nützlichkeit dieser Idee ist eine Hypothese.",
+      "problem": "Die nächste Wahl fällt schwer.",
+      "user": "Eine erwachsene Person mit eigenem Bücherregal."
+    },
+    "stages": {
+      "idea": {
+        "answer": "BookScout empfiehlt Leserinnen und Lesern Bücher auf Basis der Bücher in ihrem eigenen Bücherregal. Die Nützlichkeit dieser Idee ist eine Hypothese.",
+        "feedback": {
+          "summary": "Interne Anbieterzusammenfassung, die nicht exportiert werden darf.",
+          "observations": ["Beobachtung aus der Prüfung"],
+          "uncertainties": ["Ist das belegt?"],
+          "suggestions": ["Nicht übernommener Vorschlag: ergänze eine Zielgruppe."],
+          "assumptions": ["Unbestätigte Anbieterannahme"],
+          "status": "needs_clarification"
+        }
+      },
+      "problem": { "answer": "Die nächste Wahl fällt schwer." },
+      "user": { "answer": "Eine erwachsene Person mit eigenem Bücherregal." },
+      "value": { "answer": "" },
+      "product": { "answer": "Empfehlungen dürfen weitere Bücher umfassen. Besitz allein bedeutet nicht, dass ein Buch gefällt." },
+      "context": { "answer": "Ein Regaleintrag wechselt zwischen vorhanden und zurückgestellt." }
+    }
+  }
+}

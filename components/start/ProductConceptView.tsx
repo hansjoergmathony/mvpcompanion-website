@@ -4,15 +4,14 @@ import { ClarificationPath } from "@/components/start/ClarificationPath";
 import { SnapshotExportMenu } from "@/components/start/SnapshotExportMenu";
 import { Button } from "@/components/ui/Button";
 import type { Dictionary } from "@/content/en";
+import type { ProductConcept } from "@/lib/clarification/types";
+import type { Locale } from "@/lib/i18n/config";
 import {
-  getClarificationProgress,
+  countFilledFields,
   getIdeaTitle,
   getSnapshotStages,
 } from "@/lib/project/ideaSnapshot";
-import type { Idea } from "@/lib/project/types";
-import type { ProductConcept } from "@/lib/clarification/types";
-import type { Locale } from "@/lib/i18n/config";
-import type { StageKey } from "@/lib/project/types";
+import { clarifyStageKeys, stageNumberByKey, type Idea } from "@/lib/project/types";
 
 type ProductConceptViewProps = {
   headingRef: RefObject<HTMLHeadingElement | null>;
@@ -20,6 +19,7 @@ type ProductConceptViewProps = {
   concept: ProductConcept;
   onEditConcept: () => void;
   onStartNew: () => void;
+  onDevelop: () => void;
   editLabel?: string;
   copy: Dictionary;
   locale: Locale;
@@ -31,16 +31,17 @@ export function ProductConceptView({
   concept,
   onEditConcept,
   onStartNew,
+  onDevelop,
   copy,
   locale,
   editLabel,
 }: ProductConceptViewProps) {
-  const { appEntry, startContent, ui } = copy;
-  const progress = getClarificationProgress(idea);
-  const stageLabels = Object.fromEntries(
-    startContent.ideaSnapshotStages.map((stage) => [stage.id, stage.label]),
-  ) as Record<StageKey, string>;
-  const snapshotStages = getSnapshotStages(idea, locale, stageLabels);
+  const { appEntry, priorStageLabel, startContent, ui } = copy;
+  const filled = countFilledFields(idea, clarifyStageKeys);
+  const overall = countFilledFields(idea);
+  const snapshotStages = getSnapshotStages(idea, locale, priorStageLabel).filter(
+    (stage) => stageNumberByKey[stage.key] <= 6,
+  );
   const ideaTitle = getIdeaTitle(idea, ui.untitledIdea);
   const resolvedEditLabel = editLabel ?? startContent.editConceptCta;
 
@@ -74,10 +75,15 @@ export function ProductConceptView({
           <div>
             <dt className="text-xs uppercase tracking-[0.14em]">{ui.library.progress}</dt>
             <dd className="mt-1 text-foreground">
-              {ui.library.progressValue
-                .replace("{clarified}", String(progress.clarified))
-                .replace("{inProgress}", String(progress.inProgress))
-                .replace("{unresolved}", String(progress.unresolved))}
+              {startContent.clarifyProgress}{" "}
+              {startContent.filledFields
+                .replace("{filled}", String(filled.filled))
+                .replace("{total}", String(filled.total))}
+              {" · "}
+              {startContent.overallProgress}{" "}
+              {startContent.filledFields
+                .replace("{filled}", String(overall.filled))
+                .replace("{total}", String(overall.total))}
             </dd>
           </div>
           <div>
@@ -241,9 +247,8 @@ export function ProductConceptView({
             </li>
           ))}
         </ul>
-        <p className="mt-6 text-sm leading-relaxed text-muted">
-          {startContent.optionalEntryNote}
-        </p>
+        <p className="mt-3 text-sm leading-relaxed text-muted">{startContent.filledNote}</p>
+        <p className="mt-3 text-sm leading-relaxed text-muted">{startContent.optionalEntryNote}</p>
       </section>
 
       <section aria-labelledby="idea-snapshot-app-cta" className="mt-12">
@@ -264,6 +269,9 @@ export function ProductConceptView({
       </section>
 
       <div className="mt-10 flex flex-wrap gap-3">
+        <Button type="button" onClick={onDevelop}>
+          {startContent.developSpecification}
+        </Button>
         <SnapshotExportMenu idea={idea} locale={locale} labels={ui.exportMenu} pdf={ui.pdf} />
         <Button type="button" variant="secondary" onClick={onEditConcept}>
           {resolvedEditLabel}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { BookScoutPanel } from "@/components/start/BookScoutPanel";
 import { ClarificationPath } from "@/components/start/ClarificationPath";
 import { IdeaLibrary } from "@/components/start/IdeaLibrary";
 import {
@@ -15,18 +16,21 @@ import {
   getImplementedStages,
   getPriorStageKeys,
   getStageFocus,
-  isImplementedStage,
   type IntakeKey,
   type IntakeValues,
 } from "@/content/start-path";
 import { buildProductConcept } from "@/lib/clarification";
 import type { Locale } from "@/lib/i18n/config";
+import { countFilledFields } from "@/lib/project/ideaSnapshot";
 import {
+  clarifyStageKeys,
+  isClarifyStageKey,
   isStageKey,
   seedEmptyStageAnswers,
   stageKeyByNumber,
   stageKeys,
   stageNumberByKey,
+  type Idea,
   type IdeaStages,
   type StageKey,
   type StageState,
@@ -72,7 +76,6 @@ export function StartExperience({
 }) {
   const { priorStageLabel, processStages, stageFocusByNumber, startContent, ui } = copy;
   const implementedStages = getImplementedStages(processStages);
-  const totalStageCount = processStages.length;
   const headingRef = useRef<HTMLHeadingElement>(null);
   const errorId = useId();
   const {
@@ -82,12 +85,14 @@ export function StartExperience({
     isReady,
     createIdea,
     importIdea,
+    replaceActiveIdea,
     selectIdea,
     updateActiveIdea,
     deleteIdea,
   } = useIdeaLibrary();
   const [intakeError, setIntakeError] = useState(false);
   const [isViewingSnapshot, setIsViewingSnapshot] = useState(false);
+  const [undoIdea, setUndoIdea] = useState<Idea | null>(null);
 
   const currentStage = activeIdea?.currentStage ?? "intake";
   const startingContext = activeIdea?.startingContext ?? emptyIntakeValues;
@@ -151,21 +156,15 @@ export function StartExperience({
       return;
     }
 
-    const currentIndex = implementedStages.findIndex(
-      (stage) => stage.number === stageNumberByKey[currentStageKey],
-    );
-    const previous = implementedStages[currentIndex - 1];
-    const previousKey = previous
-      ? stageKeyByNumber[previous.number]
-      : undefined;
+    const previous = stageKeyByNumber[stageNumberByKey[currentStageKey] - 1];
 
-    if (!previousKey) {
+    if (!previous) {
       return;
     }
 
     updateActiveIdea((current) => ({
       ...current,
-      currentStage: previousKey,
+      currentStage: previous,
       status: "in_progress",
     }));
   }
@@ -175,31 +174,50 @@ export function StartExperience({
       return;
     }
 
-    const currentIndex = implementedStages.findIndex(
-      (stage) => stage.number === stageNumberByKey[currentStageKey],
-    );
+    const number = stageNumberByKey[currentStageKey];
+    const workspace = activeIdea?.area === "workspace";
 
-    if (currentIndex === implementedStages.length - 1) {
+    if (number === 15 || (!workspace && number === 6)) {
       updateActiveIdea((current) => ({
         ...current,
         stages: confirmStage(current.stages, currentStageKey),
         currentStage: "summary",
-        status: "completed",
+        status: workspace ? "in_progress" : "completed",
       }));
       return;
     }
 
-    const next = implementedStages[currentIndex + 1];
-    const nextKey = next ? stageKeyByNumber[next.number] : undefined;
+    const next = stageKeyByNumber[number + 1];
 
-    if (!nextKey) {
+    if (!next) {
       return;
     }
 
     updateActiveIdea((current) => ({
       ...current,
       stages: confirmStage(current.stages, currentStageKey),
-      currentStage: nextKey,
+      currentStage: next,
+      status: "in_progress",
+    }));
+  }
+
+  function openWorkspace() {
+    updateActiveIdea((current) => ({
+      ...current,
+      area: "workspace",
+      currentStage: "jobs",
+      status: "in_progress",
+    }));
+    setIsViewingSnapshot(false);
+  }
+
+  function returnToClarify() {
+    updateActiveIdea((current) => ({
+      ...current,
+      area: "clarify",
+      currentStage: isClarifyStageKey(current.currentStage)
+        ? current.currentStage
+        : "context",
       status: "in_progress",
     }));
   }
@@ -290,28 +308,76 @@ export function StartExperience({
   }
 
   const ideaLibrary = (
-    <IdeaLibrary
-      labels={ui.library}
-      statuses={ui.pdf.statuses}
-      stageLabels={priorStageLabel}
-      untitled={ui.untitledIdea}
-      locale={locale}
-      ideas={ideas}
-      activeIdeaId={library.activeIdeaId}
-      onCreate={handleCreateIdea}
-      onOpen={(id) => {
-        selectIdea(id);
-        setIntakeError(false);
-        setIsViewingSnapshot(false);
-      }}
-      onViewSnapshot={() => setIsViewingSnapshot(true)}
-      onDelete={deleteIdea}
-      onImport={(idea) => {
-        importIdea(idea);
-        setIntakeError(false);
-        setIsViewingSnapshot(false);
-      }}
-    />
+    <>
+      <IdeaLibrary
+        labels={ui.library}
+        statuses={ui.pdf.statuses}
+        stageLabels={priorStageLabel}
+        untitled={ui.untitledIdea}
+        locale={locale}
+        ideas={ideas}
+        activeIdeaId={library.activeIdeaId}
+        onCreate={handleCreateIdea}
+        onOpen={(id) => {
+          selectIdea(id);
+          setIntakeError(false);
+          setIsViewingSnapshot(false);
+        }}
+        onViewSnapshot={() => setIsViewingSnapshot(true)}
+        onDelete={deleteIdea}
+        canUndo={undoIdea !== null}
+        onUndo={() => {
+          if (!undoIdea) {
+            return;
+          }
+          updateActiveIdea(() => undoIdea);
+          setUndoIdea(null);
+        }}
+        onImport={(idea) => {
+          importIdea(idea);
+          setIntakeError(false);
+          setIsViewingSnapshot(true);
+        }}
+        onReplace={(idea) => {
+          if (
+            activeIdea &&
+            ((activeIdea.title.trim() && activeIdea.title !== "Untitled Idea") ||
+              stageKeys.some((key) => activeIdea.stages[key].answer.trim()))
+          ) {
+            setUndoIdea(activeIdea);
+          }
+          if (!replaceActiveIdea(idea)) {
+            importIdea(idea);
+          }
+          setIntakeError(false);
+          setIsViewingSnapshot(true);
+        }}
+      />
+      <BookScoutPanel
+        locale={locale}
+        copy={startContent}
+        activeIdea={activeIdea}
+        stageLabels={priorStageLabel}
+        canUndo={undoIdea !== null}
+        onUndo={() => {
+          if (!undoIdea) {
+            return;
+          }
+          updateActiveIdea(() => undoIdea);
+          setUndoIdea(null);
+        }}
+        onApply={(next) => {
+          if (activeIdea) {
+            setUndoIdea(activeIdea);
+          }
+          updateActiveIdea((current) => ({
+            ...current,
+            ...next,
+          }));
+          setIsViewingSnapshot(true);
+        }}
+      />
+    </>
   );
 
   if (!isReady) {
@@ -345,6 +411,7 @@ export function StartExperience({
               setIsViewingSnapshot(false);
             }}
             onStartNew={handleCreateIdea}
+            onDevelop={openWorkspace}
           />
         </div>
       </>
@@ -372,22 +439,115 @@ export function StartExperience({
     );
   }
 
+  if (currentStageKey && stageNumberByKey[currentStageKey] > 6 && activeIdea) {
+    const stage = processStages.find(
+      (item) => item.number === stageNumberByKey[currentStageKey],
+    );
+    const filled = countFilledFields(activeIdea);
+    const answer = activeIdea.stages[currentStageKey].answer;
+
+    return (
+      <>
+        {ideaLibrary}
+        <div className="mt-10 max-w-2xl">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted">
+            {String(stageNumberByKey[currentStageKey]).padStart(2, "0")} / 15
+          </p>
+          <p className="mt-3 text-sm text-muted">
+            {startContent.filledFields
+              .replace("{filled}", String(filled.filled))
+              .replace("{total}", String(filled.total))}
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-muted">{startContent.filledNote}</p>
+          <label className="mt-4 block text-sm text-navy">
+            <span className="text-xs uppercase tracking-[0.14em] text-muted">
+              {startContent.overallProgress}
+            </span>
+            <select
+              className="mt-2 w-full rounded-md border border-border bg-card px-3 py-2"
+              value={currentStageKey}
+              onChange={(event) => {
+                const next = event.target.value;
+                if (!isStageKey(next)) {
+                  return;
+                }
+                updateActiveIdea((current) => ({
+                  ...current,
+                  area: stageNumberByKey[next] > 6 ? "workspace" : "clarify",
+                  currentStage: next,
+                  status: "in_progress",
+                }));
+              }}
+            >
+              {processStages.map((stage) => (
+                <option key={stage.number} value={stageKeyByNumber[stage.number]}>
+                  {String(stage.number).padStart(2, "0")} {stage.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <h1
+            ref={headingRef}
+            tabIndex={-1}
+            className="mt-8 text-4xl font-semibold tracking-tight text-navy outline-none"
+          >
+            {stage?.name}
+          </h1>
+          <p className="mt-4 text-lg leading-relaxed text-muted">{stage?.question}</p>
+          <p className="mt-3 text-sm leading-relaxed text-muted">{startContent.noAiReview}</p>
+          <label className="mt-8 block">
+            <span className="sr-only">{stage?.question}</span>
+            <textarea
+              value={answer}
+              rows={6}
+              onChange={(event) => updateCurrentAnswer(event.target.value)}
+              className={fieldClassName}
+            />
+          </label>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button type="button" variant="secondary" onClick={goToPreviousStage}>
+              {startContent.previousLabel}
+            </Button>
+            <Button type="button" onClick={goToNextStage}>
+              {startContent.saveAndContinue}
+            </Button>
+            <Button type="button" variant="secondary" onClick={returnToClarify}>
+              {startContent.backToClarify}
+            </Button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   if (currentProcessStage && currentStageKey) {
+    const clarifyFilled = activeIdea
+      ? countFilledFields(activeIdea, clarifyStageKeys)
+      : null;
+
     return (
       <>
         {ideaLibrary}
         <div className="mt-10 max-w-2xl">
         <ClarificationPath current={1} startContent={startContent} />
         <p className="mt-8 text-xs uppercase tracking-[0.18em] text-muted">
-          {String(currentProcessStage.number).padStart(2, "0")} /{" "}
-          {String(totalStageCount).padStart(2, "0")}
+          {String(currentProcessStage.number).padStart(2, "0")} / 06
         </p>
+        {clarifyFilled ? (
+          <p className="mt-3 text-sm text-muted">
+            {startContent.clarifyProgress}{" "}
+            {startContent.filledFields
+              .replace("{filled}", String(clarifyFilled.filled))
+              .replace("{total}", String(clarifyFilled.total))}
+          </p>
+        ) : null}
+        <p className="mt-2 text-sm leading-relaxed text-muted">{startContent.filledNote}</p>
 
         <ol className="mt-5 flex gap-1" aria-hidden="true">
-          {processStages.map((stage) => {
-            const reached =
-              isImplementedStage(stage.number) &&
-              stage.number <= currentProcessStage.number;
+          {processStages
+            .filter((stage) => stage.number <= 6)
+            .map((stage) => {
+            const reached = stage.number <= currentProcessStage.number;
 
             return (
               <li

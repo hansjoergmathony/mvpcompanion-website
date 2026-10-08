@@ -6,6 +6,7 @@ import {
   createIdeaId,
   emptyStartingContext,
   isCurrentStage,
+  isDraftArea,
   stageKeys,
   type Idea,
   type IdeaLibrary,
@@ -155,11 +156,16 @@ export function parseIdea(value: unknown): Idea | null {
       ? currentStageValue
       : "intake",
     status: parseStatus(value.status),
+    area: isDraftArea(readString(value.area)) ? readString(value.area) as Idea["area"] : "clarify",
   };
 }
 
 export function parseIdeaLibrary(value: unknown): IdeaLibrary | null {
-  if (!isRecord(value) || value.version !== 1 || !Array.isArray(value.ideas)) {
+  if (
+    !isRecord(value) ||
+    (value.version !== 1 && value.version !== 2) ||
+    !Array.isArray(value.ideas)
+  ) {
     return null;
   }
 
@@ -173,14 +179,14 @@ export function parseIdeaLibrary(value: unknown): IdeaLibrary | null {
     : ideas[0]?.id ?? null;
 
   return {
-    version: 1,
+    version: 2,
     activeIdeaId,
     ideas,
   };
 }
 
 function createEmptyLibrary(): IdeaLibrary {
-  return { version: 1, activeIdeaId: null, ideas: [] };
+  return { version: 2, activeIdeaId: null, ideas: [] };
 }
 
 let cachedRaw: string | null | undefined;
@@ -233,7 +239,7 @@ function migrateLegacyProject(): IdeaLibrary {
   }
 
   const library: IdeaLibrary = {
-    version: 1,
+    version: 2,
     activeIdeaId: legacyIdea.id,
     ideas: [legacyIdea],
   };
@@ -267,9 +273,14 @@ export function loadIdeaLibrary(): IdeaLibrary {
       return migrateLegacyProject();
     }
 
-    const library = parseIdeaLibrary(JSON.parse(raw) as unknown);
+    const stored = JSON.parse(raw) as unknown;
+    const library = parseIdeaLibrary(stored);
     if (library) {
-      setCache(raw, library);
+      if (isRecord(stored) && stored.version === 1) {
+        writeIdeaLibrary(library);
+      } else {
+        setCache(raw, library);
+      }
       return library;
     }
   } catch {
@@ -339,6 +350,27 @@ export function createIdea(): Idea {
   return idea;
 }
 
+/**
+ * Replaces the active draft in place and keeps the imported timestamps.
+ * Does nothing when there is no active draft.
+ */
+export function replaceActiveIdea(incoming: Idea): boolean {
+  const library = loadIdeaLibrary();
+  const active = library.ideas.find((idea) => idea.id === library.activeIdeaId);
+  if (!active) {
+    return false;
+  }
+
+  const replaced: Idea = {
+    ...incoming,
+    id: active.id,
+  };
+  return saveIdeaLibrary({
+    ...library,
+    ideas: library.ideas.map((idea) => (idea.id === active.id ? replaced : idea)),
+  });
+}
+
 /** Adds a validated snapshot as a separate local Idea without altering its dates or content. */
 export function importIdea(idea: Idea): Idea {
   const library = loadIdeaLibrary();
@@ -351,6 +383,7 @@ export function importIdea(idea: Idea): Idea {
     stages: idea.stages,
     currentStage: idea.currentStage,
     status: idea.status,
+    area: idea.area ?? "clarify",
   };
 
   saveIdeaLibrary({
