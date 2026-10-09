@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { BookScoutPanel } from "@/components/start/BookScoutPanel";
+import { AiFeedbackBetaDialog } from "@/components/start/AiFeedbackBetaDialog";
 import { ClarificationPath } from "@/components/start/ClarificationPath";
 import { IdeaLibrary } from "@/components/start/IdeaLibrary";
 import {
@@ -33,7 +34,6 @@ import {
   type Idea,
   type IdeaStages,
   type StageKey,
-  type StageState,
 } from "@/lib/project/types";
 import { useIdeaLibrary } from "@/lib/project/useProject";
 
@@ -93,6 +93,10 @@ export function StartExperience({
   const [intakeError, setIntakeError] = useState(false);
   const [isViewingSnapshot, setIsViewingSnapshot] = useState(false);
   const [undoIdea, setUndoIdea] = useState<Idea | null>(null);
+  const [aiFeedbackBeta, setAiFeedbackBeta] = useState<{
+    source: "clarify" | "full_specification";
+    stageNumber?: number;
+  } | null>(null);
 
   const currentStage = activeIdea?.currentStage ?? "intake";
   const startingContext = activeIdea?.startingContext ?? emptyIntakeValues;
@@ -256,37 +260,6 @@ export function StartExperience({
     });
   }
 
-  function submitStageFeedback(next: StageState) {
-    if (!currentStageKey) {
-      return;
-    }
-
-    updateActiveIdea((current) => ({
-      ...current,
-      stages: {
-        ...current.stages,
-        [currentStageKey]: next,
-      },
-      status: "in_progress",
-    }));
-  }
-
-  function relatedAnswers() {
-    if (!activeIdea) {
-      return {};
-    }
-
-    return Object.fromEntries(
-      stageKeys
-        .filter((key) => key !== currentStageKey)
-        .map((key) => {
-          const stage = activeIdea.stages[key];
-          const clarified = stage.feedback?.summary?.trim() || stage.answer.trim();
-          return [key, clarified];
-        }),
-    ) as Partial<Record<StageKey, string>>;
-  }
-
   function contextNotes() {
     if (!activeIdea || !currentProcessStage) {
       return [];
@@ -419,7 +392,19 @@ export function StartExperience({
             }}
             onStartNew={handleCreateIdea}
             onDevelop={openWorkspace}
+            onOpenAiFeedbackBeta={() =>
+              setAiFeedbackBeta({ source: "full_specification" })
+            }
           />
+          {aiFeedbackBeta ? (
+            <AiFeedbackBetaDialog
+              copy={ui.betaInterest}
+              locale={locale}
+              source={aiFeedbackBeta.source}
+              stageNumber={aiFeedbackBeta.stageNumber}
+              onClose={() => setAiFeedbackBeta(null)}
+            />
+          ) : null}
         </div>
       </>
     );
@@ -528,8 +513,24 @@ export function StartExperience({
             <Button type="button" variant="secondary" onClick={returnToOverview}>
               {startContent.backToOverview}
             </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setAiFeedbackBeta({ source: "full_specification" })}
+            >
+              {ui.betaInterest.trigger}
+            </Button>
           </div>
         </div>
+        {aiFeedbackBeta ? (
+          <AiFeedbackBetaDialog
+            copy={ui.betaInterest}
+            locale={locale}
+            source={aiFeedbackBeta.source}
+            stageNumber={aiFeedbackBeta.stageNumber}
+            onClose={() => setAiFeedbackBeta(null)}
+          />
+        ) : null}
       </>
     );
   }
@@ -585,21 +586,32 @@ export function StartExperience({
                 answer: "",
               }
             }
-            startingContext={startingContext}
             ideaTitle={editableTitle(activeIdea?.title)}
-            locale={locale}
             startContent={startContent}
             focus={getStageFocus(currentProcessStage.number, stageFocusByNumber)}
             contextNotes={contextNotes()}
-            relatedAnswers={relatedAnswers()}
             onChangeIdeaTitle={updateIdeaTitle}
             onChangeAnswer={updateCurrentAnswer}
-            onSubmitFeedback={submitStageFeedback}
             onContinue={goToNextStage}
             onPrevious={goToPreviousStage}
             onBackToOverview={returnToOverview}
+            onOpenAiFeedbackBeta={() =>
+              setAiFeedbackBeta({
+                source: "clarify",
+                stageNumber: currentProcessStage.number,
+              })
+            }
           />
         </div>
+        {aiFeedbackBeta ? (
+          <AiFeedbackBetaDialog
+            copy={ui.betaInterest}
+            locale={locale}
+            source={aiFeedbackBeta.source}
+            stageNumber={aiFeedbackBeta.stageNumber}
+            onClose={() => setAiFeedbackBeta(null)}
+          />
+        ) : null}
         </div>
       </>
     );

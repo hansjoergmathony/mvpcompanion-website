@@ -25,6 +25,7 @@ type ProductConceptViewProps = {
   onEditConcept: () => void;
   onStartNew: () => void;
   onDevelop: () => void;
+  onOpenAiFeedbackBeta: () => void;
   editLabel?: string;
   copy: Dictionary;
   locale: Locale;
@@ -37,6 +38,7 @@ export function ProductConceptView({
   onEditConcept,
   onStartNew,
   onDevelop,
+  onOpenAiFeedbackBeta,
   copy,
   locale,
   editLabel,
@@ -282,6 +284,11 @@ export function ProductConceptView({
           {startContent.developSpecification}
         </Button>}
         <SnapshotExportMenu idea={idea} locale={locale} labels={ui.exportMenu} pdf={ui.pdf} />
+        {isFullDraft ? (
+          <Button type="button" variant="secondary" onClick={onOpenAiFeedbackBeta}>
+            {ui.betaInterest.fullDraftTrigger}
+          </Button>
+        ) : null}
         <Button type="button" variant="secondary" onClick={onEditConcept}>
           {isFullDraft ? startContent.editFullDraftCta : resolvedEditLabel}
         </Button>

@@ -31,6 +31,9 @@ export const startContent = {
   stageAnswerError: "Add an answer before you continue or request feedback.",
   aiFeedbackOptional:
     "AI feedback is optional. You can save and continue at any time.",
+  aiFeedbackBetaCta: "AI feedback — beta",
+  aiFeedbackBetaNote:
+    "AI feedback is in preparation. You can register interest without sending your specification to AI.",
   intakeError: "Add your idea, the problem, and the user to begin.",
   continueHeadline: "Continue your Idea Snapshot.",
   continueSupporting: "Pick up where you left off in the website clarification.",

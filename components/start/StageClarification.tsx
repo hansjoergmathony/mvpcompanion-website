@@ -4,8 +4,7 @@ import { useId, useState, type FormEvent, type RefObject } from "react";
 import { Button } from "@/components/ui/Button";
 import type { Dictionary } from "@/content/en";
 import type { ProcessStage } from "@/content/framework";
-import type { Locale } from "@/lib/i18n/config";
-import type { StageKey, StageState, StartingContext } from "@/lib/project/types";
+import type { StageKey, StageState } from "@/lib/project/types";
 
 const fieldClassName =
   "mt-3 w-full resize-y rounded-md border border-border bg-card px-4 py-3 text-base leading-relaxed text-foreground placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue";
@@ -22,19 +21,16 @@ type StageClarificationProps = {
   stage: ProcessStage;
   stageKey: StageKey;
   stageState: StageState;
-  startingContext: StartingContext;
   ideaTitle: string;
   focus: string | null;
   contextNotes: StageContextNote[];
-  relatedAnswers: Partial<Record<StageKey, string>>;
   onChangeIdeaTitle: (value: string) => void;
   onChangeAnswer: (value: string) => void;
-  onSubmitFeedback: (next: StageState) => void;
   onContinue: () => void;
   onPrevious: () => void;
   onBackToOverview: () => void;
+  onOpenAiFeedbackBeta: () => void;
   startContent: Dictionary["startContent"];
-  locale: Locale;
 };
 
 export function StageClarification({
@@ -42,23 +38,18 @@ export function StageClarification({
   stage,
   stageKey,
   stageState,
-  startingContext,
   ideaTitle,
   focus,
   contextNotes,
-  relatedAnswers,
   onChangeIdeaTitle,
   onChangeAnswer,
-  onSubmitFeedback,
   onContinue,
   onPrevious,
   onBackToOverview,
+  onOpenAiFeedbackBeta,
   startContent,
-  locale,
 }: StageClarificationProps) {
   const [answerError, setAnswerError] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generationError, setGenerationError] = useState<string | null>(null);
   const answerErrorId = useId();
   const feedback = stageState.feedback ?? null;
   const canReturnToPrevious = stageKey !== "idea";
@@ -66,58 +57,6 @@ export function StageClarification({
   const hasFeedbackForCurrentAnswer =
     Boolean(feedback) &&
     stageState.submittedAnswer === stageState.answer.trim();
-
-  async function requestFeedback() {
-    const answer = stageState.answer.trim();
-
-    if (!answer) {
-      setAnswerError(true);
-      return;
-    }
-
-    const clarificationRequest = {
-      stageKey,
-      stageName: stage.name,
-      question: stage.question,
-      purpose: stage.purpose,
-      answer,
-      startingContext,
-      relatedAnswers,
-      locale,
-    };
-
-    setIsGenerating(true);
-    setGenerationError(null);
-
-    try {
-      const response = await fetch("/api/clarification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(clarificationRequest),
-      });
-      const result = (await response.json()) as {
-        feedback?: NonNullable<StageState["feedback"]>;
-        error?: string;
-      };
-
-      if (!response.ok || !result.feedback) {
-        throw new Error(result.error || startContent.aiGenerationError);
-      }
-
-      setAnswerError(false);
-      onSubmitFeedback({
-        answer,
-        submittedAnswer: answer,
-        feedback: result.feedback,
-      });
-    } catch (error) {
-      setGenerationError(
-        error instanceof Error ? error.message : startContent.aiGenerationError,
-      );
-    } finally {
-      setIsGenerating(false);
-    }
-  }
 
   function handleContinue(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -209,7 +148,6 @@ export function StageClarification({
               aria-describedby={answerError ? answerErrorId : undefined}
               onChange={(event) => {
                 setAnswerError(false);
-                setGenerationError(null);
                 onChangeAnswer(event.target.value);
               }}
               rows={6}
@@ -221,13 +159,8 @@ export function StageClarification({
               {startContent.stageAnswerError}
             </p>
           ) : null}
-          {generationError ? (
-            <p className="mt-4 text-sm" role="alert">
-              {generationError}
-            </p>
-          ) : null}
           <p className="mt-4 text-sm leading-relaxed text-muted">
-            {startContent.aiFeedbackOptional}
+            {startContent.aiFeedbackBetaNote}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button type="submit">
@@ -236,10 +169,9 @@ export function StageClarification({
             <Button
               type="button"
               variant="secondary"
-              onClick={() => void requestFeedback()}
-              disabled={isGenerating}
+              onClick={onOpenAiFeedbackBeta}
             >
-              {isGenerating ? startContent.reviewingLabel : startContent.reviewLabel}
+              {startContent.aiFeedbackBetaCta}
             </Button>
             {canReturnToPrevious ? (
               <Button type="button" variant="secondary" onClick={onPrevious}>

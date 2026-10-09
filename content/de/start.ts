@@ -25,6 +25,9 @@ export const startContent = {
     "Fügen Sie eine Antwort hinzu, bevor Sie fortfahren oder Feedback anfordern.",
   aiFeedbackOptional:
     "KI-Feedback ist optional. Sie können jederzeit speichern und weitergehen.",
+  aiFeedbackBetaCta: "KI-Feedback – Beta",
+  aiFeedbackBetaNote:
+    "KI-Feedback ist in Vorbereitung. Sie können Interesse vormerken, ohne Ihre Spezifikation an eine KI zu senden.",
   intakeError: "Fügen Sie Idee, Problem und Nutzer hinzu, um zu beginnen.",
   continueHeadline: "Setzen Sie Ihren Ideen-Snapshot fort.",
   continueSupporting: "Machen Sie dort weiter, wo Sie in der Klärung auf der Website aufgehört haben.",

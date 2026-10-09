@@ -30,7 +30,7 @@ export const datenschutzPage = {
   eyebrow: "Datenschutz",
   headline: "Datenschutzerklärung",
   lastUpdatedLabel: "Stand:",
-  lastUpdated: "September 2025",
+  lastUpdated: "Oktober 2026",
   intro:
     "Diese Erklärung beschreibt, wie personenbezogene Daten verarbeitet werden, wenn Sie die Website MVPCompanion unter mvpcompanion.com nutzen.",
   controllerTitle: "Verantwortlicher",
@@ -46,6 +46,11 @@ export const datenschutzPage = {
     "Wenn Sie das Kontaktformular nutzen, verarbeiten wir die von Ihnen eingegebenen Daten (Name, E-Mail, optionaler Betreff und Nachricht), um Ihre Anfrage zu beantworten. Nachrichten werden über einen serverseitigen E-Mail-Dienst mit Umgebungsvariablen auf dem Server übermittelt; Zugangsdaten sind im Browser nicht sichtbar. Einsendungen gehen an",
   contactAfter:
     "(Postfach in Google Workspace / Gmail). Rechtsgrundlage: Ihre Anfrage und unser berechtigtes Interesse an der Kommunikation, oder vorvertragliche Schritte, soweit sie einschlägig sind.",
+  betaInterestTitle: "Interesse an der KI-Feedback-Beta",
+  betaInterestBody:
+    "Wenn Sie freiwillig Interesse an der KI-Feedback-Beta vormerken, verarbeiten wir nur Ihre Auswahl zu Interesse, gewünschtem Umfang und Preispräferenz. Ihre MVP-Spezifikationstexte werden im Rahmen dieser Umfrage nicht an eine KI gesendet. Wenn Sie eine E-Mail-Adresse angeben und einwilligen, nutzen wir sie ausschließlich für eine Kontaktaufnahme zur KI-Feedback-Beta. Einsendungen werden über denselben serverseitigen E-Mail-Dienst an",
+  betaInterestAfter:
+    "übermittelt. Wir verwenden dieses Formular nicht für allgemeine Marketing-Updates oder Werbe-Tracking. Rechtsgrundlage sind Ihre Einwilligung für die Beta-Kontaktaufnahme bei Angabe einer E-Mail-Adresse sowie unser berechtigtes Interesse, die Nachfrage anhand nicht identifizierender Auswahlen auszuwerten.",
   fontsTitle: "Schriften",
   fontsBody:
     "Die Typografie nutzt Plus Jakarta Sans über die Schriftoptimierung von Next.js. Schriftdateien werden beim Build geladen und von dieser Website ausgeliefert, nicht zur Laufzeit von Schrift-CDNs Dritter im Browser der Besucher.",

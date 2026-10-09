@@ -30,7 +30,7 @@ export const datenschutzPage = {
   eyebrow: "Privacy",
   headline: "Privacy Policy",
   lastUpdatedLabel: "Last updated:",
-  lastUpdated: "September 2025",
+  lastUpdated: "October 2026",
   intro:
     "This policy describes how personal data is processed when you use the MVPCompanion website at mvpcompanion.com.",
   controllerTitle: "Controller",
@@ -46,6 +46,11 @@ export const datenschutzPage = {
     "If you use the contact form, we process the data you enter (name, email, optional subject, and message) to respond to your inquiry. Messages are transmitted via a server-side email delivery service using environment variables on the server; credentials are not exposed in the browser. Submissions are delivered to",
   contactAfter:
     "(Google Workspace / Gmail mailbox). Legal basis: your request and our legitimate interest in communication, or pre-contractual steps where applicable.",
+  betaInterestTitle: "AI-feedback beta interest",
+  betaInterestBody:
+    "If you voluntarily register interest in the AI-feedback beta, we process only your selections about interest, desired scope, and price preference. We do not send your MVP specification text to an AI as part of this survey. If you provide an email address and consent, we use it only to contact you about the AI-feedback beta. Submissions are delivered through the same server-side email delivery service to",
+  betaInterestAfter:
+    ". We do not use this form for general marketing updates or advertising tracking. Legal basis: your consent for beta contact where you provide an email address, and our legitimate interest in evaluating product demand for the non-identifying selections.",
   fontsTitle: "Fonts",
   fontsBody:
     "Typography uses Plus Jakarta Sans via Next.js font optimization. Font files are downloaded at build time and served from this website, not loaded at runtime from third-party font CDNs in the visitor's browser.",

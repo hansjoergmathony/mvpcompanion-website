@@ -73,6 +73,22 @@ export default async function DatenschutzPage() {
         </p>
       </section>
 
+      <section aria-labelledby="privacy-ai-feedback-beta">
+        <h2 id="privacy-ai-feedback-beta" className="text-xl font-semibold text-navy">
+          {datenschutzPage.betaInterestTitle}
+        </h2>
+        <p className="mt-4">
+          {datenschutzPage.betaInterestBody} {" "}
+          <a
+            href={`mailto:${publicContactEmail}`}
+            className="font-medium text-blue hover:underline"
+          >
+            {publicContactEmail}
+          </a>{" "}
+          {datenschutzPage.betaInterestAfter}
+        </p>
+      </section>
+
       <section aria-labelledby="privacy-fonts">
         <h2 id="privacy-fonts" className="text-xl font-semibold text-navy">
           {datenschutzPage.fontsTitle}
