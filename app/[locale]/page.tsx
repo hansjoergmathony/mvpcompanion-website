@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { AiChallengeSection } from "@/components/sections/AiChallengeSection";
 import { ApproachSection } from "@/components/sections/ApproachSection";
 import { AudienceSection } from "@/components/sections/AudienceSection";
@@ -9,6 +10,12 @@ import { ProblemSection } from "@/components/sections/ProblemSection";
 import { ProcessSection } from "@/components/sections/ProcessSection";
 import { ResultSection } from "@/components/sections/ResultSection";
 import { WebsiteAppSection } from "@/components/sections/WebsiteAppSection";
+
+export const metadata: Metadata = {
+  verification: {
+    google: "yd4y8UAf-YirJTNpkoMhBJkuVr4NDYuBwu42CDCrESk",
+  },
+};
 
 export default function Home() {
   return (
