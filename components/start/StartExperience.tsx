@@ -24,12 +24,12 @@ import type { Locale } from "@/lib/i18n/config";
 import { countFilledFields } from "@/lib/project/ideaSnapshot";
 import {
   clarifyStageKeys,
-  isClarifyStageKey,
   isStageKey,
   seedEmptyStageAnswers,
   stageKeyByNumber,
   stageKeys,
   stageNumberByKey,
+  workspaceStageKeys,
   type Idea,
   type IdeaStages,
   type StageKey,
@@ -175,7 +175,11 @@ export function StartExperience({
     }
 
     const number = stageNumberByKey[currentStageKey];
-    const workspace = activeIdea?.area === "workspace";
+    const workspace =
+      activeIdea?.area === "workspace" ||
+      workspaceStageKeys.some((key) =>
+        Boolean(activeIdea?.stages[key]?.answer.trim()),
+      );
 
     if (number === 15 || (!workspace && number === 6)) {
       updateActiveIdea((current) => ({
@@ -211,15 +215,17 @@ export function StartExperience({
     setIsViewingSnapshot(false);
   }
 
-  function returnToClarify() {
+  function returnToOverview() {
     updateActiveIdea((current) => ({
       ...current,
-      area: "clarify",
-      currentStage: isClarifyStageKey(current.currentStage)
-        ? current.currentStage
-        : "context",
-      status: "in_progress",
+      currentStage: "summary",
+      status:
+        current.area === "workspace" ||
+        workspaceStageKeys.some((key) => Boolean(current.stages[key]?.answer.trim()))
+          ? "in_progress"
+          : "completed",
     }));
+    setIsViewingSnapshot(false);
   }
 
   function updateCurrentAnswer(value: string) {
@@ -474,7 +480,14 @@ export function StartExperience({
                 }
                 updateActiveIdea((current) => ({
                   ...current,
-                  area: stageNumberByKey[next] > 6 ? "workspace" : "clarify",
+                  area:
+                    current.area === "workspace" ||
+                    workspaceStageKeys.some((key) =>
+                      Boolean(current.stages[key]?.answer.trim()),
+                    ) ||
+                    stageNumberByKey[next] > 6
+                      ? "workspace"
+                      : "clarify",
                   currentStage: next,
                   status: "in_progress",
                 }));
@@ -506,14 +519,14 @@ export function StartExperience({
             />
           </label>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button type="button" variant="secondary" onClick={goToPreviousStage}>
-              {startContent.previousLabel}
-            </Button>
             <Button type="button" onClick={goToNextStage}>
               {startContent.saveAndContinue}
             </Button>
-            <Button type="button" variant="secondary" onClick={returnToClarify}>
-              {startContent.backToClarify}
+            <Button type="button" variant="secondary" onClick={goToPreviousStage}>
+              {startContent.previousLabel}
+            </Button>
+            <Button type="button" variant="secondary" onClick={returnToOverview}>
+              {startContent.backToOverview}
             </Button>
           </div>
         </div>
@@ -584,6 +597,7 @@ export function StartExperience({
             onSubmitFeedback={submitStageFeedback}
             onContinue={goToNextStage}
             onPrevious={goToPreviousStage}
+            onBackToOverview={returnToOverview}
           />
         </div>
         </div>

@@ -32,6 +32,7 @@ type StageClarificationProps = {
   onSubmitFeedback: (next: StageState) => void;
   onContinue: () => void;
   onPrevious: () => void;
+  onBackToOverview: () => void;
   startContent: Dictionary["startContent"];
   locale: Locale;
 };
@@ -51,25 +52,22 @@ export function StageClarification({
   onSubmitFeedback,
   onContinue,
   onPrevious,
+  onBackToOverview,
   startContent,
   locale,
 }: StageClarificationProps) {
   const [answerError, setAnswerError] = useState(false);
-  const [isRefining, setIsRefining] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const answerErrorId = useId();
   const feedback = stageState.feedback ?? null;
   const canReturnToPrevious = stageKey !== "idea";
   const showsStartingContext = contextNotes[0]?.label === startContent.intakeLabel;
-  const hasReviewedAnswer =
+  const hasFeedbackForCurrentAnswer =
     Boolean(feedback) &&
-    stageState.submittedAnswer === stageState.answer.trim() &&
-    !isRefining;
+    stageState.submittedAnswer === stageState.answer.trim();
 
-  async function handleReview(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function requestFeedback() {
     const answer = stageState.answer.trim();
 
     if (!answer) {
@@ -107,7 +105,6 @@ export function StageClarification({
       }
 
       setAnswerError(false);
-      setIsRefining(false);
       onSubmitFeedback({
         answer,
         submittedAnswer: answer,
@@ -120,6 +117,18 @@ export function StageClarification({
     } finally {
       setIsGenerating(false);
     }
+  }
+
+  function handleContinue(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!stageState.answer.trim()) {
+      setAnswerError(true);
+      return;
+    }
+
+    setAnswerError(false);
+    onContinue();
   }
 
   return (
@@ -184,43 +193,15 @@ export function StageClarification({
         </div>
       ) : null}
 
-      {feedback && (hasReviewedAnswer || isRefining) ? (
+      {feedback && hasFeedbackForCurrentAnswer ? (
         <FeedbackPanel feedback={feedback} startContent={startContent} />
       ) : null}
 
-      {hasReviewedAnswer && feedback ? (
-        <div className="mt-8">
-          <div className="flex flex-wrap gap-3">
-            <Button type="button" onClick={onContinue}>
-              {startContent.confirmLabel}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setIsRefining(true)}
-            >
-              {startContent.refineLabel}
-            </Button>
-          </div>
-          {canReturnToPrevious ? (
-            <div className="mt-4">
-              <Button type="button" variant="secondary" onClick={onPrevious}>
-                {startContent.previousLabel}
-              </Button>
-            </div>
-          ) : null}
-        </div>
-      ) : (
-        <form className="mt-10" onSubmit={handleReview} noValidate>
+      <form className="mt-10" onSubmit={handleContinue} noValidate>
           <label className="block">
             <span className="text-xs uppercase tracking-[0.18em] text-muted">
               {startContent.answerLabel}
             </span>
-            {isRefining ? (
-              <span className="mt-3 block text-sm leading-relaxed text-muted">
-                {startContent.refineHint}
-              </span>
-            ) : null}
             <span className="sr-only">{stage.question}</span>
             <textarea
               value={stageState.answer}
@@ -245,8 +226,19 @@ export function StageClarification({
               {generationError}
             </p>
           ) : null}
+          <p className="mt-4 text-sm leading-relaxed text-muted">
+            {startContent.aiFeedbackOptional}
+          </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button type="submit" disabled={isGenerating}>
+            <Button type="submit">
+              {startContent.saveAndContinue}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => void requestFeedback()}
+              disabled={isGenerating}
+            >
               {isGenerating ? startContent.reviewingLabel : startContent.reviewLabel}
             </Button>
             {canReturnToPrevious ? (
@@ -254,9 +246,11 @@ export function StageClarification({
                 {startContent.previousLabel}
               </Button>
             ) : null}
+            <Button type="button" variant="secondary" onClick={onBackToOverview}>
+              {startContent.backToOverview}
+            </Button>
           </div>
-        </form>
-      )}
+      </form>
     </div>
   );
 }

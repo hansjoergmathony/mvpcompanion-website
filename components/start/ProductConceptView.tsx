@@ -11,7 +11,12 @@ import {
   getIdeaTitle,
   getSnapshotStages,
 } from "@/lib/project/ideaSnapshot";
-import { clarifyStageKeys, stageNumberByKey, type Idea } from "@/lib/project/types";
+import {
+  clarifyStageKeys,
+  stageNumberByKey,
+  workspaceStageKeys,
+  type Idea,
+} from "@/lib/project/types";
 
 type ProductConceptViewProps = {
   headingRef: RefObject<HTMLHeadingElement | null>;
@@ -37,7 +42,10 @@ export function ProductConceptView({
   editLabel,
 }: ProductConceptViewProps) {
   const { appEntry, priorStageLabel, startContent, ui } = copy;
-  const isFullDraft = idea.area === "workspace" && idea.currentStage === "summary";
+  const isFullDraft =
+    idea.currentStage === "summary" &&
+    (idea.area === "workspace" ||
+      workspaceStageKeys.every((key) => Boolean(idea.stages[key]?.answer.trim())));
   const filled = countFilledFields(idea, clarifyStageKeys);
   const overall = countFilledFields(idea);
   const displayedStages = getSnapshotStages(idea, locale, priorStageLabel).filter(

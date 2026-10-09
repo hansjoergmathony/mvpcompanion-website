@@ -14,18 +14,17 @@ export const startContent = {
   submitLabel: "Klärung starten",
   continueLabel: "Weiter",
   previousLabel: "Zurück",
-  reviewLabel: "Prüfen",
+  reviewLabel: "KI-Feedback anfordern",
   reviewingLabel: "KI prüft …",
   aiGenerationError:
     "Die KI-Prüfung ist gerade nicht verfügbar. Bitte versuchen Sie es erneut.",
   hearingLabel: "Das höre ich heraus",
   unclearLabel: "Ein Punkt ist noch unklar",
-  refineLabel: "Antwort schärfen",
   answerLabel: "Ihre Antwort",
-  refineHint:
-    "Überarbeiten Sie die ganze Antwort anhand der Rückmeldung und prüfen Sie sie erneut.",
-  confirmLabel: "Passt — weiter",
-  stageAnswerError: "Fügen Sie eine Antwort hinzu, bevor diese Stufe geprüft werden kann.",
+  stageAnswerError:
+    "Fügen Sie eine Antwort hinzu, bevor Sie fortfahren oder Feedback anfordern.",
+  aiFeedbackOptional:
+    "KI-Feedback ist optional. Sie können jederzeit speichern und weitergehen.",
   intakeError: "Fügen Sie Idee, Problem und Nutzer hinzu, um zu beginnen.",
   continueHeadline: "Setzen Sie Ihren Ideen-Snapshot fort.",
   continueSupporting: "Machen Sie dort weiter, wo Sie in der Klärung auf der Website aufgehört haben.",
@@ -116,6 +115,7 @@ export const startContent = {
     "Ausgefüllte Felder halten fest, was Sie geschrieben haben. Sie sind keine Belege und keine Marktvalidierung.",
   clarifyProgress: "Klärung",
   overallProgress: "Gesamter Entwurf",
+  backToOverview: "Zur Übersicht",
   backToClarify: "Zurück zur Klärung",
   noAiReview:
     "Diese Stufe wird beim Schreiben gespeichert. Für die Stufen 7–15 gibt es keine eigene KI-Rückmeldung.",

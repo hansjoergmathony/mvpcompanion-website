@@ -21,18 +21,16 @@ export const startContent = {
   submitLabel: "Start clarification",
   continueLabel: "Continue",
   previousLabel: "Previous",
-  reviewLabel: "Review",
+  reviewLabel: "Get AI feedback",
   reviewingLabel: "AI is reviewing …",
   aiGenerationError:
     "AI feedback is temporarily unavailable. Please try again.",
   hearingLabel: "Here's what I'm hearing",
   unclearLabel: "One thing is still unclear",
-  refineLabel: "Refine your answer",
   answerLabel: "Your answer",
-  refineHint:
-    "Revise your full answer using the feedback above, then review it again.",
-  confirmLabel: "Looks good — continue",
-  stageAnswerError: "Add an answer before this stage can be reviewed.",
+  stageAnswerError: "Add an answer before you continue or request feedback.",
+  aiFeedbackOptional:
+    "AI feedback is optional. You can save and continue at any time.",
   intakeError: "Add your idea, the problem, and the user to begin.",
   continueHeadline: "Continue your Idea Snapshot.",
   continueSupporting: "Pick up where you left off in the website clarification.",
@@ -128,6 +126,7 @@ export const startContent = {
     "Completed fields record what you have written. They are not evidence or market validation.",
   clarifyProgress: "Clarify",
   overallProgress: "Full draft",
+  backToOverview: "Back to overview",
   backToClarify: "Back to Clarify",
   noAiReview:
     "This stage is saved as you write it. Stages 7–15 have no separate AI review.",
