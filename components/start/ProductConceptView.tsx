@@ -128,7 +128,7 @@ export function ProductConceptView({
               <p className="mt-2 text-sm text-muted">
                 {ui.pdf.stageStatus[stage.status]}
               </p>
-              <p className="mt-3 break-words text-base leading-relaxed text-navy">
+              <p className="mt-3 break-words whitespace-pre-wrap text-base leading-relaxed text-navy">
                 {stage.content}
               </p>
             </li>

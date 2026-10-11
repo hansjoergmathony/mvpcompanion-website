@@ -280,26 +280,35 @@ function formatDate(value: string, locale: Locale, unknown: string): string {
 }
 
 function wrapPdfText(value: string, maxLength: number): string[] {
-  const words = value
-    .replace(/\s+/g, " ")
-    .trim()
-    .split(" ")
-    .flatMap((word) =>
-      word.length <= maxLength
-        ? [word]
-        : word.match(new RegExp(`.{1,${maxLength}}`, "g")) ?? [word],
-    );
   const lines: string[] = [];
-  let line = "";
-  for (const word of words) {
-    if (`${line} ${word}`.trim().length > maxLength && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = `${line} ${word}`.trim();
+
+  for (const paragraph of value.replace(/\r\n?/g, "\n").split("\n")) {
+    if (!paragraph.trim()) {
+      lines.push("");
+      continue;
     }
+
+    const words = paragraph
+      .trim()
+      .split(/\s+/)
+      .flatMap((word) =>
+        word.length <= maxLength
+          ? [word]
+          : word.match(new RegExp(`.{1,${maxLength}}`, "g")) ?? [word],
+      );
+    let line = "";
+    for (const word of words) {
+      if (`${line} ${word}`.trim().length > maxLength && line) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = `${line} ${word}`.trim();
+      }
+    }
+    if (line) lines.push(line);
   }
-  return line ? [...lines, line] : [""];
+
+  return lines.length > 0 ? lines : [""];
 }
 
 function pdfText(value: string): string {
