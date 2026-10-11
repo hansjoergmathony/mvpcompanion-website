@@ -197,7 +197,7 @@ export const ui = {
     companionEyebrow: "Companion white paper",
     readPaper: "Read the White Paper",
     processEyebrow: "15-stage process",
-    readProcess: "Read the process",
+    readProcess: "Read the paper",
     metaTitle: "Resources — MVPCompanion",
   },
   bookSamplePage: {
