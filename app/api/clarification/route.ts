@@ -208,6 +208,14 @@ export async function POST(request: NextRequest) {
     technicalBoundaries: "Check that dependencies, privacy constraints, risks, and open feasibility questions are explicit.",
     mvpBoundary: "Check that the MVP boundary prioritizes what is included and explicitly excludes what is not needed yet.",
   };
+  const stageSequencing: Partial<Record<ClarificationRequest["stageKey"], string>> = {
+    idea: "This is an early framing stage. Ask only about the possible product concept and the outcome it could enable. Do not ask about features, deliverables, artifacts, workflows, scope, implementation, prioritization, or later specification stages.",
+    problem: "This is an early discovery stage. Ask only about the user's current difficulty, its consequences, and what is evidence versus assumption. Do not ask about the proposed product, features, MVP scope, implementation, or later specification stages.",
+    user: "This is an early discovery stage. Ask only about the primary person, their situation, and the context in which the problem occurs. Do not ask about solution flows, product outputs, features, MVP scope, implementation, or later specification stages.",
+  };
+  const sequencingInstruction =
+    stageSequencing[payload.stageKey] ??
+    "Keep questions appropriate to the current stage. Do not ask the user to complete decisions that belong to a later stage unless a missing earlier-stage decision makes the current answer impossible to understand.";
 
   try {
     const response = await fetch("https://api.openai.com/v1/responses", {
@@ -219,7 +227,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         model: "gpt-5-mini",
         reasoning: { effort: "minimal" },
-        instructions: `You are MVPCompanion, a careful product-discovery coach. Review a user's answer for stage ${stageNumberByKey[payload.stageKey]} of a 15-stage MVP specification. Write in ${language}. Stage focus: ${stageReviewFocus[payload.stageKey]} Do not claim market facts, validation, or user research that is not present. Separate evidence from assumptions. Generate 2–4 specific, neutral open questions that would help validate or sharpen the answer. Keep every item concise and actionable. Set status to needs_clarification only when the answer is too vague, conflates problem and solution, or lacks a necessary decision; otherwise set it to ready_to_continue.`,
+        instructions: `You are MVPCompanion, a careful product-discovery coach. Review a user's answer for stage ${stageNumberByKey[payload.stageKey]} of a 15-stage MVP specification. Write in ${language}. Stage focus: ${stageReviewFocus[payload.stageKey]} Sequencing rule: ${sequencingInstruction} Do not claim market facts, validation, or user research that is not present. Separate evidence from assumptions. Generate 2–4 specific, neutral open questions that would help validate or sharpen the answer. Keep every item concise and actionable. Set status to needs_clarification only when the answer is too vague, conflates problem and solution, or lacks a necessary decision; otherwise set it to ready_to_continue.`,
         input: JSON.stringify(input),
         max_output_tokens: 700,
         text: {
