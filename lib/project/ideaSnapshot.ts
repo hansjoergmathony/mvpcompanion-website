@@ -1,4 +1,3 @@
-import { buildProductConcept } from "@/lib/clarification";
 import type { Locale } from "@/lib/i18n/config";
 import type { StageFeedback } from "@/lib/clarification/types";
 import {
@@ -86,15 +85,14 @@ export function getSnapshotStages(
   locale: Locale = "en",
   labels: Record<StageKey, string> = stageLabels,
 ): SnapshotStage[] {
-  const concept = buildProductConcept(idea, locale);
   const open = locale === "de" ? "Das ist noch nicht geklärt." : "This has not been clarified yet.";
   const contentByKey: Record<StageKey, string> = {
-    idea: concept.idea,
-    problem: concept.problem,
-    user: concept.primaryUser,
-    value: concept.valueProposition,
-    product: concept.product,
-    context: concept.lifecycle,
+    idea: idea.stages.idea.answer.trim() || open,
+    problem: idea.stages.problem.answer.trim() || open,
+    user: idea.stages.user.answer.trim() || open,
+    value: idea.stages.value.answer.trim() || open,
+    product: idea.stages.product.answer.trim() || open,
+    context: idea.stages.context.answer.trim() || open,
     jobs: idea.stages.jobs.answer.trim() || open,
     scope: idea.stages.scope.answer.trim() || open,
     experience: idea.stages.experience.answer.trim() || open,
