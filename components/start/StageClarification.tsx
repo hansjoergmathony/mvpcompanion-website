@@ -30,6 +30,10 @@ type StageClarificationProps = {
   onPrevious: () => void;
   onBackToOverview: () => void;
   onOpenAiFeedbackBeta: () => void;
+  isAdmin: boolean;
+  isAiFeedbackLoading: boolean;
+  aiFeedbackError: string | null;
+  onRequestAiFeedback: () => void;
   startContent: Dictionary["startContent"];
 };
 
@@ -47,6 +51,10 @@ export function StageClarification({
   onPrevious,
   onBackToOverview,
   onOpenAiFeedbackBeta,
+  isAdmin,
+  isAiFeedbackLoading,
+  aiFeedbackError,
+  onRequestAiFeedback,
   startContent,
 }: StageClarificationProps) {
   const [answerError, setAnswerError] = useState(false);
@@ -159,20 +167,36 @@ export function StageClarification({
               {startContent.stageAnswerError}
             </p>
           ) : null}
+          {aiFeedbackError ? (
+            <p className="mt-4 text-sm" role="alert">{aiFeedbackError}</p>
+          ) : null}
           <p className="mt-4 text-sm leading-relaxed text-muted">
-            {startContent.aiFeedbackBetaNote}
+            {isAdmin ? startContent.aiFeedbackPrivateNote : startContent.aiFeedbackBetaNote}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button type="submit">
               {startContent.saveAndContinue}
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onOpenAiFeedbackBeta}
-            >
-              {startContent.aiFeedbackBetaCta}
-            </Button>
+            {isAdmin ? (
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={isAiFeedbackLoading}
+                onClick={onRequestAiFeedback}
+              >
+                {isAiFeedbackLoading
+                  ? startContent.runningAiFeedback
+                  : startContent.runAiFeedback}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onOpenAiFeedbackBeta}
+              >
+                {startContent.aiFeedbackBetaCta}
+              </Button>
+            )}
             {canReturnToPrevious ? (
               <Button type="button" variant="secondary" onClick={onPrevious}>
                 {startContent.previousLabel}
@@ -213,7 +237,7 @@ function IdeaNameField({
   );
 }
 
-function FeedbackPanel({
+export function FeedbackPanel({
   feedback,
   startContent,
 }: {

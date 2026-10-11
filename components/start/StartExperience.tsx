@@ -9,7 +9,7 @@ import {
   MvpPlaceholderView,
   ProductConceptView,
 } from "@/components/start/ProductConceptView";
-import { StageClarification } from "@/components/start/StageClarification";
+import { FeedbackPanel, StageClarification } from "@/components/start/StageClarification";
 import { Button } from "@/components/ui/Button";
 import type { Dictionary } from "@/content/en";
 import {
@@ -21,6 +21,7 @@ import {
   type IntakeValues,
 } from "@/content/start-path";
 import { buildProductConcept } from "@/lib/clarification";
+import type { StageFeedback } from "@/lib/clarification/types";
 import type { Locale } from "@/lib/i18n/config";
 import { countFilledFields } from "@/lib/project/ideaSnapshot";
 import {
@@ -97,6 +98,9 @@ export function StartExperience({
     source: "clarify" | "full_specification";
     stageNumber?: number;
   } | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [aiFeedbackStage, setAiFeedbackStage] = useState<StageKey | null>(null);
+  const [aiFeedbackError, setAiFeedbackError] = useState<string | null>(null);
 
   const currentStage = activeIdea?.currentStage ?? "intake";
   const startingContext = activeIdea?.startingContext ?? emptyIntakeValues;
@@ -115,6 +119,27 @@ export function StartExperience({
 
     headingRef.current?.focus();
   }, [isReady, currentStage]);
+
+  useEffect(() => {
+    let active = true;
+
+    fetch("/api/admin/session", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : { isAdmin: false })
+      .then((payload: { isAdmin?: boolean }) => {
+        if (active) {
+          setIsAdmin(payload.isAdmin === true);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setIsAdmin(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function updateStartingContext(values: IntakeValues) {
     updateActiveIdea((current) => ({
@@ -258,6 +283,78 @@ export function StartExperience({
         status: "in_progress",
       };
     });
+  }
+
+  function relatedAnswers(stageKey: StageKey) {
+    if (!activeIdea) {
+      return {};
+    }
+
+    return Object.fromEntries(
+      stageKeys
+        .filter((key) => key !== stageKey)
+        .map((key) => [key, activeIdea.stages[key].answer.trim()]),
+    ) as Partial<Record<StageKey, string>>;
+  }
+
+  async function requestAiFeedback(stageKey: StageKey) {
+    if (!activeIdea || !isAdmin) {
+      return;
+    }
+
+    const answer = activeIdea.stages[stageKey].answer.trim();
+    const processStage = processStages.find(
+      (stage) => stage.number === stageNumberByKey[stageKey],
+    );
+    if (!answer || !processStage) {
+      setAiFeedbackError(startContent.stageAnswerError);
+      return;
+    }
+
+    setAiFeedbackError(null);
+    setAiFeedbackStage(stageKey);
+    try {
+      const response = await fetch("/api/clarification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          stageKey,
+          stageName: processStage.name,
+          question: processStage.question,
+          purpose: processStage.purpose,
+          answer,
+          startingContext: activeIdea.startingContext,
+          relatedAnswers: relatedAnswers(stageKey),
+          locale,
+        }),
+      });
+      const payload = (await response.json()) as {
+        feedback?: StageFeedback;
+        error?: string;
+      };
+      if (!response.ok || !payload.feedback) {
+        throw new Error(payload.error || startContent.aiGenerationError);
+      }
+
+      updateActiveIdea((current) => ({
+        ...current,
+        stages: {
+          ...current.stages,
+          [stageKey]: {
+            ...current.stages[stageKey],
+            answer,
+            submittedAnswer: answer,
+            feedback: payload.feedback,
+          },
+        },
+      }));
+    } catch (error) {
+      setAiFeedbackError(
+        error instanceof Error ? error.message : startContent.aiGenerationError,
+      );
+    } finally {
+      setAiFeedbackStage(null);
+    }
   }
 
   function contextNotes() {
@@ -493,7 +590,9 @@ export function StartExperience({
             {stage?.name}
           </h1>
           <p className="mt-4 text-lg leading-relaxed text-muted">{stage?.question}</p>
-          <p className="mt-3 text-sm leading-relaxed text-muted">{startContent.noAiReview}</p>
+          <p className="mt-3 text-sm leading-relaxed text-muted">
+            {isAdmin ? startContent.aiFeedbackPrivateNote : startContent.noAiReview}
+          </p>
           <label className="mt-8 block">
             <span className="sr-only">{stage?.question}</span>
             <textarea
@@ -503,6 +602,13 @@ export function StartExperience({
               className={fieldClassName}
             />
           </label>
+          {activeIdea.stages[currentStageKey].feedback ? (
+            <FeedbackPanel
+              feedback={activeIdea.stages[currentStageKey].feedback as NonNullable<StageFeedback>}
+              startContent={startContent}
+            />
+          ) : null}
+          {aiFeedbackError ? <p className="mt-4 text-sm" role="alert">{aiFeedbackError}</p> : null}
           <div className="mt-6 flex flex-wrap gap-3">
             <Button type="button" onClick={goToNextStage}>
               {startContent.saveAndContinue}
@@ -513,13 +619,31 @@ export function StartExperience({
             <Button type="button" variant="secondary" onClick={returnToOverview}>
               {startContent.backToOverview}
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setAiFeedbackBeta({ source: "full_specification" })}
-            >
-              {ui.betaInterest.trigger}
-            </Button>
+            {isAdmin ? (
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={aiFeedbackStage === currentStageKey}
+                onClick={() => void requestAiFeedback(currentStageKey)}
+              >
+                {aiFeedbackStage === currentStageKey
+                  ? startContent.runningAiFeedback
+                  : startContent.runAiFeedback}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() =>
+                  setAiFeedbackBeta({
+                    source: "full_specification",
+                    stageNumber: stageNumberByKey[currentStageKey],
+                  })
+                }
+              >
+                {ui.betaInterest.trigger}
+              </Button>
+            )}
           </div>
         </div>
         {aiFeedbackBeta ? (
@@ -595,6 +719,10 @@ export function StartExperience({
             onContinue={goToNextStage}
             onPrevious={goToPreviousStage}
             onBackToOverview={returnToOverview}
+            isAdmin={isAdmin}
+            isAiFeedbackLoading={aiFeedbackStage === currentStageKey}
+            aiFeedbackError={aiFeedbackError}
+            onRequestAiFeedback={() => void requestAiFeedback(currentStageKey)}
             onOpenAiFeedbackBeta={() =>
               setAiFeedbackBeta({
                 source: "clarify",

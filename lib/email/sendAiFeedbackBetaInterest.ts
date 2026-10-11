@@ -48,7 +48,9 @@ export function validateAiFeedbackBetaInterest(
   }
   if (
     input.stageNumber !== undefined &&
-    (!Number.isInteger(input.stageNumber) || input.stageNumber < 1 || input.stageNumber > 6)
+    (!Number.isInteger(input.stageNumber) ||
+      input.stageNumber < 1 ||
+      input.stageNumber > (input.source === "clarify" ? 6 : 15))
   ) {
     return copy.sendFailed;
   }

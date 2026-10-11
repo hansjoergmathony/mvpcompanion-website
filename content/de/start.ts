@@ -28,6 +28,10 @@ export const startContent = {
   aiFeedbackBetaCta: "KI-Feedback – Beta",
   aiFeedbackBetaNote:
     "KI-Feedback ist in Vorbereitung. Sie können Interesse vormerken, ohne Ihre Spezifikation an eine KI zu senden.",
+  runAiFeedback: "KI-Feedback ausführen (privat)",
+  runningAiFeedback: "KI prüft …",
+  aiFeedbackPrivateNote:
+    "Privater Pilot: Diese Antwort wird für die Rückmeldung an die OpenAI API gesendet.",
   intakeError: "Fügen Sie Idee, Problem und Nutzer hinzu, um zu beginnen.",
   continueHeadline: "Setzen Sie Ihren Ideen-Snapshot fort.",
   continueSupporting: "Machen Sie dort weiter, wo Sie in der Klärung auf der Website aufgehört haben.",

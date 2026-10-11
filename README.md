@@ -62,6 +62,28 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Private AI-feedback pilot
+
+The public site presents an AI-feedback beta survey. Real OpenAI feedback is
+available only after private Google sign-in and only to the email address in
+`MVP_ADMIN_EMAIL`. Configure these **Vercel server-side environment variables**
+before activating the pilot:
+
+```text
+OPENAI_API_KEY
+MVP_ADMIN_EMAIL
+GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET
+MVP_ADMIN_OAUTH_REDIRECT_URI=https://www.mvpcompanion.com/api/admin/auth/callback
+MVP_ADMIN_SESSION_SECRET
+MVP_ADMIN_AI_REQUESTS_PER_MINUTE=6
+```
+
+Create a Google OAuth web client with the same redirect URI. The private sign-in
+entry point is `/admin`; a successful sign-in creates an eight-hour, HTTP-only
+session. Until every required variable is configured, real AI feedback stays
+disabled for everyone.
+
 ---
 
 ## Folder Structure

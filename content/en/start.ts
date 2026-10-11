@@ -34,6 +34,10 @@ export const startContent = {
   aiFeedbackBetaCta: "AI feedback — beta",
   aiFeedbackBetaNote:
     "AI feedback is in preparation. You can register interest without sending your specification to AI.",
+  runAiFeedback: "Run AI feedback (private)",
+  runningAiFeedback: "AI is reviewing …",
+  aiFeedbackPrivateNote:
+    "Private pilot: this answer is sent to the OpenAI API for feedback.",
   intakeError: "Add your idea, the problem, and the user to begin.",
   continueHeadline: "Continue your Idea Snapshot.",
   continueSupporting: "Pick up where you left off in the website clarification.",

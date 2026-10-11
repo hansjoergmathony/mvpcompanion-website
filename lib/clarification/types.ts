@@ -1,3 +1,5 @@
+import type { StageKey } from "@/lib/project/types";
+
 export type FeedbackStatus = "needs_clarification" | "ready_to_continue";
 
 export type FeedbackFrame = {
@@ -15,16 +17,8 @@ export type StageFeedback = {
   status: FeedbackStatus;
 };
 
-export type ClarificationStageKey =
-  | "idea"
-  | "problem"
-  | "user"
-  | "value"
-  | "product"
-  | "context";
-
 export type ClarificationRequest = {
-  stageKey: ClarificationStageKey;
+  stageKey: StageKey;
   stageName: string;
   question: string;
   purpose: string;
@@ -34,7 +28,7 @@ export type ClarificationRequest = {
     problem: string;
     user: string;
   };
-  relatedAnswers: Partial<Record<ClarificationStageKey, string>>;
+  relatedAnswers: Partial<Record<StageKey, string>>;
   locale?: "en" | "de";
 };
 
