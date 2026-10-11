@@ -9,6 +9,8 @@ export function proxy(request: NextRequest) {
 
   if (
     pathname.startsWith("/api") ||
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/") ||
     pathname.startsWith("/_next") ||
     PUBLIC_FILE.test(pathname)
   ) {
