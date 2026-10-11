@@ -54,8 +54,14 @@ function draftHasContent(idea: Idea | null): boolean {
   );
 }
 
-function ideaDescription(idea: Idea, empty: string): string {
-  return idea.stages.idea.answer.trim() || empty;
+function ideaPreview(idea: Idea, empty: string): string {
+  const answer = idea.stages.idea.answer.trim();
+
+  if (!answer) {
+    return empty;
+  }
+
+  return answer.split(/\r?\n\s*\r?\n/).find((paragraph) => paragraph.trim())?.trim() || empty;
 }
 
 function isCompleteSpecification(idea: Idea): boolean {
@@ -239,8 +245,8 @@ export function IdeaLibrary({
                     <p className="truncate text-base font-semibold tracking-tight text-navy">
                       {getIdeaTitle(idea, untitled)}
                     </p>
-                    <p className="mt-1 break-words text-sm leading-relaxed text-muted">
-                      {ideaDescription(idea, labels.noHypothesis)}
+                    <p className="mt-1 line-clamp-4 break-words whitespace-pre-line text-sm leading-relaxed text-muted">
+                      {ideaPreview(idea, labels.noHypothesis)}
                     </p>
                     <p className="mt-2 text-xs uppercase tracking-[0.14em] text-muted">
                       {clarificationLabel(idea, labels, stageLabels)}
