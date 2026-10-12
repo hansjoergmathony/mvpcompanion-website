@@ -1,4 +1,5 @@
 import {
+  IDEA_LIBRARY_BACKUPS_STORAGE_KEY,
   IDEA_LIBRARY_STORAGE_KEY,
   LEGACY_PROJECT_STORAGE_KEY,
   createEmptyStages,
@@ -9,6 +10,7 @@ import {
   isDraftArea,
   stageKeys,
   type Idea,
+  type IdeaLibraryBackup,
   type IdeaLibrary,
   type IdeaStages,
   type IdeaStatus,
@@ -16,6 +18,13 @@ import {
   type StartingContext,
 } from "@/lib/project/types";
 import type { StageFeedback } from "@/lib/clarification/types";
+
+const MAX_LOCAL_BACKUPS = 12;
+const EMPTY_BACKUPS: IdeaLibraryBackup[] = [];
+
+export type LocalStorageStatus =
+  | { state: "saved"; savedAt: string }
+  | { state: "error" };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -191,6 +200,12 @@ function createEmptyLibrary(): IdeaLibrary {
 
 let cachedRaw: string | null | undefined;
 let cachedLibrary: IdeaLibrary = createEmptyLibrary();
+let cachedBackupsRaw: string | null | undefined;
+let cachedBackups: IdeaLibraryBackup[] = EMPTY_BACKUPS;
+let storageStatus: LocalStorageStatus = {
+  state: "saved",
+  savedAt: new Date().toISOString(),
+};
 
 function setCache(raw: string | null | undefined, library: IdeaLibrary) {
   cachedRaw = raw;
@@ -205,18 +220,113 @@ function emitLibraryChange() {
   });
 }
 
+function setStorageStatus(status: LocalStorageStatus) {
+  storageStatus = status;
+}
+
+export function getLocalStorageStatus(): LocalStorageStatus {
+  return storageStatus;
+}
+
+function readBackups(): IdeaLibraryBackup[] {
+  if (typeof window === "undefined") {
+    return EMPTY_BACKUPS;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(IDEA_LIBRARY_BACKUPS_STORAGE_KEY);
+    if (raw === cachedBackupsRaw) {
+      return cachedBackups;
+    }
+    if (!raw) {
+      cachedBackupsRaw = raw;
+      cachedBackups = EMPTY_BACKUPS;
+      return cachedBackups;
+    }
+
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) {
+      cachedBackupsRaw = raw;
+      cachedBackups = EMPTY_BACKUPS;
+      return cachedBackups;
+    }
+
+    cachedBackupsRaw = raw;
+    cachedBackups = parsed.flatMap((item) => {
+      if (!isRecord(item)) {
+        return [];
+      }
+
+      const library = parseIdeaLibrary(item.library);
+      const id = readString(item.id);
+      const savedAt = readString(item.savedAt);
+      return library && id && savedAt ? [{ id, savedAt, library }] : [];
+    });
+    return cachedBackups;
+  } catch {
+    cachedBackupsRaw = undefined;
+    cachedBackups = EMPTY_BACKUPS;
+    return cachedBackups;
+  }
+}
+
+export function getLocalBackups(): IdeaLibraryBackup[] {
+  return readBackups();
+}
+
+function saveBackup(library: IdeaLibrary) {
+  if (typeof window === "undefined" || library.ideas.length === 0) {
+    return;
+  }
+
+  try {
+    const raw = JSON.stringify(library);
+    const backups = readBackups();
+    if (backups[0] && JSON.stringify(backups[0].library) === raw) {
+      return;
+    }
+
+    const backup: IdeaLibraryBackup = {
+      id: `backup-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      savedAt: new Date().toISOString(),
+      library,
+    };
+    window.localStorage.setItem(
+      IDEA_LIBRARY_BACKUPS_STORAGE_KEY,
+      JSON.stringify([backup, ...backups].slice(0, MAX_LOCAL_BACKUPS)),
+    );
+  } catch {
+    // The current library remains the primary copy. A backup failure must not block editing.
+  }
+}
+
 function writeIdeaLibrary(library: IdeaLibrary): boolean {
   if (typeof window === "undefined") {
     return false;
   }
 
   try {
+    const previous = loadIdeaLibraryFromStorage();
+    if (previous && JSON.stringify(previous) !== JSON.stringify(library)) {
+      saveBackup(previous);
+    }
     const raw = JSON.stringify(library);
     window.localStorage.setItem(IDEA_LIBRARY_STORAGE_KEY, raw);
     setCache(raw, library);
+    setStorageStatus({ state: "saved", savedAt: new Date().toISOString() });
     return true;
   } catch {
+    setStorageStatus({ state: "error" });
     return false;
+  }
+}
+
+function loadIdeaLibraryFromStorage(): IdeaLibrary | null {
+  try {
+    const raw = window.localStorage.getItem(IDEA_LIBRARY_STORAGE_KEY);
+    return raw ? parseIdeaLibrary(JSON.parse(raw) as unknown) : null;
+  } catch {
+    return null;
   }
 }
 
@@ -285,6 +395,7 @@ export function loadIdeaLibrary(): IdeaLibrary {
     }
   } catch {
     // Leave the browser's stored value untouched if it cannot be read.
+    setStorageStatus({ state: "error" });
   }
 
   const emptyLibrary = createEmptyLibrary();
@@ -329,12 +440,14 @@ function handlePageShow() {
 
 export function saveIdeaLibrary(library: IdeaLibrary): boolean {
   const saved = writeIdeaLibrary(library);
-
-  if (saved) {
-    emitLibraryChange();
-  }
+  emitLibraryChange();
 
   return saved;
+}
+
+export function restoreLocalBackup(id: string): boolean {
+  const backup = readBackups().find((item) => item.id === id);
+  return backup ? saveIdeaLibrary(backup.library) : false;
 }
 
 export function createIdea(): Idea {

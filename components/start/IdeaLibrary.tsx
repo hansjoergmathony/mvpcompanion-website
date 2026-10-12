@@ -19,8 +19,10 @@ import {
   stageKeys,
   workspaceStageKeys,
   type Idea,
+  type IdeaLibraryBackup,
   type StageKey,
 } from "@/lib/project/types";
+import type { LocalStorageStatus } from "@/lib/project/storage";
 
 type LibraryLabels = Dictionary["ui"]["library"];
 type StatusLabels = Dictionary["ui"]["pdf"]["statuses"];
@@ -41,6 +43,9 @@ type IdeaLibraryProps = {
   onReplace: (idea: Idea) => void;
   canUndo: boolean;
   onUndo: () => void;
+  localStorageStatus: LocalStorageStatus;
+  localBackups: IdeaLibraryBackup[];
+  onRestoreBackup: (id: string) => void;
 };
 
 function draftHasContent(idea: Idea | null): boolean {
@@ -129,6 +134,9 @@ export function IdeaLibrary({
   onReplace,
   canUndo,
   onUndo,
+  localStorageStatus,
+  localBackups,
+  onRestoreBackup,
 }: IdeaLibraryProps) {
   const [ideaToDelete, setIdeaToDelete] = useState<Idea | null>(null);
   const deleteHeadingRef = useRef<HTMLHeadingElement>(null);
@@ -139,6 +147,7 @@ export function IdeaLibrary({
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activeIdea = ideas.find((idea) => idea.id === activeIdeaId) ?? null;
+  const [isShowingBackups, setIsShowingBackups] = useState(false);
 
   useEffect(() => {
     if (ideaToDelete) {
@@ -224,6 +233,46 @@ export function IdeaLibrary({
           />
         </div>
       </div>
+
+      <section className="mt-5 rounded-xl border border-border bg-card px-4 py-4" aria-live="polite">
+        <p className="text-sm font-medium text-navy">
+          {localStorageStatus.state === "saved"
+            ? labels.localSaved
+            : labels.localSaveError}
+        </p>
+        <p className="mt-1 text-sm leading-relaxed text-muted">
+          {labels.localOnlyNotice}
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <Button type="button" variant="secondary" onClick={() => setIsShowingBackups((show) => !show)}>
+            {isShowingBackups ? labels.hideLocalBackups : labels.showLocalBackups.replace("{count}", String(localBackups.length))}
+          </Button>
+          {activeIdea ? (
+            <Button type="button" variant="secondary" onClick={() => exportIdeaAsJson(activeIdea, locale)}>
+              {labels.downloadBackup}
+            </Button>
+          ) : null}
+        </div>
+        {isShowingBackups ? (
+          <div className="mt-4 border-t border-border pt-4">
+            {localBackups.length ? (
+              <ul className="space-y-3">
+                {localBackups.slice(0, 5).map((backup) => (
+                  <li key={backup.id} className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                    <span className="text-muted">{labels.localBackupSaved.replace("{date}", formatDateTime(backup.savedAt, locale, labels.unknownDate))}</span>
+                    <Button type="button" variant="secondary" onClick={() => onRestoreBackup(backup.id)}>
+                      {labels.restoreLocalBackup}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted">{labels.noLocalBackups}</p>
+            )}
+            <p className="mt-3 text-xs leading-relaxed text-muted">{labels.restoreLocalBackupNote}</p>
+          </div>
+        ) : null}
+      </section>
 
       {ideas.length === 0 ? (
         <p className="mt-5 text-base leading-relaxed text-muted">{labels.empty}</p>
@@ -501,4 +550,11 @@ function importErrorMessage(reason: IdeaSnapshotImportFailureReason, labels: Lib
 function formatDate(value: string, locale: Locale, unknown: string): string {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? unknown : date.toLocaleDateString(locale);
+}
+
+function formatDateTime(value: string, locale: Locale, unknown: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? unknown
+    : date.toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" });
 }

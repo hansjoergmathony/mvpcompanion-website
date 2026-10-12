@@ -4,8 +4,11 @@ import { useCallback, useSyncExternalStore } from "react";
 import {
   createIdea,
   deleteIdea as deleteStoredIdea,
+  getLocalBackups,
+  getLocalStorageStatus,
   importIdea as importStoredIdea,
   replaceActiveIdea as replaceStoredActiveIdea,
+  restoreLocalBackup as restoreStoredLocalBackup,
   loadIdeaLibrary,
   selectIdea as selectStoredIdea,
   subscribeIdeaLibrary,
@@ -47,6 +50,16 @@ export function useIdeaLibrary() {
     getClientReadySnapshot,
     getServerReadySnapshot,
   );
+  const localStorageStatus = useSyncExternalStore(
+    subscribeIdeaLibrary,
+    getLocalStorageStatus,
+    getLocalStorageStatus,
+  );
+  const localBackups = useSyncExternalStore(
+    subscribeIdeaLibrary,
+    getLocalBackups,
+    getLocalBackups,
+  );
   const activeIdea = library.ideas.find(
     (idea) => idea.id === library.activeIdeaId,
   ) ?? null;
@@ -75,6 +88,10 @@ export function useIdeaLibrary() {
     return replaceStoredActiveIdea(idea);
   }, []);
 
+  const restoreLocalBackup = useCallback((id: string) => {
+    return restoreStoredLocalBackup(id);
+  }, []);
+
   return {
     library,
     ideas: library.ideas,
@@ -85,6 +102,9 @@ export function useIdeaLibrary() {
     createIdea: createNewIdea,
     importIdea,
     replaceActiveIdea,
+    localStorageStatus,
+    localBackups,
+    restoreLocalBackup,
     selectIdea,
     updateActiveIdea,
     deleteIdea,

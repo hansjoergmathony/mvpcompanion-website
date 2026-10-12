@@ -87,6 +87,9 @@ export function StartExperience({
     createIdea,
     importIdea,
     replaceActiveIdea,
+    localStorageStatus,
+    localBackups,
+    restoreLocalBackup,
     selectIdea,
     updateActiveIdea,
     deleteIdea,
@@ -402,6 +405,14 @@ export function StartExperience({
         onViewSnapshot={() => setIsViewingSnapshot(true)}
         onDelete={deleteIdea}
         canUndo={undoIdea !== null}
+        localStorageStatus={localStorageStatus}
+        localBackups={localBackups}
+        onRestoreBackup={(id) => {
+          if (restoreLocalBackup(id)) {
+            setIntakeError(false);
+            setIsViewingSnapshot(false);
+          }
+        }}
         onUndo={() => {
           if (!undoIdea) {
             return;

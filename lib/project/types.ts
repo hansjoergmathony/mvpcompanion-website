@@ -1,6 +1,7 @@
 import type { StageFeedback } from "@/lib/clarification/types";
 
 export const IDEA_LIBRARY_STORAGE_KEY = "mvpcompanion.idea-library";
+export const IDEA_LIBRARY_BACKUPS_STORAGE_KEY = "mvpcompanion.idea-library.backups";
 export const LEGACY_PROJECT_STORAGE_KEY = "mvpcompanion.project";
 
 export const clarifyStageKeys = [
@@ -64,6 +65,12 @@ export type IdeaLibrary = {
   version: 1 | 2;
   activeIdeaId: string | null;
   ideas: Idea[];
+};
+
+export type IdeaLibraryBackup = {
+  id: string;
+  savedAt: string;
+  library: IdeaLibrary;
 };
 
 export const emptyStartingContext: StartingContext = {
