@@ -10,7 +10,11 @@ import {
   MvpPlaceholderView,
   ProductConceptView,
 } from "@/components/start/ProductConceptView";
-import { FeedbackPanel, StageClarification } from "@/components/start/StageClarification";
+import {
+  CoreQuestionsPanel,
+  FeedbackPanel,
+  StageClarification,
+} from "@/components/start/StageClarification";
 import { Button } from "@/components/ui/Button";
 import type { Dictionary } from "@/content/en";
 import {
@@ -618,6 +622,10 @@ export function StartExperience({
             {stage?.name}
           </h1>
           <p className="mt-4 text-lg leading-relaxed text-muted">{stage?.question}</p>
+          <CoreQuestionsPanel
+            content={startContent.coreQuestions[currentStageKey]}
+            startContent={startContent}
+          />
           <p className="mt-3 text-sm leading-relaxed text-muted">
             {isAdmin ? startContent.aiFeedbackPrivateNote : startContent.noAiReview}
           </p>
@@ -742,6 +750,7 @@ export function StartExperience({
             startContent={startContent}
             focus={getStageFocus(currentProcessStage.number, stageFocusByNumber)}
             contextNotes={contextNotes()}
+            coreQuestions={startContent.coreQuestions[currentStageKey]}
             onChangeIdeaTitle={updateIdeaTitle}
             onChangeAnswer={updateCurrentAnswer}
             onContinue={goToNextStage}

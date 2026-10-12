@@ -16,6 +16,11 @@ export type StageContextNote = {
   text: string;
 };
 
+type CoreQuestionsContent = {
+  canonical: string;
+  supporting: readonly string[];
+};
+
 type StageClarificationProps = {
   headingRef: RefObject<HTMLHeadingElement | null>;
   stage: ProcessStage;
@@ -24,6 +29,7 @@ type StageClarificationProps = {
   ideaTitle: string;
   focus: string | null;
   contextNotes: StageContextNote[];
+  coreQuestions: CoreQuestionsContent;
   onChangeIdeaTitle: (value: string) => void;
   onChangeAnswer: (value: string) => void;
   onContinue: () => void;
@@ -45,6 +51,7 @@ export function StageClarification({
   ideaTitle,
   focus,
   contextNotes,
+  coreQuestions,
   onChangeIdeaTitle,
   onChangeAnswer,
   onContinue,
@@ -140,6 +147,11 @@ export function StageClarification({
         </div>
       ) : null}
 
+      <CoreQuestionsPanel
+        content={coreQuestions}
+        startContent={startContent}
+      />
+
       {feedback && hasFeedbackForCurrentAnswer ? (
         <FeedbackPanel feedback={feedback} startContent={startContent} />
       ) : null}
@@ -208,6 +220,45 @@ export function StageClarification({
           </div>
       </form>
     </div>
+  );
+}
+
+export function CoreQuestionsPanel({
+  content,
+  startContent,
+}: {
+  content: CoreQuestionsContent;
+  startContent: Pick<
+    Dictionary["startContent"],
+    "coreQuestionsTitle" | "coreQuestionsIntro" | "coreQuestionsCompletionNote"
+  >;
+}) {
+  return (
+    <details className="group mt-8 rounded-lg border border-border bg-card">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-left text-base font-semibold text-navy marker:content-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue">
+        <span>{startContent.coreQuestionsTitle}</span>
+        <span
+          aria-hidden="true"
+          className="text-xl leading-none text-muted transition-transform group-open:rotate-45"
+        >
+          +
+        </span>
+      </summary>
+      <div className="border-t border-border px-5 py-5">
+        <p className="text-sm leading-relaxed text-muted">
+          {startContent.coreQuestionsIntro}
+        </p>
+        <p className="mt-4 text-lg leading-relaxed text-navy">{content.canonical}</p>
+        <ol className="mt-5 list-decimal space-y-3 pl-5 text-sm leading-relaxed text-muted">
+          {content.supporting.map((question) => (
+            <li key={question}>{question}</li>
+          ))}
+        </ol>
+        <p className="mt-5 text-sm leading-relaxed text-muted">
+          {startContent.coreQuestionsCompletionNote}
+        </p>
+      </div>
+    </details>
   );
 }
 

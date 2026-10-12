@@ -21,6 +21,11 @@ export const startContent = {
   hearingLabel: "Das höre ich heraus",
   unclearLabel: "Ein Punkt ist noch unklar",
   answerLabel: "Ihre Antwort",
+  coreQuestionsTitle: "Kernfragen",
+  coreQuestionsIntro:
+    "Optionale Impulse, die Ihnen helfen, diese Stufe zu durchdenken.",
+  coreQuestionsCompletionNote:
+    "Diese Fragen unterstützen die Auseinandersetzung. Sie entscheiden nicht darüber, ob diese Stufe abgeschlossen ist.",
   stageAnswerError:
     "Fügen Sie eine Antwort hinzu, bevor Sie fortfahren oder Feedback anfordern.",
   aiFeedbackOptional:
@@ -181,6 +186,161 @@ export const startContent = {
       prompt: "Für wen ist sie?",
     },
   ],
+  coreQuestions: {
+    idea: {
+      canonical: "Was könnte das werden?",
+      supporting: [
+        "Was ist die ursprüngliche Idee, und wodurch wurde sie ausgelöst?",
+        "Wer könnte sie vorläufig nutzen?",
+        "Welches Ergebnis oder welchen Nutzen erwarte ich derzeit?",
+        "Welche Teile sind Belege, Hypothesen, abgeleitete Erkenntnisse oder offene Fragen?",
+        "Welche wichtigen Annahmen müssen noch geklärt werden?",
+      ],
+    },
+    problem: {
+      canonical: "Welches echte Problem gibt es?",
+      supporting: [
+        "Welche Schwierigkeit tritt auf und in welcher Situation oder welchem Kontext?",
+        "Was tut die Person derzeit, wenn dieses Problem auftritt?",
+        "Welche Alternativen oder Behelfslösungen werden heute genutzt?",
+        "Wie häufig tritt das Problem auf, und welche Folgen hat es?",
+        "Welche Belege stützen die Problemhypothese, und was bleibt Annahme oder offene Frage?",
+      ],
+    },
+    user: {
+      canonical: "Wer hat das Problem?",
+      supporting: [
+        "Welche möglichen Nutzersegmente erleben dieses Problem?",
+        "Welches Segment erlebt es offenbar am stärksten und in welchem Kontext?",
+        "Welche Einschränkungen, Ziele, aktuellen Verhaltensweisen und Alternativen kennzeichnen diesen Nutzer?",
+        "Wer sind die sekundären Nutzer, und wer gehört ausdrücklich nicht zur Zielgruppe?",
+        "Welche Begründung und welche Belege gibt es derzeit für die Auswahl dieses primären Nutzersegments?",
+      ],
+    },
+    value: {
+      canonical: "Warum ist die Lösung wichtig?",
+      supporting: [
+        "Welches Ergebnis möchte der primäre Nutzer erreichen?",
+        "Welche Aufgabe versucht der Nutzer in dieser Situation zu erledigen oder bei der er voranzukommen versucht?",
+        "Welchen Nutzen würde die Lösung des Problems schaffen?",
+        "Welche Alternativen – einschließlich des Status quo – hat der Nutzer?",
+        "Welches Wertversprechen und welches Differenzierungsversprechen lassen sich ohne Funktionsliste formulieren, und was stützt diese Aussagen?",
+      ],
+    },
+    product: {
+      canonical: "Was ist das Produkt im Kern?",
+      supporting: [
+        "Welches zentrale Objekt oder Konzept steht im Mittelpunkt des Produkts?",
+        "Welche unterstützenden Entitäten oder Objekte werden benötigt?",
+        "Wie hängen das zentrale Objekt und die unterstützenden Entitäten zusammen?",
+        "Welche Konzepte sind dauerhafte Objekte und welche sind Handlungen?",
+        "Welche Informationen sollten strukturiert sein, und was kann frei formuliert bleiben?",
+      ],
+    },
+    context: {
+      canonical:
+        "In welchem Kontext entsteht Wert, und wie entwickeln sich relevante Nutzer, Objekte oder Prozesse?",
+      supporting: [
+        "In welchen Situationen oder Kontexten muss das Produkt Wert schaffen?",
+        "Welche Zustände relevanter Nutzer, Objekte oder Prozesse sind wichtig?",
+        "Welche Bedingungen führen in jeden bedeutsamen Zustand?",
+        "Welche Handlungen oder Informationen werden in jedem Zustand benötigt?",
+        "Welche Übergänge oder wiederkehrenden Schleifen sind wichtig, und welche Zustände können ausgeschlossen werden, weil sie keinen operativen Nutzen haben?",
+      ],
+    },
+    jobs: {
+      canonical: "Was müssen Nutzer erreichen?",
+      supporting: [
+        "Welche möglichen Kernaufgaben muss der primäre Nutzer erledigen, um den versprochenen Wert zu erhalten?",
+        "In welcher Situation entsteht jede Aufgabe, und welchen Fortschritt oder welches Ergebnis versucht der Nutzer zu erreichen?",
+        "Welche Handlung, Information oder Entscheidung ist nötig, um bei jeder Aufgabe voranzukommen?",
+        "Welche Aufgaben sind wesentlich und sollten priorisiert werden, und welche sind nachrangig oder liegen außerhalb des MVP?",
+        "Welche Belege, Hypothesen, abgeleiteten Erkenntnisse oder offenen Fragen informieren die Priorisierung?",
+      ],
+    },
+    scope: {
+      canonical: "Was ist die kleinste nützliche Lösung?",
+      supporting: [
+        "Welche Fähigkeit wird benötigt, um jede priorisierte Kernaufgabe zu unterstützen?",
+        "Welche Fähigkeiten sind für die kleinste in sich stimmige Lösung wesentlich?",
+        "Welche Fähigkeiten sind Muss, Sollte, Später oder Nicht im MVP?",
+        "Was ist die Begründung für jedes Muss?",
+        "Welche Abhängigkeiten und ausdrücklichen Ausschlüsse sind nötig, damit der Umfang stimmig bleibt?",
+      ],
+    },
+    experience: {
+      canonical: "Wie erhält der Nutzer den Wert?",
+      supporting: [
+        "Wie gelangt der Nutzer in das Produkt oder beginnt es zu nutzen?",
+        "Welches erste Objekt wird gegebenenfalls erstellt oder importiert?",
+        "Was ist der Moment des ersten wahrgenommenen Werts?",
+        "Was ist der einfachste vollständige Weg vom Einstieg zum Kernergebnis?",
+        "Welche wesentlichen leeren, Lade-, Fehler- oder Berechtigungszustände müssen behandelt werden?",
+      ],
+    },
+    informationArchitecture: {
+      canonical: "Wie ist das Produkt organisiert?",
+      supporting: [
+        "Welche Hauptnavigation bildet das mentale Produktmodell und die Kernaufgaben am besten ab?",
+        "Wie sollten die wichtigsten Objekte und Informationen gruppiert oder verschachtelt werden?",
+        "Welche Listen-, Detail- oder Übersichtsansichten werden benötigt?",
+        "Wo wechseln Nutzer zwischen zusammenhängenden Objekten oder Aufgaben?",
+        "Hat jede MVP-Fähigkeit einen natürlichen Platz in der Informationsarchitektur?",
+      ],
+    },
+    data: {
+      canonical: "Welche Informationen müssen vorhanden sein?",
+      supporting: [
+        "Welche Entitäten sind für das MVP wesentlich?",
+        "Welche Felder sind erforderlich und welche optional?",
+        "Wie hängen Entitäten zusammen, und welche Kardinalität gilt?",
+        "Welche Status-, Lebenszyklus-, Eigentums- oder Arbeitsbereichsfelder werden benötigt?",
+        "Welche Daten werden manuell eingegeben, importiert oder berechnet, und welche Felder können entfallen, weil sie keinen MVP-Zweck erfüllen?",
+      ],
+    },
+    requirements: {
+      canonical: "Was genau muss das System tun?",
+      supporting: [
+        "Welches beobachtbare Verhalten ist für jede Fähigkeit im Umfang erforderlich?",
+        "Welche Eingaben, Ausgaben und Validierungsregeln gelten?",
+        "Was soll in leeren, Lade-, Erfolgs-, Fehler- und deaktivierten Zuständen geschehen?",
+        "Welche Berechtigungs- oder Integrationsverhalten müssen festgelegt werden?",
+        "Welche Akzeptanzkriterien würden einer anderen Person erlauben festzustellen, ob das geforderte Verhalten korrekt umgesetzt ist?",
+      ],
+    },
+    learning: {
+      canonical: "Was muss uns das MVP lehren?",
+      supporting: [
+        "Welche wichtigen Hypothesen soll das MVP prüfen helfen?",
+        "Was ist das Aktivierungsereignis und was das zentrale Wertereignis?",
+        "Welche Signale für weitere Nutzung oder Bindung sind gegebenenfalls wichtig?",
+        "Welche Qualitätsindikatoren würden helfen, die Ergebnisse einzuordnen?",
+        "Welche Lernfrage beantwortet jedes Signal, und welche Belege würden die nächste Entscheidung verändern?",
+      ],
+    },
+    technicalBoundaries: {
+      canonical: "Welche technischen Bedingungen begrenzen das MVP?",
+      supporting: [
+        "Welche Plattform- oder Client-Annahmen begrenzen das MVP?",
+        "Welche Anforderungen an Backend, API, Datenbank oder Speicherung bestehen?",
+        "Welches Modell für Authentifizierung, Arbeitsbereiche oder Eigentum wird benötigt?",
+        "Welche externen Integrationen oder KI-/Service-Abhängigkeiten sind gegebenenfalls notwendig?",
+        "Welche wichtigen technischen Risiken, Betriebskostenaspekte, Entscheidungen und offenen Fragen müssen vor der Implementierungsplanung sichtbar sein?",
+      ],
+    },
+    mvpBoundary: {
+      canonical: "Was genau ist das kleinste in sich stimmige Produkt?",
+      supporting: [
+        "Welches Kernversprechen und welchen primären Nutzer bedient das MVP?",
+        "Welche Kernaufgaben und Fähigkeiten sind wesentlich, um dieses Versprechen einzulösen?",
+        "Unterstützen das vorgeschlagene Erlebnis, die Informationsarchitektur und die minimalen Daten eine vollständige End-to-End-Reise?",
+        "Wie beeinflussen Marktalternativen und die Hypothese zum Geschäftsmodell die vorgeschlagene MVP-Grenze?",
+        "Ist die Rolle von KI und jeder Integration – sofern vorhanden – begrenzt und begründet?",
+        "Was gehört zu Muss, Sollte, Später und Nicht im MVP – und warum?",
+        "Sind Lernhypothesen, technische Grenzen, Abhängigkeiten, Ausschlüsse und offene Fragen ausdrücklich festgehalten, und ist das resultierende MVP realistisch zu bauen und zu testen?",
+      ],
+    },
+  },
 } as const;
 
 export const stageFocusByNumber: Record<
