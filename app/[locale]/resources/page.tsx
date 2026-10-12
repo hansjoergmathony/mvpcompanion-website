@@ -67,10 +67,10 @@ export default async function ResourcesPage() {
             {ui.resourcesPage.companionEyebrow}
           </p>
           <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy">
-            {resourcesPage.shortPaper.title}
+            {resourcesPage.methodPaper.title}
           </h2>
           <p className="mt-3 text-base leading-relaxed text-muted">
-            {resourcesPage.shortPaper.positioning}
+            {resourcesPage.methodPaper.positioning}
           </p>
           <div className="mt-6">
             <Button href="/resources/from-idea-to-mvp" variant="secondary">

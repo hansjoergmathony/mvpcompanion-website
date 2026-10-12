@@ -1,5 +1,5 @@
 import { audienceContent, ecosystemContent } from "./homepage";
-import { bookSample, shortPaper, stageProcess } from "./resources";
+import { bookSample, methodPaper, stageProcess } from "./resources";
 import { site } from "./site";
 
 export const aboutPage = {
@@ -52,6 +52,6 @@ export const resourcesPage = {
   methodLabel: ecosystemContent.methodLabel,
   parts: ecosystemContent.parts,
   bookSample,
-  shortPaper,
+  methodPaper,
   stageProcess,
 } as const;

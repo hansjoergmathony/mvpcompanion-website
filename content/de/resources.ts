@@ -15,13 +15,14 @@ export const bookSample = {
   },
 } as const;
 
-export const shortPaper = {
-  title: "Von der Idee zum MVP",
+export const methodPaper = {
+  title: "Von der unsicheren App-Idee zu einer testbaren MVP-Spezifikation",
   subtitle:
-    "Wie Produktideen zu wertvollen, tragfähigen und umsetzbaren Produkten werden",
-  positioning: "Ein knapper konzeptioneller und praktischer Überblick über MVPCompanion.",
-  author: "Hans-Jörg Mathony & ChatGPT",
-  href: "/book_samples/MVPComanion_From_Idea_to_MVP_Short_Paper.pdf",
+    "Ein konzeptionelles Paper über schrittweise Klärung, Nachvollziehbarkeit, Lernen und KI-gestützte Produktdefinition.",
+  positioning:
+    "Die konzeptionelle Grundlage der MVPCompanion-Methode: ihre 15 Stufen, fünf Perspektiven, Product Definition Chain, Evidenzdisziplin und die Rolle der KI.",
+  author: "Hans-Jörg Mathony · English PDF",
+  href: "/resources/MVPCompanion_Method_Paper.pdf",
 } as const;
 
 export const stageProcess = {

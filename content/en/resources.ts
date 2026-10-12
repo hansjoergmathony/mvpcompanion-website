@@ -15,13 +15,14 @@ export const bookSample = {
   },
 } as const;
 
-export const shortPaper = {
-  title: "From Idea to MVP",
+export const methodPaper = {
+  title: "From an Uncertain App Idea to a Testable MVP Specification",
   subtitle:
-    "How to Turn Product Ideas into Valuable, Viable and Buildable Products",
-  positioning: "A concise conceptual and practical overview of MVPCompanion.",
-  author: "Hans-Jörg Mathony & ChatGPT",
-  href: "/book_samples/MVPComanion_From_Idea_to_MVP_Short_Paper.pdf",
+    "A conceptual paper on progressive clarification, traceability, learning, and AI-supported product definition.",
+  positioning:
+    "The conceptual foundation of the MVPCompanion method: its 15 stages, five lenses, Product Definition Chain, evidence discipline, and role for AI.",
+  author: "Hans-Jörg Mathony",
+  href: "/resources/MVPCompanion_Method_Paper.pdf",
 } as const;
 
 export const stageProcess = {
