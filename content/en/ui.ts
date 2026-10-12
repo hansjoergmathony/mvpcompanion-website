@@ -228,12 +228,12 @@ export const ui = {
   resourcesPage: {
     primarySample: "Primary book sample",
     readSample: "Read the Sample",
-    whitePaperEyebrow: "Companion white paper",
+    whitePaperEyebrow: "MVPCompanion White Paper",
     readWhitePaper: "Read the White Paper",
     methodPaperEyebrow: "MVPCompanion Method Paper",
     readMethodPaper: "Read the Method Paper",
-    processEyebrow: "15-stage process",
-    readProcess: "Read the Paper",
+    processEyebrow: "MVPCompanion Method Paper",
+    readProcess: "Read the Process Paper",
     metaTitle: "Resources — MVPCompanion",
   },
   bookSamplePage: {
