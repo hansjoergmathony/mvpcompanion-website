@@ -15,6 +15,15 @@ export const bookSample = {
   },
 } as const;
 
+export const whitePaper = {
+  title: "From Idea to MVP",
+  subtitle:
+    "How to Turn Product Ideas into Valuable, Viable and Buildable Products",
+  positioning: "A concise conceptual and practical overview of MVPCompanion.",
+  author: "Hans-Jörg Mathony & ChatGPT",
+  href: "/resources/MVPCompanion_From_Idea_to_MVP_White_Paper.pdf",
+} as const;
+
 export const methodPaper = {
   title: "From an Uncertain App Idea to a Testable MVP Specification",
   subtitle:
@@ -25,9 +34,10 @@ export const methodPaper = {
   href: "/resources/MVPCompanion_Method_Paper.pdf",
 } as const;
 
-export const stageProcess = {
-  title: "The 15-Stage Process",
-  subtitle: "From idea to MVP boundary, one stage at a time.",
-  positioning: "A process overview of the fifteen stages in the MVPCompanion method.",
-  href: "/resources/MVPCompanion_15_Stage_Process.pdf",
+export const processPaper = {
+  title: "The 15-Stage MVP Process",
+  subtitle: "From app idea to a focused, testable and buildable MVP.",
+  positioning:
+    "A practical process paper for progressively transforming an uncertain app idea into a coherent MVP definition.",
+  href: "/resources/MVPCompanion_Process_Paper.pdf",
 } as const;

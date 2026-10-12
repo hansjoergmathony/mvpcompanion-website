@@ -63,9 +63,21 @@ export default async function ResourcesPage() {
           </div>
         </article>
         <article className="mt-8 max-w-3xl border-t border-border pt-8">
-          <p className="text-xs font-medium tracking-[0.2em] text-blue uppercase">
-            {ui.resourcesPage.companionEyebrow}
+          <p className="text-xs font-medium tracking-[0.2em] text-blue uppercase">{ui.resourcesPage.whitePaperEyebrow}</p>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy">
+            {resourcesPage.whitePaper.title}
+          </h2>
+          <p className="mt-3 text-base leading-relaxed text-muted">
+            {resourcesPage.whitePaper.positioning}
           </p>
+          <div className="mt-6">
+            <Button href="/resources/from-idea-to-mvp" variant="secondary">
+              {ui.resourcesPage.readWhitePaper}
+            </Button>
+          </div>
+        </article>
+        <article className="mt-8 max-w-3xl border-t border-border pt-8">
+          <p className="text-xs font-medium tracking-[0.2em] text-blue uppercase">{ui.resourcesPage.methodPaperEyebrow}</p>
           <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy">
             {resourcesPage.methodPaper.title}
           </h2>
@@ -73,8 +85,8 @@ export default async function ResourcesPage() {
             {resourcesPage.methodPaper.positioning}
           </p>
           <div className="mt-6">
-            <Button href="/resources/from-idea-to-mvp" variant="secondary">
-              {ui.resourcesPage.readPaper}
+            <Button href="/resources/method-paper" variant="secondary">
+              {ui.resourcesPage.readMethodPaper}
             </Button>
           </div>
         </article>
@@ -83,10 +95,10 @@ export default async function ResourcesPage() {
             {ui.resourcesPage.processEyebrow}
           </p>
           <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy">
-            {resourcesPage.stageProcess.title}
+            {resourcesPage.processPaper.title}
           </h2>
           <p className="mt-3 text-base leading-relaxed text-muted">
-            {resourcesPage.stageProcess.positioning}
+            {resourcesPage.processPaper.positioning}
           </p>
           <div className="mt-6">
             <Button href="/resources/15-stage-process" variant="secondary">

@@ -15,8 +15,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function StageProcessPage() {
-  const { stageProcess, ui } = await getDictionary();
+export default async function ProcessPaperPage() {
+  const { processPaper, ui } = await getDictionary();
 
   return (
     <main id="content">
@@ -26,15 +26,15 @@ export default async function StageProcessPage() {
             {ui.processDocumentPage.eyebrow}
           </p>
           <h1 className="mt-4 text-4xl leading-[1.1] font-semibold tracking-tight text-navy md:text-5xl">
-            {stageProcess.title}
+            {processPaper.title}
           </h1>
-          <p className="mt-5 text-xl leading-relaxed text-muted">{stageProcess.subtitle}</p>
-          <p className="mt-6 max-w-3xl text-base leading-relaxed text-navy">{stageProcess.positioning}</p>
+          <p className="mt-5 text-xl leading-relaxed text-muted">{processPaper.subtitle}</p>
+          <p className="mt-6 max-w-3xl text-base leading-relaxed text-navy">{processPaper.positioning}</p>
           <p className="mt-8 max-w-3xl border-t border-border pt-6 text-base leading-relaxed text-muted">
             {ui.processDocumentPage.note}
           </p>
           <PdfDocument
-            src={stageProcess.href}
+            src={processPaper.href}
             title={ui.processDocumentPage.documentTitle}
             readOnline={ui.bookSamplePage.readOnline}
             openDocument={ui.bookSamplePage.openDocument}

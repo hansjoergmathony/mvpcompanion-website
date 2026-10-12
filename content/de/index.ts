@@ -16,7 +16,7 @@ import {
 } from "./homepage";
 import { aboutPage, contactPage, processPage, resourcesPage, templatesPage } from "./pages";
 import { processPhases, processStages } from "./process";
-import { bookSample, methodPaper, stageProcess } from "./resources";
+import { bookSample, methodPaper, processPaper, whitePaper } from "./resources";
 import { appEntry, ctas, legalNavigation, navigation, site } from "./site";
 import { priorStageLabel, stageFocusByNumber, startContent } from "./start";
 import { ui } from "./ui";
@@ -50,8 +50,9 @@ export const dictionary = {
   stageFocusByNumber,
   priorStageLabel,
   bookSample,
+  whitePaper,
   methodPaper,
-  stageProcess,
+  processPaper,
   legalOperator,
   publicContactEmail,
   impressumPage,

@@ -15,6 +15,15 @@ export const bookSample = {
   },
 } as const;
 
+export const whitePaper = {
+  title: "Von der Idee zum MVP",
+  subtitle:
+    "Wie Produktideen zu wertvollen, tragfähigen und umsetzbaren Produkten werden",
+  positioning: "Ein knapper konzeptioneller und praktischer Überblick über MVPCompanion.",
+  author: "Hans-Jörg Mathony & ChatGPT · English PDF",
+  href: "/resources/MVPCompanion_From_Idea_to_MVP_White_Paper.pdf",
+} as const;
+
 export const methodPaper = {
   title: "Von der unsicheren App-Idee zu einer testbaren MVP-Spezifikation",
   subtitle:
@@ -25,9 +34,10 @@ export const methodPaper = {
   href: "/resources/MVPCompanion_Method_Paper.pdf",
 } as const;
 
-export const stageProcess = {
-  title: "Der Prozess in 15 Stufen",
-  subtitle: "Von der Idee zur MVP-Grenze, Stufe für Stufe.",
-  positioning: "Ein Prozessüberblick über die fünfzehn Stufen der MVPCompanion-Methode.",
-  href: "/resources/MVPCompanion_15_Stage_Process.pdf",
+export const processPaper = {
+  title: "Der MVP-Prozess in 15 Stufen",
+  subtitle: "Von der App-Idee zu einem fokussierten, testbaren und umsetzbaren MVP.",
+  positioning:
+    "Ein praxisnahes Prozess-Paper, das eine unsichere App-Idee schrittweise in eine stimmige MVP-Definition überführt.",
+  href: "/resources/MVPCompanion_Process_Paper.pdf",
 } as const;

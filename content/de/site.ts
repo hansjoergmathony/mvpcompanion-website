@@ -28,6 +28,7 @@ export const sitemapPaths = [
   "/book/sample",
   "/resources",
   "/resources/from-idea-to-mvp",
+  "/resources/method-paper",
   "/resources/15-stage-process",
   "/contact",
   "/impressum",

@@ -15,8 +15,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function MethodPaperPage() {
-  const { methodPaper, ui } = await getDictionary();
+export default async function WhitePaperPage() {
+  const { whitePaper, ui } = await getDictionary();
 
   return (
     <main id="content">
@@ -26,16 +26,16 @@ export default async function MethodPaperPage() {
             {ui.paperPage.eyebrow}
           </p>
           <h1 className="mt-4 text-4xl leading-[1.1] font-semibold tracking-tight text-navy md:text-5xl">
-            {methodPaper.title}
+            {whitePaper.title}
           </h1>
-          <p className="mt-5 text-xl leading-relaxed text-muted">{methodPaper.subtitle}</p>
-          <p className="mt-6 max-w-3xl text-base leading-relaxed text-navy">{methodPaper.positioning}</p>
-          <p className="mt-3 text-sm text-muted">{methodPaper.author}</p>
+          <p className="mt-5 text-xl leading-relaxed text-muted">{whitePaper.subtitle}</p>
+          <p className="mt-6 max-w-3xl text-base leading-relaxed text-navy">{whitePaper.positioning}</p>
+          <p className="mt-3 text-sm text-muted">{whitePaper.author}</p>
           <p className="mt-8 max-w-3xl border-t border-border pt-6 text-base leading-relaxed text-muted">
             {ui.paperPage.note}
           </p>
           <PdfDocument
-            src={methodPaper.href}
+            src={whitePaper.href}
             title={ui.paperPage.documentTitle}
             readOnline={ui.bookSamplePage.readOnline}
             openDocument={ui.bookSamplePage.openDocument}
