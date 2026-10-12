@@ -6,6 +6,6 @@ export const defaultLocale: Locale = "en";
 
 export const LOCALE_COOKIE = "mvp_locale";
 
-export function isLocale(value: string): value is Locale {
+export function isLocale(value: string | undefined): value is Locale {
   return locales.some((locale) => locale === value);
 }
