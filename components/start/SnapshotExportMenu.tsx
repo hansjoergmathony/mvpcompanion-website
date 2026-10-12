@@ -40,7 +40,7 @@ export function SnapshotExportMenu({
       {isOpen ? (
         <div
           id="snapshot-export-menu"
-          className="absolute right-0 z-10 mt-2 w-72 rounded-xl border border-border bg-card p-3 shadow-lg"
+          className="absolute left-0 z-10 mt-2 w-72 max-w-[calc(100vw-3rem)] rounded-xl border border-border bg-card p-3 shadow-lg"
           role="menu"
         >
           <fieldset>
