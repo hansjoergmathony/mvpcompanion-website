@@ -10,6 +10,28 @@ MVPCompanion is a systematic method for turning app ideas into valuable, viable 
 
 The website is the public discovery and communication layer of the MVPCompanion ecosystem.
 
+## Private Neon draft storage
+
+Private, cross-browser draft storage is available only to the signed-in Google
+admin. Public visitors continue to use browser-local drafts only.
+
+1. Create a Neon Postgres project, or connect Neon through the Vercel
+   Marketplace integration for this project.
+2. In the Neon SQL Editor, run
+   [`db/migrations/001_admin_draft_storage.sql`](db/migrations/001_admin_draft_storage.sql).
+3. Add the Neon connection string as the **Production** server-side Vercel
+   variable `DATABASE_URL`. Do not prefix it with `NEXT_PUBLIC_` and never put
+   it in a client-side file.
+4. Trigger a new Vercel deployment. Environment-variable changes apply only to
+   new deployments.
+5. Sign in through `/admin`. Under **My Ideas**, choose **Upload local drafts**
+   once to create the initial private cloud copy.
+
+The application stores one private idea library for `MVP_ADMIN_EMAIL` and keeps
+the latest 20 server-side revisions. If a browser and cloud version differ on
+first use, MVPCompanion asks which version to retain; it never overwrites one
+silently. Browser-local recovery copies and JSON export remain available.
+
 ---
 
 ## Ecosystem

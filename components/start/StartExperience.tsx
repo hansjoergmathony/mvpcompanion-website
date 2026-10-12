@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { BookScoutPanel } from "@/components/start/BookScoutPanel";
 import { AiFeedbackBetaDialog } from "@/components/start/AiFeedbackBetaDialog";
+import { CloudStoragePanel } from "@/components/start/CloudStoragePanel";
 import { ClarificationPath } from "@/components/start/ClarificationPath";
 import { IdeaLibrary } from "@/components/start/IdeaLibrary";
 import {
@@ -37,6 +38,7 @@ import {
   type StageKey,
 } from "@/lib/project/types";
 import { useIdeaLibrary } from "@/lib/project/useProject";
+import { useCloudSync } from "@/lib/project/useCloudSync";
 
 const STORED_UNTITLED = "Untitled Idea";
 
@@ -87,6 +89,7 @@ export function StartExperience({
     createIdea,
     importIdea,
     replaceActiveIdea,
+    replaceIdeaLibrary,
     localStorageStatus,
     localBackups,
     restoreLocalBackup,
@@ -104,6 +107,7 @@ export function StartExperience({
   const [isAdmin, setIsAdmin] = useState(false);
   const [aiFeedbackStage, setAiFeedbackStage] = useState<StageKey | null>(null);
   const [aiFeedbackError, setAiFeedbackError] = useState<string | null>(null);
+  const cloudSync = useCloudSync({ isAdmin, library, replaceIdeaLibrary });
 
   const currentStage = activeIdea?.currentStage ?? "intake";
   const startingContext = activeIdea?.startingContext ?? emptyIntakeValues;
@@ -440,6 +444,17 @@ export function StartExperience({
           setIsViewingSnapshot(true);
         }}
       />
+      {isAdmin ? (
+        <CloudStoragePanel
+          labels={ui.library}
+          state={cloudSync.state}
+          error={cloudSync.error}
+          onUploadLocal={cloudSync.uploadLocal}
+          onKeepLocal={cloudSync.keepLocalVersion}
+          onUseCloud={cloudSync.useCloudVersion}
+          onRetry={cloudSync.retry}
+        />
+      ) : null}
       <BookScoutPanel
         locale={locale}
         copy={startContent}

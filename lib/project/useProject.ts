@@ -8,6 +8,7 @@ import {
   getLocalStorageStatus,
   importIdea as importStoredIdea,
   replaceActiveIdea as replaceStoredActiveIdea,
+  replaceIdeaLibrary as replaceStoredIdeaLibrary,
   restoreLocalBackup as restoreStoredLocalBackup,
   loadIdeaLibrary,
   selectIdea as selectStoredIdea,
@@ -92,6 +93,10 @@ export function useIdeaLibrary() {
     return restoreStoredLocalBackup(id);
   }, []);
 
+  const replaceIdeaLibrary = useCallback((nextLibrary: IdeaLibrary) => {
+    return replaceStoredIdeaLibrary(nextLibrary);
+  }, []);
+
   return {
     library,
     ideas: library.ideas,
@@ -102,6 +107,7 @@ export function useIdeaLibrary() {
     createIdea: createNewIdea,
     importIdea,
     replaceActiveIdea,
+    replaceIdeaLibrary,
     localStorageStatus,
     localBackups,
     restoreLocalBackup,

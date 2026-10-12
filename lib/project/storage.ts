@@ -445,6 +445,11 @@ export function saveIdeaLibrary(library: IdeaLibrary): boolean {
   return saved;
 }
 
+/** Replaces the complete local library after a confirmed cloud restore or migration. */
+export function replaceIdeaLibrary(library: IdeaLibrary): boolean {
+  return saveIdeaLibrary(library);
+}
+
 export function restoreLocalBackup(id: string): boolean {
   const backup = readBackups().find((item) => item.id === id);
   return backup ? saveIdeaLibrary(backup.library) : false;
