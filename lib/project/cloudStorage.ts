@@ -9,6 +9,12 @@ export type CloudLibraryRecord = {
   updatedAt: string;
 };
 
+type CloudRow = {
+  library?: unknown;
+  revision?: unknown;
+  updated_at?: unknown;
+};
+
 function sqlClient() {
   const databaseUrl = process.env.DATABASE_URL?.trim();
   return databaseUrl ? neon(databaseUrl) : null;
@@ -16,6 +22,35 @@ function sqlClient() {
 
 export function isCloudStorageConfigured(): boolean {
   return Boolean(process.env.DATABASE_URL?.trim());
+}
+
+function readUpdatedAt(value: unknown): string | null {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+
+  return null;
+}
+
+function readCloudRecord(row: CloudRow | undefined): CloudLibraryRecord | null {
+  if (!row || typeof row.revision !== "number") {
+    return null;
+  }
+
+  const updatedAt = readUpdatedAt(row.updated_at);
+  if (!updatedAt) {
+    return null;
+  }
+
+  return {
+    library: row.library as IdeaLibrary,
+    revision: row.revision,
+    updatedAt,
+  };
 }
 
 export async function loadCloudLibrary(ownerEmail: string): Promise<CloudLibraryRecord | null> {
@@ -30,12 +65,7 @@ export async function loadCloudLibrary(ownerEmail: string): Promise<CloudLibrary
     WHERE owner_email = ${ownerEmail}
     LIMIT 1
   `;
-  const row = rows[0] as { library?: unknown; revision?: unknown; updated_at?: unknown } | undefined;
-  if (!row || typeof row.revision !== "number" || typeof row.updated_at !== "string") {
-    return null;
-  }
-
-  return { library: row.library as IdeaLibrary, revision: row.revision, updatedAt: row.updated_at };
+  return readCloudRecord(rows[0] as CloudRow | undefined);
 }
 
 export async function saveCloudLibrary(
@@ -63,14 +93,14 @@ export async function saveCloudLibrary(
         RETURNING library, revision, updated_at
       `;
 
-  const row = updated[0] as { library?: unknown; revision?: unknown; updated_at?: unknown } | undefined;
-  if (!row || typeof row.revision !== "number" || typeof row.updated_at !== "string") {
+  const record = readCloudRecord(updated[0] as CloudRow | undefined);
+  if (!record) {
     return "conflict";
   }
 
   await sql`
     INSERT INTO mvpcompanion_draft_revisions (owner_email, revision, library)
-    VALUES (${ownerEmail}, ${row.revision}, ${JSON.stringify(row.library)}::jsonb)
+    VALUES (${ownerEmail}, ${record.revision}, ${JSON.stringify(record.library)}::jsonb)
     ON CONFLICT (owner_email, revision) DO NOTHING
   `;
   await sql`
@@ -85,5 +115,5 @@ export async function saveCloudLibrary(
       )
   `;
 
-  return { library: row.library as IdeaLibrary, revision: row.revision, updatedAt: row.updated_at };
+  return record;
 }
