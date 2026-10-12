@@ -3,6 +3,7 @@
 import { useCallback, useSyncExternalStore } from "react";
 import {
   createIdea,
+  deleteLocalBackup as deleteStoredLocalBackup,
   deleteIdea as deleteStoredIdea,
   getLocalBackups,
   getLocalStorageStatus,
@@ -93,6 +94,10 @@ export function useIdeaLibrary() {
     return restoreStoredLocalBackup(id);
   }, []);
 
+  const deleteLocalBackup = useCallback((id: string) => {
+    return deleteStoredLocalBackup(id);
+  }, []);
+
   const replaceIdeaLibrary = useCallback((nextLibrary: IdeaLibrary) => {
     return replaceStoredIdeaLibrary(nextLibrary);
   }, []);
@@ -111,6 +116,7 @@ export function useIdeaLibrary() {
     localStorageStatus,
     localBackups,
     restoreLocalBackup,
+    deleteLocalBackup,
     selectIdea,
     updateActiveIdea,
     deleteIdea,

@@ -455,6 +455,30 @@ export function restoreLocalBackup(id: string): boolean {
   return backup ? saveIdeaLibrary(backup.library) : false;
 }
 
+/** Deletes one browser-only recovery copy. It never changes the active draft or cloud storage. */
+export function deleteLocalBackup(id: string): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    const backups = readBackups();
+    const nextBackups = backups.filter((backup) => backup.id !== id);
+    if (nextBackups.length === backups.length) {
+      return false;
+    }
+
+    const raw = JSON.stringify(nextBackups);
+    window.localStorage.setItem(IDEA_LIBRARY_BACKUPS_STORAGE_KEY, raw);
+    cachedBackupsRaw = raw;
+    cachedBackups = nextBackups;
+    emitLibraryChange();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function createIdea(): Idea {
   const library = loadIdeaLibrary();
   const idea = createEmptyIdea();

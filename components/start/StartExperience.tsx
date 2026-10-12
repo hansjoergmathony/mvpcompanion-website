@@ -93,6 +93,7 @@ export function StartExperience({
     localStorageStatus,
     localBackups,
     restoreLocalBackup,
+    deleteLocalBackup,
     selectIdea,
     updateActiveIdea,
     deleteIdea,
@@ -417,6 +418,7 @@ export function StartExperience({
             setIsViewingSnapshot(false);
           }
         }}
+        onDeleteBackup={deleteLocalBackup}
         onUndo={() => {
           if (!undoIdea) {
             return;

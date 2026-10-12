@@ -46,6 +46,7 @@ type IdeaLibraryProps = {
   localStorageStatus: LocalStorageStatus;
   localBackups: IdeaLibraryBackup[];
   onRestoreBackup: (id: string) => void;
+  onDeleteBackup: (id: string) => boolean;
 };
 
 function draftHasContent(idea: Idea | null): boolean {
@@ -137,6 +138,7 @@ export function IdeaLibrary({
   localStorageStatus,
   localBackups,
   onRestoreBackup,
+  onDeleteBackup,
 }: IdeaLibraryProps) {
   const [ideaToDelete, setIdeaToDelete] = useState<Idea | null>(null);
   const deleteHeadingRef = useRef<HTMLHeadingElement>(null);
@@ -148,6 +150,15 @@ export function IdeaLibrary({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activeIdea = ideas.find((idea) => idea.id === activeIdeaId) ?? null;
   const [isShowingBackups, setIsShowingBackups] = useState(false);
+  const [backupError, setBackupError] = useState<string | null>(null);
+
+  function handleDeleteBackup(id: string) {
+    if (!window.confirm(labels.deleteLocalBackupConfirm)) {
+      return;
+    }
+
+    setBackupError(onDeleteBackup(id) ? null : labels.deleteLocalBackupError);
+  }
 
   useEffect(() => {
     if (ideaToDelete) {
@@ -260,9 +271,18 @@ export function IdeaLibrary({
                 {localBackups.slice(0, 5).map((backup) => (
                   <li key={backup.id} className="flex flex-wrap items-center justify-between gap-3 text-sm">
                     <span className="text-muted">{labels.localBackupSaved.replace("{date}", formatDateTime(backup.savedAt, locale, labels.unknownDate))}</span>
-                    <Button type="button" variant="secondary" onClick={() => onRestoreBackup(backup.id)}>
-                      {labels.restoreLocalBackup}
-                    </Button>
+                    <div className="flex flex-wrap gap-3">
+                      <Button type="button" variant="secondary" onClick={() => onRestoreBackup(backup.id)}>
+                        {labels.restoreLocalBackup}
+                      </Button>
+                      <button
+                        type="button"
+                        className="text-sm text-muted underline underline-offset-4 transition-colors hover:text-foreground"
+                        onClick={() => handleDeleteBackup(backup.id)}
+                      >
+                        {labels.deleteLocalBackup}
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -270,6 +290,8 @@ export function IdeaLibrary({
               <p className="text-sm text-muted">{labels.noLocalBackups}</p>
             )}
             <p className="mt-3 text-xs leading-relaxed text-muted">{labels.restoreLocalBackupNote}</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted">{labels.localBackupDeleteNote}</p>
+            {backupError ? <p className="mt-2 text-sm text-red-700">{backupError}</p> : null}
           </div>
         ) : null}
       </section>
