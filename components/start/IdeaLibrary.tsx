@@ -150,7 +150,9 @@ export function IdeaLibrary({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activeIdea = ideas.find((idea) => idea.id === activeIdeaId) ?? null;
   const [isShowingBackups, setIsShowingBackups] = useState(false);
+  const [isShowingAllBackups, setIsShowingAllBackups] = useState(false);
   const [backupError, setBackupError] = useState<string | null>(null);
+  const visibleBackups = isShowingAllBackups ? localBackups : localBackups.slice(0, 5);
 
   function handleDeleteBackup(id: string) {
     if (!window.confirm(labels.deleteLocalBackupConfirm)) {
@@ -268,9 +270,19 @@ export function IdeaLibrary({
           <div className="mt-4 border-t border-border pt-4">
             {localBackups.length ? (
               <ul className="space-y-3">
-                {localBackups.slice(0, 5).map((backup) => (
+                {visibleBackups.map((backup) => {
+                  const backupIdea = backup.library.ideas.find((idea) => idea.id === backup.library.activeIdeaId)
+                    ?? backup.library.ideas[0]
+                    ?? null;
+
+                  return (
                   <li key={backup.id} className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                    <span className="text-muted">{labels.localBackupSaved.replace("{date}", formatDateTime(backup.savedAt, locale, labels.unknownDate))}</span>
+                    <span className="min-w-0 text-muted">
+                      <span className="block">{labels.localBackupSaved.replace("{date}", formatDateTime(backup.savedAt, locale, labels.unknownDate))}</span>
+                      {backupIdea ? (
+                        <span className="mt-1 block truncate text-xs">{labels.localBackupOf.replace("{title}", getIdeaTitle(backupIdea, untitled))}</span>
+                      ) : null}
+                    </span>
                     <div className="flex flex-wrap gap-3">
                       <Button type="button" variant="secondary" onClick={() => onRestoreBackup(backup.id)}>
                         {labels.restoreLocalBackup}
@@ -284,11 +296,23 @@ export function IdeaLibrary({
                       </button>
                     </div>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             ) : (
               <p className="text-sm text-muted">{labels.noLocalBackups}</p>
             )}
+            {localBackups.length > 5 ? (
+              <button
+                type="button"
+                className="mt-4 text-sm text-muted underline underline-offset-4 transition-colors hover:text-foreground"
+                onClick={() => setIsShowingAllBackups((show) => !show)}
+              >
+                {isShowingAllBackups
+                  ? labels.showRecentLocalBackups
+                  : labels.showAllLocalBackups.replace("{count}", String(localBackups.length))}
+              </button>
+            ) : null}
             <p className="mt-3 text-xs leading-relaxed text-muted">{labels.restoreLocalBackupNote}</p>
             <p className="mt-1 text-xs leading-relaxed text-muted">{labels.localBackupDeleteNote}</p>
             {backupError ? <p className="mt-2 text-sm text-red-700">{backupError}</p> : null}
@@ -578,5 +602,5 @@ function formatDateTime(value: string, locale: Locale, unknown: string): string 
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? unknown
-    : date.toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" });
+    : date.toLocaleString(locale, { dateStyle: "medium", timeStyle: "medium" });
 }
