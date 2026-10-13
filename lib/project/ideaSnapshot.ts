@@ -14,8 +14,8 @@ import {
 } from "@/lib/project/types";
 
 export const IDEA_SNAPSHOT_FORMAT = "mvpcompanion.idea-snapshot";
-export const IDEA_SNAPSHOT_FORMAT_VERSION = 2;
-const supportedFormatVersions = [1, 2] as const;
+export const IDEA_SNAPSHOT_FORMAT_VERSION = 3;
+const supportedFormatVersions = [1, 2, 3] as const;
 
 export type IdeaSnapshotExport = {
   format: typeof IDEA_SNAPSHOT_FORMAT;
@@ -30,7 +30,7 @@ export type IdeaSnapshotImportFailureReason =
   | "malformed_idea";
 
 export type IdeaSnapshotImportResult =
-  | { ok: true; snapshot: IdeaSnapshotExport; sourceVersion: 1 | 2 | "prototype-v1" }
+  | { ok: true; snapshot: IdeaSnapshotExport; sourceVersion: 1 | 2 | 3 | "prototype-v1" }
   | { ok: false; reason: IdeaSnapshotImportFailureReason };
 
 export type SnapshotStage = {
@@ -158,7 +158,7 @@ export function getClarificationProgress(idea: Idea) {
  */
 /**
  * Backup of the active draft. Field ids stay language-independent.
- * Provider feedback and anything that is not part of the written draft are omitted.
+ * Structured stage feedback is included; provider request and response metadata is not.
  */
 export function createIdeaSnapshotExport(idea: Idea): IdeaSnapshotExport {
   return {
@@ -173,9 +173,11 @@ function ideaForExport(idea: Idea): Idea {
   for (const key of stageKeys) {
     const stage = idea.stages[key];
     const submittedAnswer = stage?.submittedAnswer;
+    const feedback = stage?.feedback;
     stages[key] = {
       answer: stage?.answer ?? "",
       ...(typeof submittedAnswer === "string" ? { submittedAnswer } : {}),
+      ...(feedback ? { feedback: copyStageFeedback(feedback) } : {}),
     };
   }
 
@@ -192,12 +194,27 @@ function ideaForExport(idea: Idea): Idea {
   };
 }
 
+function copyStageFeedback(feedback: StageFeedback): StageFeedback {
+  return {
+    summary: feedback.summary,
+    observations: [...feedback.observations],
+    uncertainties: [...feedback.uncertainties],
+    suggestions: [...feedback.suggestions],
+    ...(feedback.assumptions ? { assumptions: [...feedback.assumptions] } : {}),
+    ...(feedback.frames
+      ? { frames: feedback.frames.map((frame) => ({ ...frame })) }
+      : {}),
+    status: feedback.status,
+  };
+}
+
 /**
  * Explicit file mappings. A `.json` extension is not enough.
  *
  * - `mvpcompanion.idea-snapshot` version 1: Clarify export with stages 1–6.
  *   Missing later stages stay empty. Texts, ids, and timestamps are kept.
- * - `mvpcompanion.idea-snapshot` version 2: current full-draft backup.
+ * - `mvpcompanion.idea-snapshot` version 2: full-draft backup without feedback.
+ * - `mvpcompanion.idea-snapshot` version 3: full-draft backup with structured stage feedback.
  *
  * - private prototype schemaVersion 1: maps its named `fields` safely onto
  *   the 15 stage ids. Extra source fields are retained with their related stage.
@@ -212,12 +229,12 @@ export function parseIdeaSnapshotImport(value: unknown): IdeaSnapshotImportResul
   if (value.format === IDEA_SNAPSHOT_FORMAT) {
     if (
       typeof value.formatVersion !== "number" ||
-      !supportedFormatVersions.includes(value.formatVersion as 1 | 2)
+      !supportedFormatVersions.includes(value.formatVersion as 1 | 2 | 3)
     ) {
       return { ok: false, reason: "unsupported_version" };
     }
 
-    const sourceVersion = value.formatVersion as 1 | 2;
+    const sourceVersion = value.formatVersion as 1 | 2 | 3;
     const idea = parseImportedIdea(value.idea);
     if (!idea) {
       return { ok: false, reason: "malformed_idea" };

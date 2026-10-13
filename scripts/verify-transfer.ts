@@ -49,15 +49,21 @@ if (clarify.ok) {
 
   const exported = createIdeaSnapshotExport(idea);
   const raw = JSON.stringify(exported);
-  check("export-strips-suggestion", !raw.includes("Nicht übernommener Vorschlag"));
-  check("export-strips-provider-summary", !raw.includes("Anbieterzusammenfassung"));
+  check("export-keeps-suggestion", raw.includes("Nicht übernommener Vorschlag"));
+  check("export-keeps-feedback-summary", raw.includes("Anbieterzusammenfassung"));
   check("export-strips-api-key-name", !/api[_-]?key|OPENAI/i.test(raw));
   check("export-keeps-field-id", raw.includes('"context"') && !raw.includes('"Lebenszyklus"'));
   check("export-includes-later-stage-key", raw.includes('"jobs"'));
-  check("export-version-2", exported.formatVersion === 2);
+  check("export-version-3", exported.formatVersion === 3);
 
   const roundtrip = parseIdeaSnapshotImport(exported);
-  check("clarify-roundtrip", roundtrip.ok && roundtrip.ok && roundtrip.snapshot.idea.stages.context.answer.includes("zurückgestellt"));
+  check(
+    "clarify-roundtrip",
+    roundtrip.ok &&
+      roundtrip.snapshot.idea.stages.context.answer.includes("zurückgestellt") &&
+      roundtrip.snapshot.idea.stages.idea.feedback?.summary ===
+        "Interne Anbieterzusammenfassung, die nicht exportiert werden darf.",
+  );
 }
 
 const backup = parseIdeaSnapshotImport(load("backup-v2.json"));
@@ -97,11 +103,12 @@ const long = createIdea();
 long.title = "Bücherregal";
 long.stages.idea.answer = `${germanIdea} ${"Sehr langer Satz über das eigene Bücherregal. ".repeat(80)}`;
 long.stages.idea.feedback = {
-  summary: "hidden provider text",
-  observations: [],
-  uncertainties: [],
-  suggestions: ["SECRET-SUGGESTION"],
-  assumptions: [],
+  summary: "Das erwartete Ergebnis ist klar beschrieben.",
+  observations: ["Die Antwort beschreibt den geplanten Ablauf."],
+  uncertainties: ["Die wichtigste Nutzergruppe braucht noch Belege."],
+  suggestions: ["Benennen Sie zuerst eine konkrete Nutzergruppe zum Testen."],
+  assumptions: ["Nutzerinnen und Nutzer teilen ihre Bücherregale."],
+  frames: [{ label: "Entscheidungsrahmen", text: "Fokussieren Sie die erste Nutzergruppe." }],
   status: "ready_to_continue",
 };
 long.stages.problem.answer = "Arbeitsantwort";
@@ -111,7 +118,12 @@ check("pdf-a4", pdfText.includes("/MediaBox [0 0 595 842]"));
 check("pdf-pages", /1\/\d+/.test(pdfText) && pdfText.includes("2/"));
 check("pdf-umlaut", pdfText.includes("Bücherregal"));
 check("pdf-project-name", pdfText.includes("Bücherregal"));
-check("pdf-no-suggestion", !pdfText.includes("SECRET-SUGGESTION"));
+check("pdf-feedback-title", pdfText.includes("KI-Feedback"));
+check("pdf-feedback-summary", pdfText.includes("Das erwartete Ergebnis ist klar beschrieben."));
+check("pdf-feedback-observation", pdfText.includes("Die Antwort beschreibt den geplanten Ablauf."));
+check("pdf-feedback-frame", pdfText.includes("Entscheidungsrahmen"));
+check("pdf-feedback-uncertainty", pdfText.includes("Die wichtigste Nutzergruppe braucht noch Belege."));
+check("pdf-feedback-suggestion", pdfText.includes("Benennen Sie zuerst eine konkrete Nutzergruppe zum Testen."));
 check("pdf-justified-text", / [1-9]\d*(?:\.\d+)? Tw/.test(pdfText));
 check("pdf-clarified-stage", pdfText.includes("GEKLÄRT"));
 check("pdf-in-progress-stage", pdfText.includes("IN ARBEIT"));
@@ -129,6 +141,26 @@ check(
   "pdf-list-not-justified",
   /0\.000 Tw 46 \d+ Td \(1\. First list item\) Tj ET/.test(listPdfText),
 );
+
+const feedbackExport = createIdeaSnapshotExport(long);
+const feedbackRoundtrip = parseIdeaSnapshotImport(feedbackExport);
+check("json-feedback-version", feedbackExport.formatVersion === 3);
+check(
+  "json-feedback-kept",
+  feedbackExport.idea.stages.idea.feedback?.frames?.[0]?.text ===
+    "Fokussieren Sie die erste Nutzergruppe.",
+);
+check(
+  "json-feedback-roundtrip",
+  feedbackRoundtrip.ok &&
+    feedbackRoundtrip.snapshot.idea.stages.idea.feedback?.suggestions[0] ===
+      "Benennen Sie zuerst eine konkrete Nutzergruppe zum Testen.",
+);
+
+const feedbackMarkdown = createIdeaMarkdown(long, "en", "snapshot");
+check("markdown-feedback-title", feedbackMarkdown.includes("### AI feedback"));
+check("markdown-feedback-summary", feedbackMarkdown.includes("Das erwartete Ergebnis ist klar beschrieben."));
+check("markdown-feedback-list", feedbackMarkdown.includes("- Die Antwort beschreibt den geplanten Ablauf."));
 
 const untouched: Idea = createIdea();
 const before = JSON.stringify(untouched);

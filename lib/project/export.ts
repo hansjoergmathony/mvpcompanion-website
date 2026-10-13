@@ -1,5 +1,6 @@
 import { dictionary as de } from "@/content/de";
 import { dictionary as en, type Dictionary } from "@/content/en";
+import type { StageFeedback } from "@/lib/clarification/types";
 import type { Locale } from "@/lib/i18n/config";
 import {
   createIdeaSnapshotExport,
@@ -166,6 +167,30 @@ export function createIdeaSnapshotPdf(
     addLine(text.toUpperCase(), 9, "0.10 0.39 0.67");
     page.y -= 2;
   };
+  const addFeedbackList = (label: string, items: readonly string[]) => {
+    if (!items.length) return;
+
+    addLine(label, 9, "0.10 0.39 0.67");
+    items.forEach((item) => addParagraph(`- ${item}`, 9));
+  };
+  const addFeedback = (feedback: StageFeedback) => {
+    page.y -= 4;
+    addLine(labels.feedbackTitle, 9, "0.10 0.39 0.67");
+    addParagraph(labels.feedbackNote, 8, "0.38 0.43 0.50");
+
+    if (feedback.summary.trim()) {
+      addLine(labels.feedbackSummary, 9, "0.10 0.39 0.67");
+      addParagraph(feedback.summary, 10);
+    }
+    addFeedbackList(labels.feedbackObservations, feedback.observations);
+    feedback.frames?.forEach((frame) => {
+      addLine(frame.label, 9, "0.10 0.39 0.67");
+      addParagraph(frame.text, 10);
+    });
+    addFeedbackList(labels.assumptions, feedback.assumptions ?? []);
+    addFeedbackList(labels.feedbackUncertainties, feedback.uncertainties);
+    addFeedbackList(labels.openQuestions, feedback.suggestions);
+  };
 
   addLine(scope === "full" ? labels.headingFull : labels.heading, 18, "0.04 0.12 0.25");
   addParagraph(title, 15, "0.04 0.12 0.25");
@@ -190,6 +215,9 @@ export function createIdeaSnapshotPdf(
     if (row.additional) {
       addLine(labels.additionalField, 9, "0.10 0.39 0.67");
       addParagraph(row.additional, 10);
+    }
+    if (row.feedback) {
+      addFeedback(row.feedback);
     }
   }
 
@@ -266,6 +294,7 @@ type ExportRow = {
   status: SnapshotStage["status"];
   content: string;
   additional: string;
+  feedback: StageFeedback | null;
 };
 
 function exportRows(idea: Idea, locale: Locale, scope: ExportScope): ExportRow[] {
@@ -286,6 +315,7 @@ function exportRows(idea: Idea, locale: Locale, scope: ExportScope): ExportRow[]
         status: getStageSnapshotStatus(stage),
         content: answer.trim() ? answer : openLabel,
         additional,
+        feedback: stage?.feedback ?? null,
       };
     });
 }
@@ -312,9 +342,41 @@ export function createIdeaMarkdown(idea: Idea, locale: Locale, scope: ExportScop
     if (row.additional) {
       lines.push(`**${labels.additionalField}**`, "", row.additional, "");
     }
+    if (row.feedback) {
+      appendMarkdownFeedback(lines, row.feedback, labels);
+    }
   });
 
   return lines.join("\n");
+}
+
+function appendMarkdownFeedback(
+  lines: string[],
+  feedback: StageFeedback,
+  labels: Dictionary["ui"]["pdf"],
+) {
+  lines.push(`### ${labels.feedbackTitle}`, "", `_${labels.feedbackNote}_`, "");
+
+  if (feedback.summary.trim()) {
+    lines.push(`**${labels.feedbackSummary}**`, "", feedback.summary, "");
+  }
+  appendMarkdownFeedbackList(lines, labels.feedbackObservations, feedback.observations);
+  feedback.frames?.forEach((frame) => {
+    lines.push(`**${frame.label}**`, "", frame.text, "");
+  });
+  appendMarkdownFeedbackList(lines, labels.assumptions, feedback.assumptions ?? []);
+  appendMarkdownFeedbackList(lines, labels.feedbackUncertainties, feedback.uncertainties);
+  appendMarkdownFeedbackList(lines, labels.openQuestions, feedback.suggestions);
+}
+
+function appendMarkdownFeedbackList(
+  lines: string[],
+  label: string,
+  items: readonly string[],
+) {
+  if (!items.length) return;
+
+  lines.push(`**${label}**`, "", ...items.map((item) => `- ${item}`), "");
 }
 
 function formatDate(value: string, locale: Locale, unknown: string): string {
