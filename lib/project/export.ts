@@ -93,6 +93,10 @@ function triggerDownload(url: string, filename: string) {
 
 type PdfPage = { lines: string[]; y: number };
 
+// A4 is 595 pt wide. At the export's 10 pt Helvetica body size, 100 characters
+// uses the page effectively while retaining a comfortable right margin.
+const PDF_BODY_LINE_LENGTH = 100;
+
 /**
  * Generates a compact, standards-based PDF using built-in Helvetica fonts so exports
  * work without a server, canvas capture, or an additional browser dependency.
@@ -121,7 +125,9 @@ export function createIdeaSnapshotPdf(
     page.y -= size + 6;
   };
   const addParagraph = (text: string, size = 10, color?: string) => {
-    wrapPdfText(text, 84).forEach((line) => addLine(line, size, color));
+    wrapPdfText(text, PDF_BODY_LINE_LENGTH).forEach((line) =>
+      addLine(line, size, color),
+    );
     page.y -= 5;
   };
   const addHeading = (text: string) => {
