@@ -4,6 +4,8 @@ import type { Locale } from "@/lib/i18n/config";
 import {
   createIdeaSnapshotExport,
   getIdeaTitle,
+  getStageSnapshotStatus,
+  type SnapshotStage,
 } from "@/lib/project/ideaSnapshot";
 import {
   stageKeys,
@@ -93,9 +95,26 @@ function triggerDownload(url: string, filename: string) {
 
 type PdfPage = { lines: string[]; y: number };
 
-// A4 is 595 pt wide. At the export's 10 pt Helvetica body size, 100 characters
-// uses the page effectively while retaining a comfortable right margin.
-const PDF_BODY_LINE_LENGTH = 100;
+const PDF_LEFT_MARGIN = 46;
+const PDF_RIGHT_MARGIN = 46;
+const PDF_PAGE_WIDTH = 595;
+const PDF_TEXT_WIDTH = PDF_PAGE_WIDTH - PDF_LEFT_MARGIN - PDF_RIGHT_MARGIN;
+const HELVETICA_DEFAULT_WIDTH = 556;
+const HELVETICA_WIDTHS: Record<string, number> = {
+  " ": 278, "!": 278, '"': 355, "#": 556, "$": 556, "%": 889, "&": 667,
+  "'": 191, "(": 333, ")": 333, "*": 389, "+": 584, ",": 278, "-": 333,
+  ".": 278, "/": 278, ":": 278, ";": 278, "<": 584, "=": 584, ">": 584,
+  "?": 556, "@": 1015, "[": 278, "\\": 278, "]": 278, "^": 469, "_": 556,
+  "`": 222, "{": 334, "|": 260, "}": 334, "~": 584,
+  A: 667, B: 667, C: 722, D: 722, E: 667, F: 611, G: 778, H: 722, I: 278,
+  J: 500, K: 667, L: 556, M: 833, N: 722, O: 778, P: 667, Q: 778, R: 722,
+  S: 667, T: 611, U: 722, V: 667, W: 944, X: 667, Y: 667, Z: 611,
+  a: 556, b: 556, c: 500, d: 556, e: 556, f: 278, g: 556, h: 556, i: 222,
+  j: 222, k: 500, l: 222, m: 833, n: 556, o: 556, p: 556, q: 556, r: 333,
+  s: 500, t: 278, u: 556, v: 500, w: 722, x: 500, y: 500, z: 500,
+  "0": 556, "1": 556, "2": 556, "3": 556, "4": 556, "5": 556, "6": 556,
+  "7": 556, "8": 556, "9": 556,
+};
 
 /**
  * Generates a compact, standards-based PDF using built-in Helvetica fonts so exports
@@ -113,21 +132,33 @@ export function createIdeaSnapshotPdf(
   const pages: PdfPage[] = [{ lines: [], y: 758 }];
   let page = pages[0];
 
-  const addLine = (text: string, size = 10, color = "0.12 0.18 0.28") => {
+  const addLine = (
+    text: string,
+    size = 10,
+    color = "0.12 0.18 0.28",
+    wordSpacing = 0,
+  ) => {
     if (page.y < 72) {
       page = { lines: [], y: 758 };
       pages.push(page);
     }
 
     page.lines.push(
-      `BT /F1 ${size} Tf ${color} rg 46 ${page.y} Td (${pdfText(text)}) Tj ET`,
+      `BT /F1 ${size} Tf ${color} rg ${wordSpacing.toFixed(3)} Tw ${PDF_LEFT_MARGIN} ${page.y} Td (${pdfText(text)}) Tj ET`,
     );
     page.y -= size + 6;
   };
   const addParagraph = (text: string, size = 10, color?: string) => {
-    wrapPdfText(text, PDF_BODY_LINE_LENGTH).forEach((line) =>
-      addLine(line, size, color),
-    );
+    const lines = wrapPdfText(text, PDF_TEXT_WIDTH, size);
+    lines.forEach((line, index) => {
+      const spaces = line.split(" ").length - 1;
+      const isLastLine = index === lines.length - 1 || lines[index + 1] === "";
+      const wordSpacing =
+        !isLastLine && spaces > 0
+          ? Math.max(0, (PDF_TEXT_WIDTH - pdfTextWidth(line, size)) / spaces)
+          : 0;
+      addLine(line, size, color, wordSpacing);
+    });
     page.y -= 5;
   };
   const addHeading = (text: string) => {
@@ -150,8 +181,12 @@ export function createIdeaSnapshotPdf(
 
   for (const row of rows) {
     const number = String(row.number).padStart(2, "0");
-    addHeading(`${number} ${row.label} — ${row.open ? labels.openContent : labels.filledField}`);
-    addParagraph(row.content, 10, row.open ? "0.38 0.43 0.50" : undefined);
+    addHeading(`${number} ${row.label} — ${labels.stageStatus[row.status]}`);
+    addParagraph(
+      row.content,
+      10,
+      row.status === "unresolved" ? "0.38 0.43 0.50" : undefined,
+    );
     if (row.additional) {
       addLine(labels.additionalField, 9, "0.10 0.39 0.67");
       addParagraph(row.additional, 10);
@@ -174,7 +209,7 @@ function serializePdf(pages: PdfPage[], title: string, footer: string): Uint8Arr
     const contentId = contentObjectIds[index];
     const content = [
       "q 0.04 0.12 0.25 rg 0 790 595 52 re f Q",
-      "BT /F1 15 Tf 1 1 1 rg 46 810 Td (MVPCompanion) Tj ET",
+      `BT /F1 15 Tf 1 1 1 rg 0 Tw ${PDF_LEFT_MARGIN} 810 Td (MVPCompanion) Tj ET`,
       ...page.lines,
       `BT /F1 8 Tf 0.38 0.43 0.50 rg 46 28 Td (${pdfText(`${footer} - ${title.slice(0, 48)} - ${index + 1}/${pages.length}`)}) Tj ET`,
     ].join("\n");
@@ -228,6 +263,7 @@ type ExportRow = {
   number: number;
   label: string;
   open: boolean;
+  status: SnapshotStage["status"];
   content: string;
   additional: string;
 };
@@ -247,6 +283,7 @@ function exportRows(idea: Idea, locale: Locale, scope: ExportScope): ExportRow[]
         number: stageNumberByKey[key],
         label: copy.priorStageLabel[key],
         open: !answer.trim(),
+        status: getStageSnapshotStatus(stage),
         content: answer.trim() ? answer : openLabel,
         additional,
       };
@@ -285,7 +322,7 @@ function formatDate(value: string, locale: Locale, unknown: string): string {
   return Number.isNaN(date.getTime()) ? unknown : date.toLocaleDateString(locale);
 }
 
-function wrapPdfText(value: string, maxLength: number): string[] {
+function wrapPdfText(value: string, maxWidth: number, size: number): string[] {
   const lines: string[] = [];
 
   for (const paragraph of value.replace(/\r\n?/g, "\n").split("\n")) {
@@ -297,24 +334,49 @@ function wrapPdfText(value: string, maxLength: number): string[] {
     const words = paragraph
       .trim()
       .split(/\s+/)
-      .flatMap((word) =>
-        word.length <= maxLength
-          ? [word]
-          : word.match(new RegExp(`.{1,${maxLength}}`, "g")) ?? [word],
-      );
+      .flatMap((word) => splitPdfWord(word, maxWidth, size));
     let line = "";
     for (const word of words) {
-      if (`${line} ${word}`.trim().length > maxLength && line) {
+      const candidate = `${line} ${word}`.trim();
+      if (pdfTextWidth(candidate, size) > maxWidth && line) {
         lines.push(line);
         line = word;
       } else {
-        line = `${line} ${word}`.trim();
+        line = candidate;
       }
     }
     if (line) lines.push(line);
   }
 
   return lines.length > 0 ? lines : [""];
+}
+
+function splitPdfWord(word: string, maxWidth: number, size: number): string[] {
+  if (pdfTextWidth(word, size) <= maxWidth) {
+    return [word];
+  }
+
+  const parts: string[] = [];
+  let part = "";
+  for (const character of word) {
+    const candidate = `${part}${character}`;
+    if (part && pdfTextWidth(candidate, size) > maxWidth) {
+      parts.push(part);
+      part = character;
+    } else {
+      part = candidate;
+    }
+  }
+  if (part) parts.push(part);
+  return parts;
+}
+
+function pdfTextWidth(value: string, size: number): number {
+  const width = [...value].reduce(
+    (total, character) => total + (HELVETICA_WIDTHS[character] ?? HELVETICA_DEFAULT_WIDTH),
+    0,
+  );
+  return (width * size) / 1000;
 }
 
 function pdfText(value: string): string {

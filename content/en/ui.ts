@@ -93,7 +93,7 @@ export const ui = {
     exported: "Exported",
     unknownDate: "Unknown",
     snapshotContent: "Snapshot content",
-    notValidation: "Filled fields record what was written. They are not market validation.",
+    notValidation: "Recorded answers are not market validation.",
     openContent: "Open",
     filledField: "Filled",
     additionalField: "Additional field",

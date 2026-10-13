@@ -102,8 +102,9 @@ long.stages.idea.feedback = {
   uncertainties: [],
   suggestions: ["SECRET-SUGGESTION"],
   assumptions: [],
-  status: "needs_clarification",
+  status: "ready_to_continue",
 };
+long.stages.problem.answer = "Arbeitsantwort";
 const pdf = createIdeaSnapshotPdf(long, "de", undefined, "full");
 const pdfText = Buffer.from(pdf).toString("latin1");
 check("pdf-a4", pdfText.includes("/MediaBox [0 0 595 842]"));
@@ -111,7 +112,11 @@ check("pdf-pages", /1\/\d+/.test(pdfText) && pdfText.includes("2/"));
 check("pdf-umlaut", pdfText.includes("Bücherregal"));
 check("pdf-project-name", pdfText.includes("Bücherregal"));
 check("pdf-no-suggestion", !pdfText.includes("SECRET-SUGGESTION"));
-check("pdf-open-later-stage", pdfText.includes("Offen"));
+check("pdf-justified-text", / [1-9]\d*(?:\.\d+)? Tw/.test(pdfText));
+check("pdf-clarified-stage", pdfText.includes("GEKLÄRT"));
+check("pdf-in-progress-stage", pdfText.includes("IN ARBEIT"));
+check("pdf-unresolved-stage", pdfText.includes("OFFEN"));
+check("pdf-no-filled-status", !pdfText.includes("- AUSGEFÜLLT)"));
 
 const untouched: Idea = createIdea();
 const before = JSON.stringify(untouched);

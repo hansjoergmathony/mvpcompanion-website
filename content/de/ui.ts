@@ -93,7 +93,7 @@ export const ui = {
     exported: "Exportiert",
     unknownDate: "Unbekannt",
     snapshotContent: "Inhalt des Snapshots",
-    notValidation: "Ausgefüllte Felder halten fest, was geschrieben wurde. Sie sind keine Marktvalidierung.",
+    notValidation: "Festgehaltene Antworten sind keine Marktvalidierung.",
     openContent: "Offen",
     filledField: "Ausgefüllt",
     additionalField: "Zusatzfeld",
