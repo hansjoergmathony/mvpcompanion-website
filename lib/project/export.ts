@@ -167,6 +167,10 @@ export function createIdeaSnapshotPdf(
     addLine(text.toUpperCase(), 9, "0.10 0.39 0.67");
     page.y -= 2;
   };
+  const startNewPage = () => {
+    page = { lines: [], y: 758 };
+    pages.push(page);
+  };
   const addFeedbackList = (label: string, items: readonly string[]) => {
     if (!items.length) return;
 
@@ -205,6 +209,7 @@ export function createIdeaSnapshotPdf(
   page.y -= 8;
 
   for (const row of rows) {
+    startNewPage();
     const number = String(row.number).padStart(2, "0");
     addHeading(`${number} ${row.label} — ${labels.stageStatus[row.status]}`);
     addParagraph(

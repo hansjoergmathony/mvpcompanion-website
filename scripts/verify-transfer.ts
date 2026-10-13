@@ -137,6 +137,7 @@ listIdea.stages.idea.answer = [
   "2. Second list item",
 ].join("\n");
 const listPdfText = Buffer.from(createIdeaSnapshotPdf(listIdea)).toString("latin1");
+check("pdf-stage-per-page", listPdfText.includes("/Count 7"));
 check(
   "pdf-list-not-justified",
   /0\.000 Tw 46 \d+ Td \(1\. First list item\) Tj ET/.test(listPdfText),
