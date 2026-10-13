@@ -94,6 +94,7 @@ function triggerDownload(url: string, filename: string) {
 }
 
 type PdfPage = { lines: string[]; y: number };
+type PdfTextLine = { text: string; justify: boolean };
 
 const PDF_LEFT_MARGIN = 46;
 const PDF_RIGHT_MARGIN = 46;
@@ -150,14 +151,13 @@ export function createIdeaSnapshotPdf(
   };
   const addParagraph = (text: string, size = 10, color?: string) => {
     const lines = wrapPdfText(text, PDF_TEXT_WIDTH, size);
-    lines.forEach((line, index) => {
-      const spaces = line.split(" ").length - 1;
-      const isLastLine = index === lines.length - 1 || lines[index + 1] === "";
+    lines.forEach((line) => {
+      const spaces = line.text.split(" ").length - 1;
       const wordSpacing =
-        !isLastLine && spaces > 0
-          ? Math.max(0, (PDF_TEXT_WIDTH - pdfTextWidth(line, size)) / spaces)
+        line.justify && spaces > 0
+          ? Math.max(0, (PDF_TEXT_WIDTH - pdfTextWidth(line.text, size)) / spaces)
           : 0;
-      addLine(line, size, color, wordSpacing);
+      addLine(line.text, size, color, wordSpacing);
     });
     page.y -= 5;
   };
@@ -322,33 +322,42 @@ function formatDate(value: string, locale: Locale, unknown: string): string {
   return Number.isNaN(date.getTime()) ? unknown : date.toLocaleDateString(locale);
 }
 
-function wrapPdfText(value: string, maxWidth: number, size: number): string[] {
-  const lines: string[] = [];
+function wrapPdfText(value: string, maxWidth: number, size: number): PdfTextLine[] {
+  const lines: PdfTextLine[] = [];
 
   for (const paragraph of value.replace(/\r\n?/g, "\n").split("\n")) {
     if (!paragraph.trim()) {
-      lines.push("");
+      lines.push({ text: "", justify: false });
       continue;
     }
 
+    const isListItem = /^\s*(?:[-*•]\s+|\d+[.)]\s+)/.test(paragraph);
     const words = paragraph
       .trim()
       .split(/\s+/)
       .flatMap((word) => splitPdfWord(word, maxWidth, size));
-    let line = "";
+    const wrappedLines: string[] = [];
+    let currentLine = "";
     for (const word of words) {
-      const candidate = `${line} ${word}`.trim();
-      if (pdfTextWidth(candidate, size) > maxWidth && line) {
-        lines.push(line);
-        line = word;
+      const candidate = `${currentLine} ${word}`.trim();
+      if (pdfTextWidth(candidate, size) > maxWidth && currentLine) {
+        wrappedLines.push(currentLine);
+        currentLine = word;
       } else {
-        line = candidate;
+        currentLine = candidate;
       }
     }
-    if (line) lines.push(line);
+    if (currentLine) wrappedLines.push(currentLine);
+
+    wrappedLines.forEach((text, index) => {
+      lines.push({
+        text,
+        justify: !isListItem && index < wrappedLines.length - 1,
+      });
+    });
   }
 
-  return lines.length > 0 ? lines : [""];
+  return lines.length > 0 ? lines : [{ text: "", justify: false }];
 }
 
 function splitPdfWord(word: string, maxWidth: number, size: number): string[] {

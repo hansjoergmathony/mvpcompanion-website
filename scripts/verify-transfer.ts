@@ -118,6 +118,18 @@ check("pdf-in-progress-stage", pdfText.includes("IN ARBEIT"));
 check("pdf-unresolved-stage", pdfText.includes("OFFEN"));
 check("pdf-no-filled-status", !pdfText.includes("- AUSGEFÜLLT)"));
 
+const listIdea = createIdea();
+listIdea.stages.idea.answer = [
+  "A list should preserve its natural spacing in the exported document.",
+  "1. First list item",
+  "2. Second list item",
+].join("\n");
+const listPdfText = Buffer.from(createIdeaSnapshotPdf(listIdea)).toString("latin1");
+check(
+  "pdf-list-not-justified",
+  /0\.000 Tw 46 \d+ Td \(1\. First list item\) Tj ET/.test(listPdfText),
+);
+
 const untouched: Idea = createIdea();
 const before = JSON.stringify(untouched);
 if (!invalid.ok && !unknown.ok) {
