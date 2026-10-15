@@ -23,7 +23,7 @@ import {
   type IdeaLibrary,
 } from "@/lib/project/types";
 
-const emptyLibrary: IdeaLibrary = { version: 2, activeIdeaId: null, ideas: [] };
+const emptyLibrary: IdeaLibrary = { version: 3, activeIdeaId: null, ideas: [] };
 
 function getLibrarySnapshot() {
   return loadIdeaLibrary();

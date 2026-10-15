@@ -1,4 +1,5 @@
 import type { StageFeedback } from "@/lib/clarification/types";
+import type { CompletenessReview } from "@/lib/completeness/types";
 
 export const IDEA_LIBRARY_STORAGE_KEY = "mvpcompanion.idea-library";
 export const IDEA_LIBRARY_BACKUPS_STORAGE_KEY = "mvpcompanion.idea-library.backups";
@@ -43,6 +44,15 @@ export type StartingContext = {
 
 export type StageState = {
   answer: string;
+  /**
+   * Optional structured answers for the guided stage template. Keeping the
+   * narrative `answer` preserves compatibility with existing exports,
+   * feedback, and drafts created before templates were introduced.
+   */
+  templateData?: Record<string, string>;
+  completenessReview?: CompletenessReview | null;
+  reviewedAnswer?: string;
+  reviewedAt?: string;
   feedback?: StageFeedback | null;
   submittedAnswer?: string;
 };
@@ -62,7 +72,7 @@ export type Idea = {
 };
 
 export type IdeaLibrary = {
-  version: 1 | 2;
+  version: 1 | 2 | 3;
   activeIdeaId: string | null;
   ideas: Idea[];
 };

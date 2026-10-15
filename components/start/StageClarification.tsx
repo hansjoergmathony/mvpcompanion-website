@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/Button";
 import type { Dictionary } from "@/content/en";
 import type { ProcessStage } from "@/content/framework";
 import type { StageKey, StageState } from "@/lib/project/types";
+import type { CompletenessReview } from "@/lib/completeness/types";
+import {
+  countCompletedTemplateFields,
+  templateExampleByStage,
+  templateFieldKey,
+} from "@/lib/project/stageTemplate";
 
 const fieldClassName =
   "mt-3 w-full resize-y rounded-md border border-border bg-card px-4 py-3 text-base leading-relaxed text-foreground placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue";
@@ -32,6 +38,7 @@ type StageClarificationProps = {
   coreQuestions: CoreQuestionsContent;
   onChangeIdeaTitle: (value: string) => void;
   onChangeAnswer: (value: string) => void;
+  onChangeTemplateField: (field: string, value: string) => void;
   onContinue: () => void;
   onPrevious: () => void;
   onBackToOverview: () => void;
@@ -40,6 +47,10 @@ type StageClarificationProps = {
   isAiFeedbackLoading: boolean;
   aiFeedbackError: string | null;
   onRequestAiFeedback: () => void;
+  completenessReview: CompletenessReview | null | undefined;
+  isCompletenessReviewCurrent: boolean;
+  isCompletenessReviewLoading: boolean;
+  onRequestCompletenessReview: () => void;
   startContent: Dictionary["startContent"];
 };
 
@@ -54,6 +65,7 @@ export function StageClarification({
   coreQuestions,
   onChangeIdeaTitle,
   onChangeAnswer,
+  onChangeTemplateField,
   onContinue,
   onPrevious,
   onBackToOverview,
@@ -62,6 +74,10 @@ export function StageClarification({
   isAiFeedbackLoading,
   aiFeedbackError,
   onRequestAiFeedback,
+  completenessReview,
+  isCompletenessReviewCurrent,
+  isCompletenessReviewLoading,
+  onRequestCompletenessReview,
   startContent,
 }: StageClarificationProps) {
   const [answerError, setAnswerError] = useState(false);
@@ -152,14 +168,33 @@ export function StageClarification({
         startContent={startContent}
       />
 
+      <StageTemplate
+        stageKey={stageKey}
+        fields={coreQuestions.supporting}
+        values={stageState.templateData}
+        onChange={onChangeTemplateField}
+        copy={startContent}
+      />
+
       {feedback && hasFeedbackForCurrentAnswer ? (
         <FeedbackPanel feedback={feedback} startContent={startContent} />
+      ) : null}
+
+      {completenessReview ? (
+        <CompletenessReviewPanel
+          review={completenessReview}
+          isCurrent={isCompletenessReviewCurrent}
+          copy={startContent}
+        />
       ) : null}
 
       <form className="mt-10" onSubmit={handleContinue} noValidate>
           <label className="block">
             <span className="text-xs uppercase tracking-[0.18em] text-muted">
-              {startContent.answerLabel}
+              {startContent.stageDescriptionLabel}
+            </span>
+            <span className="mt-2 block text-sm leading-relaxed text-muted">
+              {startContent.stageDescriptionHelp}
             </span>
             <span className="sr-only">{stage.question}</span>
             <textarea
@@ -193,6 +228,18 @@ export function StageClarification({
               <Button
                 type="button"
                 variant="secondary"
+                disabled={isCompletenessReviewLoading}
+                onClick={onRequestCompletenessReview}
+              >
+                {isCompletenessReviewLoading
+                  ? startContent.reviewingCompleteness
+                  : startContent.reviewCompleteness}
+              </Button>
+            ) : null}
+            {isAdmin ? (
+              <Button
+                type="button"
+                variant="secondary"
                 disabled={isAiFeedbackLoading}
                 onClick={onRequestAiFeedback}
               >
@@ -220,6 +267,116 @@ export function StageClarification({
           </div>
       </form>
     </div>
+  );
+}
+
+export function CompletenessReviewPanel({
+  review,
+  isCurrent,
+  copy,
+}: {
+  review: CompletenessReview;
+  isCurrent: boolean;
+  copy: Pick<
+    Dictionary["startContent"],
+    | "reviewReady"
+    | "reviewNeedsWork"
+    | "reviewOutdated"
+    | "reviewCriteria"
+    | "reviewMissing"
+    | "reviewContradictions"
+    | "reviewNextStep"
+  >;
+}) {
+  return (
+    <section className="mt-8 rounded-lg border border-border bg-card p-5" aria-live="polite">
+      <p className="text-xs uppercase tracking-[0.18em] text-muted">
+        {isCurrent
+          ? review.overall === "ready" ? copy.reviewReady : copy.reviewNeedsWork
+          : copy.reviewOutdated}
+      </p>
+      <p className="mt-3 text-base leading-relaxed text-navy">{review.summary}</p>
+      <h2 className="mt-6 text-sm font-semibold text-navy">{copy.reviewCriteria}</h2>
+      <div className="mt-3 space-y-4">
+        {review.criteria.map((criterion) => (
+          <div key={criterion.criterion} className="border-l-2 border-border pl-3">
+            <p className="text-sm font-medium text-navy">{criterion.criterion} · {criterion.status.replace("_", " ")}</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted">{criterion.evidence}</p>
+            {criterion.improvement ? <p className="mt-1 text-sm leading-relaxed text-muted">{criterion.improvement}</p> : null}
+          </div>
+        ))}
+      </div>
+      {review.missingInformation.length ? <ReviewList title={copy.reviewMissing} items={review.missingInformation} /> : null}
+      {review.contradictions.length ? <ReviewList title={copy.reviewContradictions} items={review.contradictions} /> : null}
+      <h2 className="mt-5 text-sm font-semibold text-navy">{copy.reviewNextStep}</h2>
+      <p className="mt-1 text-sm leading-relaxed text-muted">{review.suggestedNextStep}</p>
+    </section>
+  );
+}
+
+function ReviewList({ title, items }: { title: string; items: string[] }) {
+  return <><h2 className="mt-5 text-sm font-semibold text-navy">{title}</h2><ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-muted">{items.map((item) => <li key={item}>{item}</li>)}</ul></>;
+}
+
+export function StageTemplate({
+  stageKey,
+  fields,
+  values,
+  onChange,
+  copy,
+}: {
+  stageKey: StageKey;
+  fields: readonly string[];
+  values: Record<string, string> | undefined;
+  onChange: (field: string, value: string) => void;
+  copy: Pick<
+    Dictionary["startContent"],
+    | "guidedTemplateTitle"
+    | "guidedTemplateIntro"
+    | "guidedTemplateProgress"
+    | "examplePrefix"
+  >;
+}) {
+  const progress = countCompletedTemplateFields(fields, values);
+  const example = templateExampleByStage[stageKey];
+
+  return (
+    <section className="mt-8 rounded-lg border border-border bg-card p-5" aria-labelledby={`${stageKey}-template-title`}>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div>
+          <h2 id={`${stageKey}-template-title`} className="text-base font-semibold text-navy">
+            {copy.guidedTemplateTitle}
+          </h2>
+          <p className="mt-1 text-sm leading-relaxed text-muted">
+            {copy.guidedTemplateIntro}
+          </p>
+        </div>
+        <p className="text-sm text-muted" aria-live="polite">
+          {copy.guidedTemplateProgress
+            .replace("{filled}", String(progress.completed))
+            .replace("{total}", String(progress.total))}
+        </p>
+      </div>
+      <div className="mt-6 space-y-6">
+        {fields.map((field, index) => {
+          const key = templateFieldKey(index);
+          return (
+            <label key={key} className="block">
+              <span className="text-sm font-medium leading-relaxed text-navy">{field}</span>
+              <span className="mt-1 block text-xs leading-relaxed text-muted">
+                {copy.examplePrefix} {example}
+              </span>
+              <textarea
+                value={values?.[key] ?? ""}
+                onChange={(event) => onChange(key, event.target.value)}
+                rows={3}
+                className={fieldClassName}
+              />
+            </label>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

@@ -21,6 +21,23 @@ export const startContent = {
   hearingLabel: "Das höre ich heraus",
   unclearLabel: "Ein Punkt ist noch unklar",
   answerLabel: "Ihre Antwort",
+  stageDescriptionLabel: "Beschreibung der Stufe",
+  stageDescriptionHelp:
+    "Sie wird aus den geführten Antworten erstellt und bleibt vollständig bearbeitbar.",
+  guidedTemplateTitle: "Geführte Vorlage",
+  guidedTemplateIntro:
+    "Beantworten Sie die Fragen, die diese Stufe gestalten. Sie können Fragen vorerst offenlassen.",
+  guidedTemplateProgress: "{filled} von {total} beantwortet",
+  examplePrefix: "Beispiel:",
+  reviewCompleteness: "Vollständigkeit prüfen",
+  reviewingCompleteness: "Prüfung anhand der Gate-Kriterien läuft …",
+  reviewReady: "Bereit zum Weitergehen",
+  reviewNeedsWork: "Benötigt Klärung",
+  reviewOutdated: "Diese Prüfung ist veraltet, weil sich die Beschreibung der Stufe geändert hat.",
+  reviewCriteria: "Gate-Kriterien",
+  reviewMissing: "Noch fehlend",
+  reviewContradictions: "Abgleich mit früheren Stufen",
+  reviewNextStep: "Empfohlener nächster Schritt",
   coreQuestionsTitle: "Kernfragen",
   coreQuestionsIntro:
     "Optionale Impulse, die Ihnen helfen, diese Stufe zu durchdenken.",

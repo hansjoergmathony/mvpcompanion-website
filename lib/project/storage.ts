@@ -18,6 +18,7 @@ import {
   type StartingContext,
 } from "@/lib/project/types";
 import type { StageFeedback } from "@/lib/clarification/types";
+import type { CompletenessReview } from "@/lib/completeness/types";
 
 const MAX_LOCAL_BACKUPS = 12;
 const EMPTY_BACKUPS: IdeaLibraryBackup[] = [];
@@ -57,9 +58,34 @@ function parseStageState(value: unknown): StageState {
 
   return {
     answer: readString(value.answer),
+    templateData: readTemplateData(value.templateData),
+    completenessReview: parseCompletenessReview(value.completenessReview),
+    reviewedAnswer: readString(value.reviewedAnswer) || undefined,
+    reviewedAt: readString(value.reviewedAt) || undefined,
     feedback: parseFeedback(value.feedback),
     submittedAnswer: readString(value.submittedAnswer) || undefined,
   };
+}
+
+function parseCompletenessReview(value: unknown): CompletenessReview | null {
+  if (!isRecord(value) || (value.overall !== "ready" && value.overall !== "needs_work")) return null;
+  const criteria = Array.isArray(value.criteria) ? value.criteria.flatMap((item) => {
+    if (!isRecord(item) || typeof item.criterion !== "string" || typeof item.evidence !== "string" || typeof item.improvement !== "string" || !["met", "partial", "missing", "not_applicable"].includes(String(item.status))) return [];
+    return [{ criterion: item.criterion, evidence: item.evidence, improvement: item.improvement, status: item.status as CompletenessReview["criteria"][number]["status"] }];
+  }) : [];
+  return { overall: value.overall, summary: readString(value.summary), criteria, missingInformation: readStringArray(value.missingInformation), contradictions: readStringArray(value.contradictions), suggestedNextStep: readString(value.suggestedNextStep) };
+}
+
+function readTemplateData(value: unknown): Record<string, string> | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const entries = Object.entries(value).flatMap(([key, entry]) =>
+    typeof entry === "string" ? [[key, entry] as const] : [],
+  );
+
+  return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
 function parseFeedback(value: unknown): StageFeedback | null {
@@ -172,7 +198,7 @@ export function parseIdea(value: unknown): Idea | null {
 export function parseIdeaLibrary(value: unknown): IdeaLibrary | null {
   if (
     !isRecord(value) ||
-    (value.version !== 1 && value.version !== 2) ||
+    (value.version !== 1 && value.version !== 2 && value.version !== 3) ||
     !Array.isArray(value.ideas)
   ) {
     return null;
@@ -188,14 +214,14 @@ export function parseIdeaLibrary(value: unknown): IdeaLibrary | null {
     : ideas[0]?.id ?? null;
 
   return {
-    version: 2,
+    version: 3,
     activeIdeaId,
     ideas,
   };
 }
 
 function createEmptyLibrary(): IdeaLibrary {
-  return { version: 2, activeIdeaId: null, ideas: [] };
+  return { version: 3, activeIdeaId: null, ideas: [] };
 }
 
 let cachedRaw: string | null | undefined;
@@ -349,7 +375,7 @@ function migrateLegacyProject(): IdeaLibrary {
   }
 
   const library: IdeaLibrary = {
-    version: 2,
+    version: 3,
     activeIdeaId: legacyIdea.id,
     ideas: [legacyIdea],
   };

@@ -12,7 +12,9 @@ import {
 } from "@/components/start/ProductConceptView";
 import {
   CoreQuestionsPanel,
+  CompletenessReviewPanel,
   FeedbackPanel,
+  StageTemplate,
   StageClarification,
 } from "@/components/start/StageClarification";
 import { Button } from "@/components/ui/Button";
@@ -27,6 +29,7 @@ import {
 } from "@/content/start-path";
 import { buildProductConcept } from "@/lib/clarification";
 import type { StageFeedback } from "@/lib/clarification/types";
+import type { CompletenessReview } from "@/lib/completeness/types";
 import type { Locale } from "@/lib/i18n/config";
 import { countFilledFields } from "@/lib/project/ideaSnapshot";
 import {
@@ -43,6 +46,7 @@ import {
 } from "@/lib/project/types";
 import { useIdeaLibrary } from "@/lib/project/useProject";
 import { useCloudSync } from "@/lib/project/useCloudSync";
+import { buildStageNarrative } from "@/lib/project/stageTemplate";
 
 const STORED_UNTITLED = "Untitled Idea";
 
@@ -111,6 +115,7 @@ export function StartExperience({
   } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [aiFeedbackStage, setAiFeedbackStage] = useState<StageKey | null>(null);
+  const [completenessReviewStage, setCompletenessReviewStage] = useState<StageKey | null>(null);
   const [aiFeedbackError, setAiFeedbackError] = useState<string | null>(null);
   const cloudSync = useCloudSync({ isAdmin, library, replaceIdeaLibrary });
 
@@ -297,6 +302,34 @@ export function StartExperience({
     });
   }
 
+  function updateCurrentTemplateField(field: string, value: string) {
+    if (!currentStageKey) {
+      return;
+    }
+
+    updateActiveIdea((current) => {
+      const stage = current.stages[currentStageKey];
+      const templateData = { ...stage.templateData, [field]: value };
+      const fields = startContent.coreQuestions[currentStageKey].supporting;
+      const answer = buildStageNarrative(fields, templateData);
+      const nextStage = { ...stage, templateData, answer };
+
+      if (
+        stage.submittedAnswer !== undefined &&
+        stage.submittedAnswer !== answer.trim()
+      ) {
+        nextStage.submittedAnswer = undefined;
+        nextStage.feedback = null;
+      }
+
+      return {
+        ...current,
+        stages: { ...current.stages, [currentStageKey]: nextStage },
+        status: "in_progress",
+      };
+    });
+  }
+
   function relatedAnswers(stageKey: StageKey) {
     if (!activeIdea) {
       return {};
@@ -366,6 +399,31 @@ export function StartExperience({
       );
     } finally {
       setAiFeedbackStage(null);
+    }
+  }
+
+  async function requestCompletenessReview(stageKey: StageKey) {
+    if (!activeIdea || !isAdmin) return;
+    const answer = activeIdea.stages[stageKey].answer.trim();
+    if (!answer) { setAiFeedbackError(startContent.stageAnswerError); return; }
+    setAiFeedbackError(null);
+    setCompletenessReviewStage(stageKey);
+    try {
+      const response = await fetch("/api/completeness-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stageKey, answer, relatedAnswers: relatedAnswers(stageKey), locale }),
+      });
+      const payload = await response.json() as { review?: CompletenessReview; error?: string };
+      if (!response.ok || !payload.review) throw new Error(payload.error || startContent.aiGenerationError);
+      updateActiveIdea((current) => ({
+        ...current,
+        stages: { ...current.stages, [stageKey]: { ...current.stages[stageKey], completenessReview: payload.review, reviewedAnswer: answer, reviewedAt: new Date().toISOString() } },
+      }));
+    } catch (error) {
+      setAiFeedbackError(error instanceof Error ? error.message : startContent.aiGenerationError);
+    } finally {
+      setCompletenessReviewStage(null);
     }
   }
 
@@ -626,6 +684,20 @@ export function StartExperience({
             content={startContent.coreQuestions[currentStageKey]}
             startContent={startContent}
           />
+          <StageTemplate
+            stageKey={currentStageKey}
+            fields={startContent.coreQuestions[currentStageKey].supporting}
+            values={activeIdea.stages[currentStageKey].templateData}
+            onChange={updateCurrentTemplateField}
+            copy={startContent}
+          />
+          {activeIdea.stages[currentStageKey].completenessReview ? (
+            <CompletenessReviewPanel
+              review={activeIdea.stages[currentStageKey].completenessReview}
+              isCurrent={activeIdea.stages[currentStageKey].reviewedAnswer === answer.trim()}
+              copy={startContent}
+            />
+          ) : null}
           <p className="mt-3 text-sm leading-relaxed text-muted">
             {isAdmin ? startContent.aiFeedbackPrivateNote : startContent.noAiReview}
           </p>
@@ -649,6 +721,11 @@ export function StartExperience({
             <Button type="button" onClick={goToNextStage}>
               {startContent.saveAndContinue}
             </Button>
+            {isAdmin ? (
+              <Button type="button" variant="secondary" disabled={completenessReviewStage === currentStageKey} onClick={() => void requestCompletenessReview(currentStageKey)}>
+                {completenessReviewStage === currentStageKey ? startContent.reviewingCompleteness : startContent.reviewCompleteness}
+              </Button>
+            ) : null}
             <Button type="button" variant="secondary" onClick={goToPreviousStage}>
               {startContent.previousLabel}
             </Button>
@@ -753,6 +830,7 @@ export function StartExperience({
             coreQuestions={startContent.coreQuestions[currentStageKey]}
             onChangeIdeaTitle={updateIdeaTitle}
             onChangeAnswer={updateCurrentAnswer}
+            onChangeTemplateField={updateCurrentTemplateField}
             onContinue={goToNextStage}
             onPrevious={goToPreviousStage}
             onBackToOverview={returnToOverview}
@@ -760,6 +838,10 @@ export function StartExperience({
             isAiFeedbackLoading={aiFeedbackStage === currentStageKey}
             aiFeedbackError={aiFeedbackError}
             onRequestAiFeedback={() => void requestAiFeedback(currentStageKey)}
+            completenessReview={activeIdea?.stages[currentStageKey]?.completenessReview}
+            isCompletenessReviewCurrent={activeIdea?.stages[currentStageKey]?.reviewedAnswer === activeIdea?.stages[currentStageKey]?.answer.trim()}
+            isCompletenessReviewLoading={completenessReviewStage === currentStageKey}
+            onRequestCompletenessReview={() => void requestCompletenessReview(currentStageKey)}
             onOpenAiFeedbackBeta={() =>
               setAiFeedbackBeta({
                 source: "clarify",

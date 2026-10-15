@@ -28,6 +28,23 @@ export const startContent = {
   hearingLabel: "Here's what I'm hearing",
   unclearLabel: "One thing is still unclear",
   answerLabel: "Your answer",
+  stageDescriptionLabel: "Stage description",
+  stageDescriptionHelp:
+    "This is generated from the guided answers and remains fully editable.",
+  guidedTemplateTitle: "Guided template",
+  guidedTemplateIntro:
+    "Answer the questions that shape this stage. You can leave any question open for now.",
+  guidedTemplateProgress: "{filled} of {total} answered",
+  examplePrefix: "Example:",
+  reviewCompleteness: "Review completeness",
+  reviewingCompleteness: "Reviewing against gate criteria…",
+  reviewReady: "Ready to progress",
+  reviewNeedsWork: "Needs clarification",
+  reviewOutdated: "This review is outdated because the stage description changed.",
+  reviewCriteria: "Gate criteria",
+  reviewMissing: "Still missing",
+  reviewContradictions: "Check against earlier stages",
+  reviewNextStep: "Recommended next step",
   coreQuestionsTitle: "Core Questions",
   coreQuestionsIntro: "Optional prompts to help you think through this stage.",
   coreQuestionsCompletionNote:
