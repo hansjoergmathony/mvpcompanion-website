@@ -150,14 +150,27 @@ function fallbackImprovement(criterion: string) {
   return `Add a direct current-stage statement that addresses: ${criterion}`;
 }
 
+function requiredImprovement(improvement: string, criterion: string) {
+  const withoutOptionalPrefix = improvement
+    .trim()
+    .replace(/^optional(?:ly)?\s*:\s*/i, "");
+  return hasActionableImprovement(withoutOptionalPrefix)
+    ? withoutOptionalPrefix
+    : fallbackImprovement(criterion);
+}
+
 /** Build the visible result from validated criterion statuses, never free-form AI prose. */
 export function composeReview(review: CompletenessReview, stageKey: StageKey): CompletenessReview {
   const criteria = review.criteria.map((criterion) => {
-    if (hasActionableImprovement(criterion.improvement)) return criterion;
     if (criterion.status === "missing" || criterion.status === "partial") {
-      return { ...criterion, improvement: fallbackImprovement(criterion.criterion) };
+      return {
+        ...criterion,
+        improvement: requiredImprovement(criterion.improvement, criterion.criterion),
+      };
     }
-    return { ...criterion, improvement: "" };
+    return hasActionableImprovement(criterion.improvement)
+      ? criterion
+      : { ...criterion, improvement: "" };
   });
   const unresolved = criteria.filter((criterion) =>
     criterion.status === "missing" || criterion.status === "partial",
