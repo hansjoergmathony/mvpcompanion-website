@@ -1,12 +1,77 @@
 import type { CompletenessCriterionStatus, CompletenessReview } from "@/lib/completeness/types";
 import type { StageKey } from "@/lib/project/types";
 
+export type TemplateAnswer = {
+  index: number;
+  question: string;
+  answer: string;
+};
+
 export function criterionId(stageKey: StageKey, index: number) {
   return `${stageKey}-${index + 1}`;
 }
 
 export function quoteExists(answer: string, quote: string) {
   return Boolean(quote.trim()) && answer.toLocaleLowerCase().includes(quote.trim().toLocaleLowerCase());
+}
+
+/**
+ * Template responses are current-stage evidence in their own right. Keeping
+ * their prompt beside each answer prevents a reviewer from having to infer
+ * what an otherwise anonymous value is intended to answer.
+ */
+export function currentStageEvidence(answer: string, templateAnswers: readonly TemplateAnswer[]) {
+  const structuredAnswers = templateAnswers
+    .filter(({ question, answer: value }) => question.trim() && value.trim())
+    .map(({ question, answer: value }) => `Template question: ${question.trim()}\nTemplate answer: ${value.trim()}`)
+    .join("\n\n");
+  return [answer.trim(), structuredAnswers].filter(Boolean).join("\n\n");
+}
+
+function sentenceContaining(answer: string, pattern: RegExp) {
+  return answer
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((sentence) => sentence.trim())
+    .find((sentence) => pattern.test(sentence)) ?? "";
+}
+
+export function explicitCriterionEvidence(
+  stageKey: StageKey,
+  index: number,
+  answer: string,
+  templateAnswers: readonly TemplateAnswer[],
+) {
+  if (stageKey !== "idea") return null;
+
+  const responseFor = (templateIndex: number) =>
+    templateAnswers.find(({ index: fieldIndex }) => fieldIndex === templateIndex)?.answer.trim() ?? "";
+  const templateEvidence = (templateIndex: number, description: string) => {
+    const response = responseFor(templateIndex);
+    return response.length >= 12
+      ? { quote: response, evidence: `This directly answers the guided template question for ${description}.` }
+      : null;
+  };
+
+  if (index === 2) return templateEvidence(1, "the provisional intended user");
+  if (index === 3) {
+    const fromTemplate = templateEvidence(2, "the expected outcome");
+    if (fromTemplate) return fromTemplate;
+    const quote = sentenceContaining(answer, /\b(focused|testable|buildable|valuable|viable|outcome|result|specification)\b/i);
+    return quote ? { quote, evidence: "This directly states the intended result of the idea." } : null;
+  }
+  if (index === 4) {
+    const response = responseFor(4);
+    return /\b(assumption|hypothes)/i.test(response)
+      ? { quote: response, evidence: "This directly identifies a labelled assumption or hypothesis." }
+      : null;
+  }
+  if (index === 6) {
+    const response = responseFor(3);
+    return /\b(evidence|hypothes|assumption|derived|open question|uncertain)/i.test(response)
+      ? { quote: response, evidence: "This explicitly distinguishes evidence, hypotheses, derived insights, or open questions." }
+      : null;
+  }
+  return null;
 }
 
 /**

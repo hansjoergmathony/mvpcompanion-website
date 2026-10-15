@@ -3,7 +3,7 @@ import { isAdminRequest } from "@/lib/admin/auth";
 import { consumeAdminAiRequest } from "@/lib/admin/rateLimit";
 import { stageGates } from "@/lib/completeness/stageGates";
 import type { CompletenessReview } from "@/lib/completeness/types";
-import { composeReview, criterionId, deterministicStatus, quoteExists, reviewOverall } from "@/lib/completeness/review";
+import { composeReview, criterionId, currentStageEvidence, deterministicStatus, explicitCriterionEvidence, quoteExists, reviewOverall, type TemplateAnswer } from "@/lib/completeness/review";
 import { isStageKey, type StageKey } from "@/lib/project/types";
 
 const MAX_ANSWER_LENGTH = 8_000;
@@ -63,6 +63,7 @@ type ReviewRequest = {
   stageKey: StageKey;
   answer: string;
   templateData?: Record<string, string>;
+  templateQuestions?: string[];
   relatedAnswers?: Partial<Record<StageKey, string>>;
   locale?: "en" | "de";
 };
@@ -75,7 +76,10 @@ function parseRequest(value: unknown): ReviewRequest | null {
   const templateData = request.templateData && typeof request.templateData === "object"
     ? Object.fromEntries(Object.entries(request.templateData).filter(([, item]) => typeof item === "string").map(([key, item]) => [key, item as string]))
     : undefined;
-  return { stageKey, answer: request.answer, templateData, relatedAnswers: compactRelatedAnswers(request.relatedAnswers), locale: request.locale === "de" ? "de" : "en" };
+  const templateQuestions = Array.isArray(request.templateQuestions)
+    ? request.templateQuestions.filter((item): item is string => typeof item === "string").slice(0, 12).map((item) => item.slice(0, 500))
+    : undefined;
+  return { stageKey, answer: request.answer, templateData, templateQuestions, relatedAnswers: compactRelatedAnswers(request.relatedAnswers), locale: request.locale === "de" ? "de" : "en" };
 }
 
 function compactRelatedAnswers(value: unknown): Partial<Record<StageKey, string>> {
@@ -107,7 +111,7 @@ type ModelReview = Omit<CompletenessReview, "criteria"> & {
   }>;
 };
 
-function normalizeReview(value: unknown, stageKey: StageKey, criteria: readonly string[], answer: string): CompletenessReview | null {
+function normalizeReview(value: unknown, stageKey: StageKey, criteria: readonly string[], answer: string, templateAnswers: readonly TemplateAnswer[]): CompletenessReview | null {
   if (!value || typeof value !== "object") return null;
   const review = value as Partial<ModelReview>;
   if ((review.overall !== "ready" && review.overall !== "needs_work") || typeof review.summary !== "string" || !Array.isArray(review.criteria) || typeof review.suggestedNextStep !== "string") return null;
@@ -115,13 +119,21 @@ function normalizeReview(value: unknown, stageKey: StageKey, criteria: readonly 
   if (review.criteria.length !== criteria.length) return null;
   const normalized = review.criteria.map((assessment) => {
     if (!assessment || !Number.isInteger(assessment.index) || assessment.index < 0 || assessment.index >= criteria.length || !statuses.includes(assessment.status as typeof statuses[number]) || typeof assessment.evidence !== "string" || typeof assessment.improvement !== "string" || typeof assessment.evidenceQuote !== "string" || (assessment.source !== "current_stage" && assessment.source !== "no_direct_evidence")) return null;
+    const directEvidence = explicitCriterionEvidence(stageKey, assessment.index, answer, templateAnswers);
     const quoteIsValid = assessment.source === "current_stage" && quoteExists(answer, assessment.evidenceQuote);
     const forced = deterministicStatus(stageKey, assessment.index, answer);
-    const status = assessment.status === "met" && (!quoteIsValid || forced) ? forced?.status ?? "partial" : forced?.status === "partial" && assessment.status === "met" ? "partial" : assessment.status;
-    const evidence = assessment.status === "met" && !quoteIsValid
+    const status = forced?.status === "partial"
+      ? "partial"
+      : directEvidence
+        ? "met"
+        : assessment.status === "met" && !quoteIsValid
+          ? "partial"
+          : assessment.status;
+    const evidence = directEvidence?.evidence ?? (assessment.status === "met" && !quoteIsValid
       ? "No direct quote from the current stage supports a pass."
-      : forced?.reason ?? assessment.evidence.trim();
-    return { id: criterionId(stageKey, assessment.index), criterion: criteria[assessment.index], status, evidenceQuote: quoteIsValid ? assessment.evidenceQuote.trim() : "", source: quoteIsValid ? "current_stage" : "no_direct_evidence", evidence, improvement: assessment.improvement.trim() };
+      : forced?.reason ?? assessment.evidence.trim());
+    const evidenceQuote = directEvidence?.quote ?? (quoteIsValid ? assessment.evidenceQuote.trim() : "");
+    return { id: criterionId(stageKey, assessment.index), criterion: criteria[assessment.index], status, evidenceQuote, source: evidenceQuote ? "current_stage" : "no_direct_evidence", evidence, improvement: assessment.improvement.trim() };
   });
   if (normalized.some((assessment) => assessment === null) || new Set(review.criteria.map((assessment) => assessment.index)).size !== criteria.length) return null;
   const normalizedCriteria = normalized as CompletenessReview["criteria"];
@@ -215,6 +227,12 @@ export async function POST(request: NextRequest) {
   if (!apiKey) return NextResponse.json({ error: errorMessage(locale, "unconfigured") }, { status: 503 });
 
   const gate = stageGates[payload.stageKey];
+  const templateAnswers = (payload.templateQuestions ?? []).map((question, index) => ({
+    index,
+    question,
+    answer: payload.templateData?.[`question-${index + 1}`] ?? "",
+  })).filter(({ answer }) => Boolean(answer.trim()));
+  const evidence = currentStageEvidence(payload.answer, templateAnswers);
   try {
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -223,7 +241,7 @@ export async function POST(request: NextRequest) {
         model: "gpt-5-mini",
         reasoning: { effort: "minimal" },
         instructions: `You are MVPCompanion's careful stage-gate reviewer. Write in ${locale === "de" ? "German" : "English"}. Assess whether the current stage is sufficiently coherent to proceed, not whether it is validated or certain. Never invent evidence or infer details that are absent. The summary must not claim that an element exists unless a current-criterion result has direct supporting evidence. Evaluate only the supplied gate criteria and return exactly one result for each criterion index. A criterion may be met only if you provide an exact direct quote from CURRENT STAGE ANSWER and set source to current_stage. If no direct quote supports it, use partial or missing and source no_direct_evidence. Earlier-stage context is for contradictions only and must never prove a current criterion. Only list missing information necessary for a supplied criterion. Do not treat work from later stages as missing. Recommendations outside the gate must be marked optional and must not introduce topics prohibited by the stage boundary.`,
-        input: JSON.stringify({ purpose: gate.purpose, expectedOutput: gate.expectedOutput, gateCriteria: gate.criteria.map((criterion, index) => ({ index, criterion })), stageBoundary: gate.boundary, currentStageAnswer: payload.answer.trim(), currentTemplateFields: payload.templateData, earlierStageContextForContradictionsOnly: payload.relatedAnswers }),
+        input: JSON.stringify({ purpose: gate.purpose, expectedOutput: gate.expectedOutput, gateCriteria: gate.criteria.map((criterion, index) => ({ index, criterion })), stageBoundary: gate.boundary, currentStageAnswer: evidence, structuredTemplateAnswers: templateAnswers, earlierStageContextForContradictionsOnly: payload.relatedAnswers }),
         max_output_tokens: 1_200,
         text: { format: { type: "json_schema", name: "completeness_review", strict: true, schema: reviewSchema } },
       }),
@@ -231,7 +249,7 @@ export async function POST(request: NextRequest) {
     if (!response.ok) { console.error("OpenAI completeness review failed.", response.status); return NextResponse.json({ error: errorMessage(locale, "unavailable") }, { status: 502 }); }
     const output = responseText(await response.json());
     if (!output) return NextResponse.json({ error: errorMessage(locale, "unavailable") }, { status: 502 });
-    const review = normalizeReview(JSON.parse(output), payload.stageKey, gate.criteria, payload.answer);
+    const review = normalizeReview(JSON.parse(output), payload.stageKey, gate.criteria, evidence, templateAnswers);
     if (!review) return NextResponse.json({ error: errorMessage(locale, "unavailable") }, { status: 502 });
     const verification = await verifyQuotes(apiKey, locale, review);
     if (!verification) return NextResponse.json({ error: errorMessage(locale, "unavailable") }, { status: 502 });
