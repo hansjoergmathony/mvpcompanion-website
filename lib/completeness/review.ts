@@ -141,9 +141,25 @@ export function reviewOverall(criteria: CompletenessReview["criteria"]): Complet
     : "ready";
 }
 
+function hasActionableImprovement(improvement: string) {
+  const value = improvement.trim().toLocaleLowerCase().replace(/[.!]/g, "");
+  return !["", "none", "none required", "no action required", "no action needed", "not required", "n/a", "na"].includes(value);
+}
+
+function fallbackImprovement(criterion: string) {
+  return `Add a direct current-stage statement that addresses: ${criterion}`;
+}
+
 /** Build the visible result from validated criterion statuses, never free-form AI prose. */
 export function composeReview(review: CompletenessReview, stageKey: StageKey): CompletenessReview {
-  const unresolved = review.criteria.filter((criterion) =>
+  const criteria = review.criteria.map((criterion) => {
+    if (hasActionableImprovement(criterion.improvement)) return criterion;
+    if (criterion.status === "missing" || criterion.status === "partial") {
+      return { ...criterion, improvement: fallbackImprovement(criterion.criterion) };
+    }
+    return { ...criterion, improvement: "" };
+  });
+  const unresolved = criteria.filter((criterion) =>
     criterion.status === "missing" || criterion.status === "partial",
   );
   const missingInformation = unresolved.map((criterion) =>
@@ -154,7 +170,8 @@ export function composeReview(review: CompletenessReview, stageKey: StageKey): C
     : `Complete the remaining current-stage criteria, then continue to the next stage.`;
   return {
     ...review,
-    overall: reviewOverall(review.criteria),
+    criteria,
+    overall: reviewOverall(criteria),
     summary: unresolved.length
       ? `This stage needs clarification in ${unresolved.length} gate ${unresolved.length === 1 ? "criterion" : "criteria"}.`
       : "This stage has direct current-stage evidence for every gate criterion.",
