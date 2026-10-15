@@ -1,0 +1,17 @@
+[
+  { "stage": "idea", "readyMustContain": ["trigger", "provisional user", "assumption", "open question"], "mustNotRequire": ["market validation", "acceptance criteria", "technical risks"] },
+  { "stage": "problem", "readyMustContain": ["solution-independent problem", "workaround", "consequence"], "mustNotRequire": ["feature scope", "implementation"] },
+  { "stage": "user", "readyMustContain": ["primary user", "non-target", "selection rationale"], "mustNotRequire": ["user flow", "architecture"] },
+  { "stage": "value", "readyMustContain": ["outcome", "alternative", "differentiation"], "mustNotRequire": ["data model", "implementation plan"] },
+  { "stage": "product", "readyMustContain": ["central entity", "relationship", "action distinction"], "mustNotRequire": ["screen inventory", "API design"] },
+  { "stage": "context", "readyMustContain": ["state", "entry condition", "transition"], "mustNotRequire": ["requirements", "infrastructure"] },
+  { "stage": "jobs", "readyMustContain": ["user accomplishment", "priority", "secondary job"], "mustNotRequire": ["capability map", "technical design"] },
+  { "stage": "scope", "readyMustContain": ["must", "not in MVP", "exclusion"], "mustNotRequire": ["data schema", "acceptance criteria"] },
+  { "stage": "experience", "readyMustContain": ["first value", "happy path", "error state"], "mustNotRequire": ["database schema", "architecture"] },
+  { "stage": "informationArchitecture", "readyMustContain": ["hierarchy", "navigation", "capability home"], "mustNotRequire": ["technical architecture"] },
+  { "stage": "data", "readyMustContain": ["entity", "relationship", "ownership"], "mustNotRequire": ["database technology"] },
+  { "stage": "requirements", "readyMustContain": ["behaviour", "input/output", "acceptance criteria"], "mustNotRequire": ["code design", "future roadmap"] },
+  { "stage": "learning", "readyMustContain": ["value event", "learning question", "decision threshold"], "mustNotRequire": ["validated results", "production analytics"] },
+  { "stage": "technicalBoundaries", "readyMustContain": ["platform", "risk", "open question"], "mustNotRequire": ["production-scale infrastructure"] },
+  { "stage": "mvpBoundary", "readyMustContain": ["promise", "inclusion", "exclusion"], "mustNotRequire": ["market proof", "finished product"] }
+]

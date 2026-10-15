@@ -3,7 +3,7 @@ import { isAdminRequest } from "@/lib/admin/auth";
 import { consumeAdminAiRequest } from "@/lib/admin/rateLimit";
 import { stageGates } from "@/lib/completeness/stageGates";
 import type { CompletenessReview } from "@/lib/completeness/types";
-import { criterionId, deterministicStatus, quoteExists, reviewOverall } from "@/lib/completeness/review";
+import { composeReview, criterionId, deterministicStatus, quoteExists, reviewOverall } from "@/lib/completeness/review";
 import { isStageKey, type StageKey } from "@/lib/project/types";
 
 const MAX_ANSWER_LENGTH = 8_000;
@@ -235,7 +235,7 @@ export async function POST(request: NextRequest) {
     if (!review) return NextResponse.json({ error: errorMessage(locale, "unavailable") }, { status: 502 });
     const verification = await verifyQuotes(apiKey, locale, review);
     if (!verification) return NextResponse.json({ error: errorMessage(locale, "unavailable") }, { status: 502 });
-    return NextResponse.json({ review: applyQuoteVerification(review, verification) });
+    return NextResponse.json({ review: composeReview(applyQuoteVerification(review, verification), payload.stageKey) });
   } catch (error) {
     console.error("OpenAI completeness review failed.", error);
     return NextResponse.json({ error: errorMessage(locale, "unavailable") }, { status: 502 });
