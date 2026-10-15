@@ -302,6 +302,11 @@ export function CompletenessReviewPanel({
           <div key={criterion.criterion} className="border-l-2 border-border pl-3">
             <p className="text-sm font-medium text-navy">{criterion.criterion} · {criterion.status.replace("_", " ")}</p>
             <p className="mt-1 text-sm leading-relaxed text-muted">{criterion.evidence}</p>
+            {criterion.evidenceQuote ? (
+              <blockquote className="mt-2 border-l-2 border-blue pl-3 text-sm leading-relaxed text-muted">
+                “{criterion.evidenceQuote}”
+              </blockquote>
+            ) : null}
             {criterion.improvement ? <p className="mt-1 text-sm leading-relaxed text-muted">{criterion.improvement}</p> : null}
           </div>
         ))}

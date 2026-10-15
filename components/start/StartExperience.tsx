@@ -412,7 +412,7 @@ export function StartExperience({
       const response = await fetch("/api/completeness-review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stageKey, answer, relatedAnswers: relatedAnswers(stageKey), locale }),
+        body: JSON.stringify({ stageKey, answer, templateData: activeIdea.stages[stageKey].templateData, relatedAnswers: relatedAnswers(stageKey), locale }),
       });
       const payload = await response.json() as { review?: CompletenessReview; error?: string };
       if (!response.ok || !payload.review) throw new Error(payload.error || startContent.aiGenerationError);

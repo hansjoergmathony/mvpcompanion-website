@@ -69,9 +69,9 @@ function parseStageState(value: unknown): StageState {
 
 function parseCompletenessReview(value: unknown): CompletenessReview | null {
   if (!isRecord(value) || (value.overall !== "ready" && value.overall !== "needs_work")) return null;
-  const criteria = Array.isArray(value.criteria) ? value.criteria.flatMap((item) => {
+  const criteria = Array.isArray(value.criteria) ? value.criteria.flatMap((item, index) => {
     if (!isRecord(item) || typeof item.criterion !== "string" || typeof item.evidence !== "string" || typeof item.improvement !== "string" || !["met", "partial", "missing", "not_applicable"].includes(String(item.status))) return [];
-    return [{ criterion: item.criterion, evidence: item.evidence, improvement: item.improvement, status: item.status as CompletenessReview["criteria"][number]["status"] }];
+    return [{ id: readString(item.id) || `legacy-${index + 1}`, criterion: item.criterion, evidenceQuote: readString(item.evidenceQuote), source: item.source === "current_stage" ? "current_stage" as const : "no_direct_evidence" as const, evidence: item.evidence, improvement: item.improvement, status: item.status as CompletenessReview["criteria"][number]["status"] }];
   }) : [];
   return { overall: value.overall, summary: readString(value.summary), criteria, missingInformation: readStringArray(value.missingInformation), contradictions: readStringArray(value.contradictions), suggestedNextStep: readString(value.suggestedNextStep) };
 }
