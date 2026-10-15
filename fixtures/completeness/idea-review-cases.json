@@ -1,0 +1,20 @@
+[
+  {
+    "name": "ready without validation",
+    "answer": "Idea: A guided workspace for founders to turn an uncertain product idea into an MVP specification.\n\nContext and trigger: Teams often begin discussing features before they share a problem, user, or decision record.\n\nProvisional user: First-time founders and small product teams.\n\nExpected outcome: A clearer product definition and visible assumptions before building.\n\nHypotheses: Users will value a canonical staged method; guided prompts will be more useful than a blank document.\n\nOpen questions: Whether founders will complete all stages without facilitation; whether the method also helps non-software products.\n\nEvidence: No user research has been collected yet.",
+    "expectedOverall": "ready",
+    "mustNotRequire": ["market validation", "acceptance criteria", "lifecycle states", "technical risks"]
+  },
+  {
+    "name": "assumptions presented as facts",
+    "answer": "All founders build too much because they do not have a good method. This app will solve that problem for every founder by guiding them through fifteen stages.",
+    "expectedOverall": "needs_work",
+    "mustIdentify": ["assumptions", "uncertainties", "provisional user"]
+  },
+  {
+    "name": "missing idea framing",
+    "answer": "An app with AI and dashboards.",
+    "expectedOverall": "needs_work",
+    "mustIdentify": ["context or trigger", "provisional user", "expected outcome"]
+  }
+]

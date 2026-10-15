@@ -18,12 +18,12 @@ const reviewSchema = {
       items: {
         type: "object",
         properties: {
-          criterion: { type: "string" },
+          index: { type: "integer" },
           status: { type: "string", enum: ["met", "partial", "missing", "not_applicable"] },
           evidence: { type: "string" },
           improvement: { type: "string" },
         },
-        required: ["criterion", "status", "evidence", "improvement"],
+        required: ["index", "status", "evidence", "improvement"],
         additionalProperties: false,
       },
     },
@@ -68,6 +68,29 @@ function responseText(response: unknown): string | null {
   return output?.find((item) => item.type === "message")?.content?.find((item) => item.type === "output_text")?.text ?? null;
 }
 
+type ModelReview = Omit<CompletenessReview, "criteria"> & {
+  criteria: Array<{
+    index: number;
+    status: CompletenessReview["criteria"][number]["status"];
+    evidence: string;
+    improvement: string;
+  }>;
+};
+
+function normalizeReview(value: unknown, criteria: readonly string[]): CompletenessReview | null {
+  if (!value || typeof value !== "object") return null;
+  const review = value as Partial<ModelReview>;
+  if ((review.overall !== "ready" && review.overall !== "needs_work") || typeof review.summary !== "string" || !Array.isArray(review.criteria) || typeof review.suggestedNextStep !== "string") return null;
+  const statuses = ["met", "partial", "missing", "not_applicable"] as const;
+  if (review.criteria.length !== criteria.length) return null;
+  const normalized = review.criteria.map((assessment) => {
+    if (!assessment || !Number.isInteger(assessment.index) || assessment.index < 0 || assessment.index >= criteria.length || !statuses.includes(assessment.status as typeof statuses[number]) || typeof assessment.evidence !== "string" || typeof assessment.improvement !== "string") return null;
+    return { criterion: criteria[assessment.index], status: assessment.status, evidence: assessment.evidence.trim(), improvement: assessment.improvement.trim() };
+  });
+  if (normalized.some((assessment) => assessment === null) || new Set(review.criteria.map((assessment) => assessment.index)).size !== criteria.length) return null;
+  return { overall: review.overall, summary: review.summary.trim(), criteria: normalized as CompletenessReview["criteria"], missingInformation: Array.isArray(review.missingInformation) ? review.missingInformation.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean) : [], contradictions: Array.isArray(review.contradictions) ? review.contradictions.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean) : [], suggestedNextStep: review.suggestedNextStep.trim() };
+}
+
 function errorMessage(locale: "en" | "de", key: "invalid" | "unauthorized" | "rate" | "unavailable" | "unconfigured") {
   const copy = {
     en: { invalid: "Add a stage description before requesting a review.", unauthorized: "AI completeness review is only available in the private pilot.", rate: "Please wait a minute before requesting another review.", unavailable: "AI completeness review is temporarily unavailable.", unconfigured: "AI completeness review is not configured." },
@@ -94,8 +117,8 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         model: "gpt-5-mini",
         reasoning: { effort: "minimal" },
-        instructions: `You are MVPCompanion's careful stage-gate reviewer. Write in ${locale === "de" ? "German" : "English"}. Assess whether the draft is sufficiently coherent to proceed, not whether it is validated or certain. Never invent evidence. Treat claims without supplied support as hypotheses. Evaluate only the supplied gate criteria. Return one result for each gate criterion, using concise and constructive language. Set overall to ready only when no criterion is missing; partial criteria can still be ready if the stage is coherent.`,
-        input: JSON.stringify({ purpose: gate.purpose, expectedOutput: gate.expectedOutput, gateCriteria: gate.criteria, stageAnswer: payload.answer.trim(), earlierStageAnswers: payload.relatedAnswers }),
+        instructions: `You are MVPCompanion's careful stage-gate reviewer. Write in ${locale === "de" ? "German" : "English"}. Assess whether the draft is sufficiently coherent to proceed, not whether it is validated or certain. Never invent evidence. Treat unsupported claims as hypotheses. Evaluate only the supplied gate criteria and return exactly one result for each criterion index. Only list missing information necessary for a supplied criterion. Do not treat work from later stages as missing. Recommendations outside the gate must be explicitly marked optional. Set overall to ready when no criterion is missing; partial criteria can still be ready if the stage is coherent.`,
+        input: JSON.stringify({ purpose: gate.purpose, expectedOutput: gate.expectedOutput, gateCriteria: gate.criteria.map((criterion, index) => ({ index, criterion })), stageBoundary: gate.boundary, stageAnswer: payload.answer.trim(), earlierStageAnswers: payload.relatedAnswers }),
         max_output_tokens: 1_200,
         text: { format: { type: "json_schema", name: "completeness_review", strict: true, schema: reviewSchema } },
       }),
@@ -103,7 +126,9 @@ export async function POST(request: NextRequest) {
     if (!response.ok) { console.error("OpenAI completeness review failed.", response.status); return NextResponse.json({ error: errorMessage(locale, "unavailable") }, { status: 502 }); }
     const output = responseText(await response.json());
     if (!output) return NextResponse.json({ error: errorMessage(locale, "unavailable") }, { status: 502 });
-    return NextResponse.json({ review: JSON.parse(output) as CompletenessReview });
+    const review = normalizeReview(JSON.parse(output), gate.criteria);
+    if (!review) return NextResponse.json({ error: errorMessage(locale, "unavailable") }, { status: 502 });
+    return NextResponse.json({ review });
   } catch (error) {
     console.error("OpenAI completeness review failed.", error);
     return NextResponse.json({ error: errorMessage(locale, "unavailable") }, { status: 502 });
