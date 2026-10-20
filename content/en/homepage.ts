@@ -183,8 +183,8 @@ export const ecosystemContent = {
       name: "Guide",
       role: "Understand",
       description: "Learn the principles and reasoning behind the method.",
-      availability: "Coming soon",
-      available: false,
+      availability: "Available now",
+      available: true,
     },
     {
       name: "Website",

@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
+import { ResourceLibrary, type LibraryResourceView } from "@/components/resources/ResourceLibrary";
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
-import { SectionHeading } from "@/components/ui/SectionHeading";
+import {
+  libraryCategories,
+  libraryResources,
+  resourceHref,
+  type LibraryLocale,
+} from "@/content/library/catalog";
 import { getDictionary, getLocale } from "@/lib/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/i18n/metadata";
 
@@ -17,24 +23,79 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ResourcesPage() {
+  const locale = await getLocale();
   const { ctas, resourcesPage, ui } = await getDictionary();
+  const library = ui.resourcesPage.library;
+  const text = (copy: { en: string; de: string }) => copy[locale as LibraryLocale];
+
+  const categories = libraryCategories.map((category) => ({
+    id: category.id,
+    title: text(category.title),
+    description: text(category.description),
+  }));
+
+  const resources: LibraryResourceView[] = libraryResources.map((resource) => ({
+    id: resource.id,
+    categoryId: resource.categoryId,
+    title: text(resource.title),
+    description: text(resource.description),
+    benefit: text(resource.benefit),
+    kind: resource.kind,
+    action: resource.action,
+    href: resourceHref(resource),
+    filename: resource.filename,
+    formatLabel: resource.format === "pdf" ? "PDF" : "PNG",
+    pages: resource.pages,
+    fillable: resource.fillable === true,
+    featured: resource.featured === true,
+    imageAlt: resource.imageAlt ? text(resource.imageAlt) : undefined,
+    relatedIds: resource.relatedIds ? [...resource.relatedIds] : [],
+  }));
 
   return (
     <main id="content">
       <Section>
-        <SectionHeading
-          eyebrow={resourcesPage.eyebrow}
-          title={resourcesPage.headline}
-          description={resourcesPage.supporting}
+        <div className="max-w-3xl">
+          <p className="mb-4 text-xs font-medium tracking-[0.2em] text-blue uppercase">
+            {resourcesPage.eyebrow}
+          </p>
+          <h1 className="text-3xl leading-[1.15] font-semibold tracking-tight text-balance text-navy md:text-4xl">
+            {resourcesPage.headline}
+          </h1>
+          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted">{resourcesPage.supporting}</p>
+        </div>
+
+        <ResourceLibrary
+          categories={categories}
+          resources={resources}
+          labels={{
+            searchLabel: library.searchLabel,
+            searchPlaceholder: library.searchPlaceholder,
+            allCategories: library.allCategories,
+            featured: library.featured,
+            categoriesLabel: library.categoriesLabel,
+            empty: library.empty,
+            fillable: library.fillable,
+            related: library.related,
+            results: library.results,
+            kinds: library.kinds,
+            actions: library.actions,
+            pagesOne: library.pagesOne,
+            pagesMany: library.pagesMany,
+          }}
         />
-        <article className="mt-10 max-w-3xl">
-          <p className="text-xs font-medium tracking-[0.2em] text-blue uppercase">{ui.resourcesPage.whitePaperEyebrow}</p>
+
+        <p className="mt-16 text-xs font-medium tracking-[0.2em] text-blue uppercase">
+          {ui.resourcesPage.papersEyebrow}
+        </p>
+        <article className="mt-6 max-w-3xl">
+          <p className="text-xs font-medium tracking-[0.2em] text-blue uppercase">
+            {ui.resourcesPage.whitePaperEyebrow}
+          </p>
           <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy">
             {resourcesPage.whitePaper.title}
           </h2>
-          <p className="mt-3 text-base leading-relaxed text-muted">
-            {resourcesPage.whitePaper.positioning}
-          </p>
+          <p className="mt-3 text-base leading-relaxed text-muted">{resourcesPage.whitePaper.positioning}</p>
           <div className="mt-6">
             <Button href="/resources/from-idea-to-mvp" variant="secondary">
               {ui.resourcesPage.readWhitePaper}
@@ -42,13 +103,13 @@ export default async function ResourcesPage() {
           </div>
         </article>
         <article className="mt-8 max-w-3xl border-t border-border pt-8">
-          <p className="text-xs font-medium tracking-[0.2em] text-blue uppercase">{ui.resourcesPage.methodPaperEyebrow}</p>
+          <p className="text-xs font-medium tracking-[0.2em] text-blue uppercase">
+            {ui.resourcesPage.methodPaperEyebrow}
+          </p>
           <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy">
             {resourcesPage.methodPaper.title}
           </h2>
-          <p className="mt-3 text-base leading-relaxed text-muted">
-            {resourcesPage.methodPaper.positioning}
-          </p>
+          <p className="mt-3 text-base leading-relaxed text-muted">{resourcesPage.methodPaper.positioning}</p>
           <div className="mt-6">
             <Button href="/resources/method-paper" variant="secondary">
               {ui.resourcesPage.readMethodPaper}
@@ -71,7 +132,8 @@ export default async function ResourcesPage() {
             </Button>
           </div>
         </article>
-        <p className="mt-14 text-xs font-medium tracking-[0.2em] text-blue uppercase">
+
+        <p className="mt-16 text-xs font-medium tracking-[0.2em] text-blue uppercase">
           {resourcesPage.methodLabel}
         </p>
         <ol className="mt-6 grid gap-4 md:grid-cols-3">

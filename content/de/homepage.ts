@@ -180,8 +180,8 @@ export const ecosystemContent = {
       name: "Leitfaden",
       role: "Verstehen",
       description: "Lernen Sie die Prinzipien und die Begründung der Methode.",
-      availability: "Demnächst",
-      available: false,
+      availability: "Jetzt verfügbar",
+      available: true,
     },
     {
       name: "Website",

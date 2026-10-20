@@ -47,8 +47,9 @@ export const contactPage = {
 export const resourcesPage = {
   title: "Resources",
   eyebrow: "Resources",
-  headline: ecosystemContent.headline,
-  supporting: ecosystemContent.introduction,
+  headline: "Resources to turn your idea into an MVP",
+  supporting:
+    "Explore practical guides, worksheets, checklists, worked examples and AI prompts to help you clarify your idea, challenge assumptions and define a coherent minimum viable product.",
   methodLabel: ecosystemContent.methodLabel,
   parts: ecosystemContent.parts,
   whitePaper,

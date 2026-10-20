@@ -47,8 +47,9 @@ export const contactPage = {
 export const resourcesPage = {
   title: "Ressourcen",
   eyebrow: "Ressourcen",
-  headline: ecosystemContent.headline,
-  supporting: ecosystemContent.introduction,
+  headline: "Ressourcen, um aus Ihrer Idee ein MVP zu machen",
+  supporting:
+    "Entdecken Sie Leitfäden, Arbeitsblätter, Checklisten, Beispiele und KI-Prompts, um Ihre Idee zu klären, Annahmen herauszufordern und ein stimmiges Minimum Viable Product zu definieren.",
   methodLabel: ecosystemContent.methodLabel,
   parts: ecosystemContent.parts,
   whitePaper,
