@@ -27,42 +27,7 @@ export default async function ResourcesPage() {
           title={resourcesPage.headline}
           description={resourcesPage.supporting}
         />
-        <article className="mt-10 rounded-2xl border border-border bg-ice px-6 py-8 md:px-8 md:py-10">
-          <p className="text-xs font-medium tracking-[0.2em] text-blue uppercase">
-            {ui.resourcesPage.primarySample}
-          </p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy">
-            {resourcesPage.bookSample.title}
-          </h2>
-          <p className="mt-4 max-w-3xl text-lg leading-relaxed text-muted">
-            {resourcesPage.bookSample.supporting}
-          </p>
-          <ol className="mt-7 grid gap-4 md:grid-cols-2">
-            <li className="rounded-xl border border-border bg-card px-5 py-5">
-              <p className="text-xs font-medium tracking-[0.18em] text-blue uppercase">
-                {resourcesPage.bookSample.preface.label}
-              </p>
-              <h3 className="mt-3 text-xl font-semibold tracking-tight text-navy">
-                {resourcesPage.bookSample.preface.title}
-              </h3>
-              <p className="mt-2 text-base leading-relaxed text-muted">
-                {resourcesPage.bookSample.preface.subtitle}
-              </p>
-            </li>
-            <li className="rounded-xl border border-border bg-card px-5 py-5">
-              <p className="text-xs font-medium tracking-[0.18em] text-blue uppercase">
-                {resourcesPage.bookSample.introduction.label}
-              </p>
-              <h3 className="mt-3 text-xl font-semibold tracking-tight text-navy">
-                {resourcesPage.bookSample.introduction.title}
-              </h3>
-            </li>
-          </ol>
-          <div className="mt-8">
-            <Button href="/book/sample">{ui.resourcesPage.readSample}</Button>
-          </div>
-        </article>
-        <article className="mt-8 max-w-3xl border-t border-border pt-8">
+        <article className="mt-10 max-w-3xl">
           <p className="text-xs font-medium tracking-[0.2em] text-blue uppercase">{ui.resourcesPage.whitePaperEyebrow}</p>
           <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy">
             {resourcesPage.whitePaper.title}

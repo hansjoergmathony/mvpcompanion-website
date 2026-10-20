@@ -231,8 +231,6 @@ export const ui = {
     metaTitle: "MVPCompanion Buchauszug",
   },
   resourcesPage: {
-    primarySample: "Zentraler Buchauszug",
-    readSample: "Auszug lesen",
     whitePaperEyebrow: "Begleitendes Whitepaper",
     readWhitePaper: "Whitepaper lesen",
     methodPaperEyebrow: "MVPCompanion Method Paper",
