@@ -218,17 +218,15 @@ export const ui = {
     malformed: "This MVPCompanion import file is malformed.",
   },
   bookPage: {
-    eyebrow: "Book",
-    primaryReading: "Primary reading",
-    experienceHeadline: "Experience how MVPCompanion thinks.",
-    experienceBody: "Read the original Preface and Chapter 0 as they appear in the book.",
-    readSample: "Read the Sample",
+    eyebrow: "Guide",
+    documentTitle: "MVPCompanion — The Essential Guide",
+    metaTitle: "MVPCompanion — The Essential Guide",
+    metaDescription: "The essential guide to the MVPCompanion method.",
     companionEyebrow: "Companion white paper",
     companionHeadline: "Explore the Method",
     companionBody:
       "Prefer the concise overview? Read the companion white paper for an introduction to MVPCompanion and its journey from idea to MVP.",
     readPaper: "Read the White Paper",
-    metaTitle: "MVPCompanion Book Sample",
   },
   resourcesPage: {
     whitePaperEyebrow: "MVPCompanion White Paper",

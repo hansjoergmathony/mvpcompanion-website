@@ -218,17 +218,15 @@ export const ui = {
     malformed: "Diese MVPCompanion-Importdatei ist fehlerhaft.",
   },
   bookPage: {
-    eyebrow: "Buch",
-    primaryReading: "Zentrale Lektüre",
-    experienceHeadline: "Erleben, wie MVPCompanion denkt.",
-    experienceBody: "Lesen Sie Vorwort und Kapitel 0 so, wie sie im Buch stehen.",
-    readSample: "Auszug lesen",
+    eyebrow: "Leitfaden",
+    documentTitle: "MVPCompanion — The Essential Guide · English PDF",
+    metaTitle: "MVPCompanion — The Essential Guide",
+    metaDescription: "Der wesentliche Leitfaden zur MVPCompanion-Methode.",
     companionEyebrow: "Begleitendes Whitepaper",
     companionHeadline: "Die Methode entdecken",
     companionBody:
       "Lieber der kompakte Überblick? Lesen Sie das begleitende Whitepaper als Einführung in MVPCompanion und den Weg von der Idee zum MVP.",
     readPaper: "Whitepaper lesen",
-    metaTitle: "MVPCompanion Buchauszug",
   },
   resourcesPage: {
     whitePaperEyebrow: "Begleitendes Whitepaper",

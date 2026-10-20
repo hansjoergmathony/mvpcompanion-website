@@ -1,3 +1,8 @@
+export const essentialGuide = {
+  title: "MVPCompanion — The Essential Guide",
+  href: "/resources/MVPCompanion_Essential_Guide.pdf",
+} as const;
+
 export const bookSample = {
   title: "Buchauszug lesen",
   supporting:

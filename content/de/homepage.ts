@@ -177,7 +177,7 @@ export const ecosystemContent = {
     "Der Unterschied ist nicht ein weiterer Fragenkatalog. Es ist ein interaktiver Prozess, der auf Ihr Denken reagiert.",
   parts: [
     {
-      name: "Buch",
+      name: "Leitfaden",
       role: "Verstehen",
       description: "Lernen Sie die Prinzipien und die Begründung der Methode.",
       availability: "Demnächst",
@@ -340,5 +340,5 @@ export const finalCtaContent = {
 } as const;
 
 export const footerContent = {
-  ecosystem: ["Methode", "Buch", "Website", "App"],
+  ecosystem: ["Methode", "Leitfaden", "Website", "App"],
 } as const;

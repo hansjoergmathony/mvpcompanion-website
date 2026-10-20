@@ -180,7 +180,7 @@ export const ecosystemContent = {
     "The difference is not another set of questions. It is an interactive process that responds to your thinking.",
   parts: [
     {
-      name: "Book",
+      name: "Guide",
       role: "Understand",
       description: "Learn the principles and reasoning behind the method.",
       availability: "Coming soon",
@@ -343,5 +343,5 @@ export const finalCtaContent = {
 } as const;
 
 export const footerContent = {
-  ecosystem: ["Method", "Book", "Website", "App"],
+  ecosystem: ["Method", "Guide", "Website", "App"],
 } as const;

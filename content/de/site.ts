@@ -11,7 +11,7 @@ export const site = {
 
 export const navigation = [
   { label: "Methode", href: "/process" },
-  { label: "Buch", href: "/book" },
+  { label: "Leitfaden", href: "/book" },
   { label: "Ressourcen", href: "/resources" },
   { label: "Kontakt", href: "/contact" },
 ] as const;
