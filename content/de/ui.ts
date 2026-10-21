@@ -7,6 +7,7 @@ export const ui = {
     mobileNav: "Mobil",
     footerNav: "Fußzeile",
     legalNav: "Rechtliches",
+    submenu: "Menü {label} öffnen",
   },
   notFound: {
     eyebrow: "404",
@@ -279,6 +280,15 @@ export const ui = {
       pagesOne: "1 Seite",
       pagesMany: "{count} Seiten",
     },
+  },
+  faqPage: {
+    eyebrow: "FAQ",
+    intro:
+      "Alles, was Sie wissen müssen, um aus Ihrer App-Idee ein klares, fokussiertes und umsetzbares MVP zu machen.",
+    read: "FAQ lesen",
+    metaTitle: "FAQ — MVPCompanion",
+    metaDescription:
+      "MVPCompanion hilft Ihnen, aus einer App-Idee eine strukturierte MVP-Spezifikation zu machen.",
   },
   bookSamplePage: {
     eyebrow: "Buchauszug",

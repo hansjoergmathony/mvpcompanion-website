@@ -12,7 +12,11 @@ export const site = {
 export const navigation = [
   { label: "Methode", href: "/process" },
   { label: "Leitfaden", href: "/book" },
-  { label: "Ressourcen", href: "/resources" },
+  {
+    label: "Ressourcen",
+    href: "/resources",
+    children: [{ label: "FAQ", href: "/resources/faq" }],
+  },
   { label: "Kontakt", href: "/contact" },
 ] as const;
 
@@ -27,6 +31,7 @@ export const sitemapPaths = [
   "/book",
   "/book/sample",
   "/resources",
+  "/resources/faq",
   "/resources/from-idea-to-mvp",
   "/resources/method-paper",
   "/resources/15-stage-process",

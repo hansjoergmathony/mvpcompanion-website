@@ -7,12 +7,14 @@ import { PrimaryNav } from "@/components/layout/PrimaryNav";
 type NavItem = {
   label: string;
   href: string;
+  children?: readonly { label: string; href: string }[];
 };
 
 type MobileMenuProps = {
   items: readonly NavItem[];
   menuLabel: string;
   navLabel: string;
+  submenuLabel: string;
   languageLabel: string;
 };
 
@@ -20,6 +22,7 @@ export function MobileMenu({
   items,
   menuLabel,
   navLabel,
+  submenuLabel,
   languageLabel,
 }: MobileMenuProps) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
@@ -45,6 +48,7 @@ export function MobileMenu({
           variant="mobile"
           items={items}
           label={navLabel}
+          submenuLabel={submenuLabel}
           onNavigate={() => {
             if (detailsRef.current) {
               detailsRef.current.open = false;

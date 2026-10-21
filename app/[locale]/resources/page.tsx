@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ResourceLibrary, type LibraryResourceView } from "@/components/resources/ResourceLibrary";
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
+import { loadFaq } from "@/lib/faq";
 import {
   libraryCategories,
   libraryResources,
@@ -25,6 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ResourcesPage() {
   const locale = await getLocale();
   const { ctas, resourcesPage, ui } = await getDictionary();
+  const faq = loadFaq(locale);
   const library = ui.resourcesPage.library;
   const text = (copy: { en: string; de: string }) => copy[locale as LibraryLocale];
 
@@ -64,6 +66,21 @@ export default async function ResourcesPage() {
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted">{resourcesPage.supporting}</p>
         </div>
+
+        <article className="mt-10 flex flex-col gap-6 rounded-2xl border border-border bg-ice px-6 py-8 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-medium tracking-[0.2em] text-blue uppercase">
+              {ui.faqPage.eyebrow}
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy">{faq.title}</h2>
+            <p className="mt-3 text-base leading-relaxed text-muted">{ui.faqPage.intro}</p>
+          </div>
+          <div className="shrink-0">
+            <Button href="/resources/faq" variant="secondary">
+              {ui.faqPage.read}
+            </Button>
+          </div>
+        </article>
 
         <ResourceLibrary
           categories={categories}

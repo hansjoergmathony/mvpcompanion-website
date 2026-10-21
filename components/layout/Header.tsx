@@ -26,6 +26,7 @@ export async function Header() {
             variant="desktop"
             items={navigation}
             label={ui.chrome.primaryNav}
+            submenuLabel={ui.chrome.submenu}
           />
         </div>
 
@@ -36,6 +37,7 @@ export async function Header() {
             items={navigation}
             menuLabel={ui.chrome.menu}
             navLabel={ui.chrome.mobileNav}
+            submenuLabel={ui.chrome.submenu}
             languageLabel={ui.chrome.language}
           />
         </div>
