@@ -333,6 +333,21 @@ export const ui = {
     metaDescription:
       "Ein Prozessüberblick über die fünfzehn Stufen der MVPCompanion-Methode, von der Idee zur MVP-Grenze.",
   },
+  cursorArticlePage: {
+    eyebrow: "Artikel",
+    languageNote: "Dieser Artikel ist auf Englisch verfügbar.",
+    downloadPdf: "Artikel als PDF herunterladen",
+    backToResources: "Ressourcen",
+    contents: "Auf dieser Seite",
+    related: "Weiterführende Ressourcen",
+    read: "Artikel lesen",
+    metaTitle: "From MVP Specification to Working Code with Cursor",
+    metaDescription:
+      "Erfahren Sie, wie eine freigegebene MVP-Spezifikation mit Cursor durch strukturierte Planung, schrittweise Umsetzung, Akzeptanzkriterien und systematische Prüfung zu funktionierender Software wird.",
+    ogTitle: "From MVP Specification to Working Code with Cursor",
+    ogDescription:
+      "Ein praktischer Leitfaden, um eine MVP-Spezifikation mit Cursor durch disziplinierte Umsetzung und Prüfung in funktionierenden Code zu überführen.",
+  },
   processPage: {
     also: "Siehe auch den",
     homepageLink: "Methodenabschnitt auf der Startseite",

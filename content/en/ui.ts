@@ -333,6 +333,21 @@ export const ui = {
     metaDescription:
       "A process overview of the fifteen stages in the MVPCompanion method, from idea to MVP boundary.",
   },
+  cursorArticlePage: {
+    eyebrow: "Article",
+    languageNote: "",
+    downloadPdf: "Download the article as PDF",
+    backToResources: "Resources",
+    contents: "On this page",
+    related: "Related resources",
+    read: "Read the article",
+    metaTitle: "From MVP Specification to Working Code with Cursor",
+    metaDescription:
+      "Learn how to turn an approved MVP specification into working software with Cursor through structured planning, incremental implementation, acceptance criteria, and systematic testing.",
+    ogTitle: "From MVP Specification to Working Code with Cursor",
+    ogDescription:
+      "A practical guide to translating an MVP specification into working code with Cursor through disciplined implementation and verification.",
+  },
   processPage: {
     also: "See also the",
     homepageLink: "method section on the homepage",

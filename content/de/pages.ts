@@ -1,5 +1,5 @@
 import { audienceContent, ecosystemContent } from "./homepage";
-import { methodPaper, processPaper, whitePaper } from "./resources";
+import { cursorArticle, methodPaper, processPaper, whitePaper } from "./resources";
 import { site } from "./site";
 
 export const aboutPage = {
@@ -55,4 +55,5 @@ export const resourcesPage = {
   whitePaper,
   methodPaper,
   processPaper,
+  cursorArticle,
 } as const;

@@ -35,6 +35,7 @@ export const sitemapPaths = [
   "/resources/from-idea-to-mvp",
   "/resources/method-paper",
   "/resources/15-stage-process",
+  "/resources/from-mvp-specification-to-working-code-with-cursor",
   "/contact",
   "/impressum",
   "/datenschutz",

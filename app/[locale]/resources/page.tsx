@@ -102,6 +102,32 @@ export default async function ResourcesPage() {
           }}
         />
 
+        <article className="mt-16 flex flex-col gap-6 rounded-2xl border border-border bg-ice px-6 py-8 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-medium tracking-[0.2em] text-blue uppercase">
+              {ui.cursorArticlePage.eyebrow}
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy">
+              {resourcesPage.cursorArticle.title}
+            </h2>
+            <p className="mt-3 text-base leading-relaxed text-muted">
+              {resourcesPage.cursorArticle.positioning}
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-col items-start gap-3">
+            <Button href={resourcesPage.cursorArticle.href} variant="secondary">
+              {ui.cursorArticlePage.read}
+            </Button>
+            <a
+              href={resourcesPage.cursorArticle.pdfHref}
+              download
+              className="text-sm font-medium text-blue underline-offset-4 hover:underline"
+            >
+              {ui.cursorArticlePage.downloadPdf}
+            </a>
+          </div>
+        </article>
+
         <p className="mt-16 text-xs font-medium tracking-[0.2em] text-blue uppercase">
           {ui.resourcesPage.papersEyebrow}
         </p>

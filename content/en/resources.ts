@@ -46,3 +46,13 @@ export const processPaper = {
     "A practical process paper for progressively transforming an uncertain app idea into a coherent MVP definition.",
   href: "/resources/MVPCompanion_Process_Paper.pdf",
 } as const;
+
+export const cursorArticle = {
+  title: "From MVP Specification to Working Code with Cursor",
+  subtitle:
+    "A practical workflow for turning an approved product definition into software you can trust",
+  positioning:
+    "A practical workflow for turning an approved product definition into software you can trust.",
+  href: "/resources/from-mvp-specification-to-working-code-with-cursor",
+  pdfHref: "/resources/From_MVP_Specification_to_Working_Code_with_Cursor.pdf",
+} as const;

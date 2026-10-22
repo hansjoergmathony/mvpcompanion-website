@@ -15,7 +15,14 @@ import {
 } from "./homepage";
 import { aboutPage, contactPage, processPage, resourcesPage, templatesPage } from "./pages";
 import { processPhases, processStages } from "./process";
-import { bookSample, essentialGuide, methodPaper, processPaper, whitePaper } from "./resources";
+import {
+  bookSample,
+  cursorArticle,
+  essentialGuide,
+  methodPaper,
+  processPaper,
+  whitePaper,
+} from "./resources";
 import { appEntry, ctas, legalNavigation, navigation, site } from "./site";
 import { priorStageLabel, stageFocusByNumber, startContent } from "./start";
 import { ui } from "./ui";
@@ -53,6 +60,7 @@ export const dictionary = {
   whitePaper,
   methodPaper,
   processPaper,
+  cursorArticle,
   legalOperator,
   publicContactEmail,
   impressumPage,
